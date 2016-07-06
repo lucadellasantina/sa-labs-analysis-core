@@ -1,0 +1,6 @@
+[submodule "lib/appbox"]
+	path = lib/appbox
+	url = https://github.com/cafarm/appbox.git
+[submodule "lib/matlab-tree"]
+	path = lib/matlab-tree
+	url = https://github.com/raacampbell/matlab-tree.git
