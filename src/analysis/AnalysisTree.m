@@ -188,7 +188,7 @@ classdef AnalysisTree < tree
             className = nodeData.class;
         end
         
-        function obj = percolateUp(obj, nodeIDs, varargin)%DT-store values in leaves on the parent node
+        function obj = percolateUp(obj, nodeIDs, varargin)
             if length(varargin) == 2 && iscell(varargin{1}) && iscell(varargin{2}) %specified as 2 long lists instead
                 inNames = varargin{1};
                 outNames = varargin{2};
@@ -254,10 +254,6 @@ classdef AnalysisTree < tree
             end
             
         end
-%         function obj = set(obj, ID, content)
-%             %% SET  Set the content of given node ID and return the modifed tree.
-%             obj.Node{ID} = set@tree(obj,ID,content);
-%         end
         
     end
     

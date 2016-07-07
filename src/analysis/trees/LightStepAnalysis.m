@@ -2,7 +2,6 @@ classdef LightStepAnalysis < AnalysisTree
     properties
         StartTime = 0;
         EndTime = 0;
-        DataSetName = '';
     end
     
     methods
@@ -15,16 +14,14 @@ classdef LightStepAnalysis < AnalysisTree
             else
                 params.ampModeParam = 'amp2Mode';
             end
-            obj.DataSetName = dataSetName;
+            
             nameStr = [cellData.savedFileName ': ' dataSetName ': LightStepAnalysis'];
             obj = obj.setName(nameStr);
             dataSet = cellData.savedDataSets(dataSetName);
             obj = obj.copyAnalysisParams(params);
             obj = obj.copyParamsFromSampleEpoch(cellData, dataSet, ...
-                {'RstarIntensity', params.ampModeParam, 'spotSize', 'offsetX', 'offsetY'});%DT:This shouldn't have a parameter for building cell tree below (is this true?).
-            obj = obj.buildCellTree(1, cellData, dataSet, {'ampHoldSignal','RstarMean'});
-            %obj = obj.buildCellTree(1, cellData, dataSet, {'RstarMean'});
-            %obj = obj.buildCellTree(1, cellData, dataSet, {'pulseAmplitude'});
+                {'RstarMean', 'RstarIntensity', params.ampModeParam, 'amplifierMode', 'spotSize', 'offsetX', 'offsetY'}); %TODO: fix amplifier mode part for 2 amp experiments
+            obj = obj.buildCellTree(1, cellData, dataSet, {'RstarMean'});
         end
         
         function obj = doAnalysis(obj, cellData)
@@ -35,38 +32,27 @@ classdef LightStepAnalysis < AnalysisTree
             for i=1:L %for each leaf node
                 curNode = obj.get(leafIDs(i));
                 if strcmp(rootData.(rootData.ampModeParam), 'Cell attached')
-                    outputStruct = getEpochResponses_CA_PAL(cellData, curNode.epochID, ...
+                    outputStruct = getEpochResponses_CA(cellData, curNode.epochID, ...
                         'DeviceName', rootData.deviceName,'StartTime', obj.StartTime, 'EndTime', obj.EndTime);
-%                     outputStruct = getEpochResponses_CA(cellData, curNode.epochID, ...
-%                         'DeviceName', rootData.deviceName,'StartTime', obj.StartTime, 'EndTime', obj.EndTime);
-                    outputStruct = getEpochResponseStats(outputStruct);
-                    curNode = mergeIntoNode(curNode, outputStruct);
-                else %whole cell
-                    outputStruct = getEpochResponses_WC_PAL(cellData, curNode.epochID, ...
-                        'DeviceName', rootData.deviceName,'StartTime', obj.StartTime,...
-                        'EndTime', obj.EndTime, 'DataSetName',obj.DataSetName);
-                    outputStruct = getEpochResponseStats(outputStruct);
-                    curNode = mergeIntoNode(curNode, outputStruct);
+                elseif strcmp(rootData.amplifierMode, 'IClamp')
+                    %spike data?
+                    spCount = cellData.getPSTH(curNode.epochID, [], rootData.deviceName);
+                    if sum(spCount) > 0 %has spikes
+                        outputStruct = getEpochResponses_CA(cellData, curNode.epochID, ...
+                        'DeviceName', rootData.deviceName,'StartTime', obj.StartTime, 'EndTime', obj.EndTime);
+                    else
+                        outputStruct = getEpochResponses_WC(cellData, curNode.epochID, ...
+                        'DeviceName', rootData.deviceName,'StartTime', obj.StartTime, 'EndTime', obj.EndTime);
+                    end                                        
+                else %whole cell, Vclamp
+                    outputStruct = getEpochResponses_WC(cellData, curNode.epochID, ...
+                        'DeviceName', rootData.deviceName,'StartTime', obj.StartTime, 'EndTime', obj.EndTime);
                 end
-                
+                outputStruct = getEpochResponseStats(outputStruct);
+                curNode = mergeIntoNode(curNode, outputStruct);
                 obj = obj.set(leafIDs(i), curNode);
             end
-            %% DT - copied from SpotsMultiSizeAnalysis
-            %obj = obj.percolateUp(leafIDs, 'splitValue', 'pulseAmplitude');
-            obj = obj.percolateUp(leafIDs, 'splitValue', 'RstarMean');
-            [byEpochParamList, singleValParamList, collectedParamList] = getParameterListsByType(curNode);
-            %fnames = fnames{1};
-            obj = obj.percolateUp(leafIDs, byEpochParamList, byEpochParamList);
-            obj = obj.percolateUp(leafIDs, singleValParamList, singleValParamList);
-            obj = obj.percolateUp(leafIDs, collectedParamList, collectedParamList);
-            rootData = obj.get(1);
-            rootData.byEpochParamList = byEpochParamList;
-            rootData.singleValParamList = singleValParamList;
-            rootData.collectedParamList = collectedParamList;
-            %rootData.stimParameterList = {'pulseAmplitude'};
-            rootData.stimParameterList = {'RstarMean'};
-            obj = obj.set(1, rootData);
-            %% DT-end
+            
         end
         
     end
@@ -89,7 +75,7 @@ classdef LightStepAnalysis < AnalysisTree
             %title(['ON latency: ',num2str(node.get(2).meanONlatency),' ste: ',num2str(node.get(2).steONlatency)]);
         end
         
-        function LH = plotEpochData(node, cellData, device, epochIndex)
+        function plotEpochData(node, cellData, device, epochIndex)
             nodeData = node.get(1);
             cellData.epochs(nodeData.epochID(epochIndex)).plotData(device);
             title(['Epoch # ' num2str(nodeData.epochID(epochIndex)) ': ' num2str(epochIndex) ' of ' num2str(length(nodeData.epochID))]);
@@ -108,7 +94,7 @@ classdef LightStepAnalysis < AnalysisTree
             
             ONendTime = cellData.epochs(nodeData.epochID(epochIndex)).get('stimTime')*1E-3; %s
             ONstartTime = 0;
-            if isfield(nodeData, 'ONSETlatency') && exist('data','var')
+            if isfield(nodeData, 'ONSETlatency')
                 %draw lines here
                 hold on
                 firingStart = node.get(1).ONSETlatency.value(epochIndex)+ONstartTime;
@@ -121,7 +107,7 @@ classdef LightStepAnalysis < AnalysisTree
                 plot([burstBound burstBound], [upperLim lowerLim], 'LineStyle','--');
                 hold off
             end;
-            if isfield(nodeData, 'OFFSETlatency') && exist('data','var')
+            if isfield(nodeData, 'OFFSETlatency')
                 %draw lines here
                 hold on
                 firingStart = node.get(1).OFFSETlatency.value(epochIndex)+ONendTime;
@@ -134,7 +120,7 @@ classdef LightStepAnalysis < AnalysisTree
                 plot([burstBound burstBound], [upperLim lowerLim], 'LineStyle','--');
                 hold off
             end
-            LH = findobj(gca,'type','line');
+            
         end
         
         
