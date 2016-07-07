@@ -1,4 +1,7 @@
 function cell = symphony2Mapper(fname)
+   
+    cell = CellData();
+    cell.attributes = containers.Map();
     
     % experiement
     %   |__devices
@@ -6,10 +9,6 @@ function cell = symphony2Mapper(fname)
     %       |_epochGroup-uuid 
     %       |_epochGroup-uuid 
     
-    cell = CellData();
-    cell.attributes = containers.Map();
-    
-
     info = h5info(fname);
     epochGroups = arrayfun(@(g) g.Groups(1), info.Groups(1).Groups(2));
     epochs = getEpochsData(fname, epochGroups(1), cell);
@@ -20,17 +19,14 @@ function cell = symphony2Mapper(fname)
 end
 
 function epochsData = getEpochsData(fname, epochGroup, obj)
-
     % epochGroup-uuid 
     %   |_epochBlocks (1)
     %       |_<protocol_class>-uuid (1)
     %           |_epochs (1)
     %           |   |_epoch-uuid (1)
-    %           |      |_background (1)
-    %           |      |_protocolParameters (2)
-    %           |      |_responses (3)
-    %           |        |_<device>-uuid (1)
-    %           |            |_data (1)
+    %                 |_background (1)
+    %                 |_protocolParameters (2)
+    %                 |_responses   
     %           |_protocolParameters(2)
     %            
     parameters = epochGroup.Groups(1).Groups(1).Groups(2);
