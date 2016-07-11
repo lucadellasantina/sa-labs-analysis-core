@@ -34,7 +34,7 @@ classdef EpochData < handle
                 ax = gca;
             end
             if nargin < 2
-                streamName = 'Amplifier_Ch1';
+                streamName = AnalysisConstant.AMP_CH_ONE;
             end
             [data, xvals, units] = obj.getData(streamName);
             if ~isempty(data)
@@ -67,16 +67,16 @@ classdef EpochData < handle
         
         function detectSpikes(obj, params, streamName)
             if nargin < 3
-                streamName = 'Amplifier_Ch1';
+                streamName = AnalysisConstant.AMP_CH_ONE;
             end
             data = obj.getData(streamName);
             
             cellAttached = false;
-            if strcmp(streamName, 'Amplifier_Ch1')
+            if strcmp(streamName, AnalysisConstant.AMP_CH_ONE)
                 if strcmp(obj.get('ampMode'), 'Cell attached')
                     cellAttached = true;
                 end
-            elseif strcmp(streamName, 'Amplifier_Ch2')
+            elseif strcmp(streamName, AnalysisConstant.AMP_CH_TWO)
                 if strcmp(obj.get('amp2Mode'), 'Cell attached')
                     cellAttached = true;
                 end
@@ -96,7 +96,7 @@ classdef EpochData < handle
                 end
                 
                 
-                if strcmp(streamName, 'Amplifier_Ch1')
+                if strcmp(streamName, AnalysisConstant.AMP_CH_ONE)
                     obj.attributes('spikes_ch1') = sp;
                 else
                     obj.attributes('spikes_ch2') = sp;
@@ -106,12 +106,12 @@ classdef EpochData < handle
         
         function [spikeTimes, timeAxis] = getSpikes(obj, streamName)
             if nargin < 2
-                streamName = 'Amplifier_Ch1';
+                streamName = AnalysisConstant.AMP_CH_ONE;
             end
             spikeTimes = nan;
-            if strcmp(streamName, 'Amplifier_Ch1')
+            if strcmp(streamName, AnalysisConstant.AMP_CH_ONE)
                 spikeTimes = obj.get('spikes_ch1');
-            elseif strcmp(streamName, 'Amplifier_Ch2')
+            elseif strcmp(streamName, AnalysisConstant.AMP_CH_TWO)
                 spikeTimes = obj.get('spikes_ch2');
             end
             
@@ -127,7 +127,7 @@ classdef EpochData < handle
         function [data, xvals, units] = getData(obj, streamName)
             global RAW_DATA_FOLDER;
             if nargin < 2
-                streamName = 'Amplifier_Ch1';
+                streamName = AnalysisConstant.AMP_CH_ONE;
             end
             if ~obj.dataLinks.isKey(streamName)
                 %disp(['Error: no data found for ' streamName]);
@@ -137,7 +137,7 @@ classdef EpochData < handle
             else
                 temp = h5read(fullfile(RAW_DATA_FOLDER, [obj.parentCell.savedFileName '.h5']),obj.dataLinks(streamName));
                 data = temp.quantity;
-                units = deblank(temp.unit(:,1)');
+                units = deblank(temp.units(:,1)');
                 sampleRate = obj.get('sampleRate');
                 %temp hack
                 if ischar(obj.get('preTime'))

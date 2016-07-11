@@ -92,9 +92,9 @@ classdef TreeBrowserGUI < handle
             loc = strfind(s, ':');
             rootName = s(loc+1:end);
             if isfield(obj.analysisTree.get(1), 'device')
-                if strcmp(obj.analysisTree.get(1).device, 'Amplifier_Ch1')
+                if strcmp(obj.analysisTree.get(1).device, AnalysisConstant.AMP_CH_ONE)
                     rootName = [rootName '-Ch1'];
-                elseif strcmp(obj.analysisTree.get(1).device, 'Amplifier_Ch2')
+                elseif strcmp(obj.analysisTree.get(1).device, AnalysisConstant.AMP_CH_TWO)
                     rootName = [rootName '-Ch2'];
                 end
             end
@@ -972,7 +972,7 @@ classdef TreeBrowserGUI < handle
             nodeData = curNode.get(1);
             cellData.epochs(nodeData.epochID(epochIndex)).plotData(device);
             title(['Epoch # ' num2str(nodeData.epochID(epochIndex)) ': ' num2str(epochIndex) ' of ' num2str(length(nodeData.epochID))]);
-            if strcmp(device, 'Amplifier_Ch1')
+            if strcmp(device, AnalysisConstant.AMP_CH_ONE)
                 spikesField = 'spikes_ch1';
             else
                 spikesField = 'spikes_ch2';

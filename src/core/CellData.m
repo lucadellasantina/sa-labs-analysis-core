@@ -163,7 +163,7 @@ classdef CellData < handle
         
         function [dataMean, xvals, dataStd, units] = getMeanData(obj, epochInd, streamName)
             if nargin < 3
-                streamName = 'Amplifier_Ch1';
+                streamName = AnalysisConstant.AMP_CH_ONE;
             end
             L = length(epochInd);
             dataPoints = length(obj.epochs(epochInd(1)).getData(streamName));
@@ -182,7 +182,7 @@ classdef CellData < handle
         
         function plotMeanData(obj, epochInd, subtractBaseline, lowPass, streamName)
             if nargin < 5
-                streamName = 'Amplifier_Ch1';
+                streamName = AnalysisConstant.AMP_CH_ONE;
             end
             if nargin < 4
                 lowPass = [];
@@ -228,7 +228,7 @@ classdef CellData < handle
         
         function [spCount, xvals] = getPSTH(obj, epochInd, binWidth, streamName)
             if nargin < 4
-                streamName = 'Amplifier_Ch1';
+                streamName = AnalysisConstant.AMP_CH_ONE;
             end
             if nargin < 3 || isempty(binWidth)
                 binWidth = 10; %ms
@@ -264,7 +264,7 @@ classdef CellData < handle
         
         function plotSpikeRaster(obj, epochInd, streamName)
             if nargin < 3
-                streamName = 'Amplifier_Ch1';
+                streamName = AnalysisConstant.AMP_CH_ONE;
             end
             
             %get spikes
@@ -319,7 +319,7 @@ classdef CellData < handle
         
         function plotPSTH(obj, epochInd, binWidth, streamName)
             if nargin < 4
-                streamName = 'Amplifier_Ch1';
+                streamName = AnalysisConstant.AMP_CH_ONE;
             end
             if nargin < 3
                 binWidth = 10;
@@ -347,7 +347,7 @@ classdef CellData < handle
              
         function detectSpikes(obj, mode, threshold, epochInd, interactive, streamName)
             if nargin < 6
-                streamName = 'Amplifier_Ch1';
+                streamName = AnalysisConstant.AMP_CH_ONE;
             end
             if nargin < 5
                 interactive = true;

@@ -9,7 +9,7 @@ analysisTable = textscan(fid, '%s\t%s');
 fclose(fid);
 
 %Deal with cell names that include '-Ch1' or '-Ch2'
-params.deviceName = 'Amplifier_Ch1';
+params.deviceName = AnalysisConstant.AMP_CH_ONE;
 loc = strfind(cellName, '-Ch1');
 if ~isempty(loc)
     cellName = cellName(1:loc-1);
@@ -17,7 +17,7 @@ end
 loc = strfind(cellName, '-Ch2');
 if ~isempty(loc)
     cellName = cellName(1:loc-1);
-    params.deviceName = 'Amplifier_Ch2';
+    params.deviceName = AnalysisConstant.AMP_CH_TWO;
 end
 params_deviceOnly = params;
 

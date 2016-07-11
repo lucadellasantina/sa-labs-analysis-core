@@ -17,7 +17,7 @@ classdef SpikeDetectorGUI < handle
     methods
         function obj = SpikeDetectorGUI(cellData, epochInd, params, streamName)
             if nargin < 4
-                obj.streamName = 'Amplifier_Ch1';
+                obj.streamName = AnalysisConstant.AMP_CH_ONE;
             else
                 obj.streamName = streamName;
             end
@@ -112,7 +112,7 @@ classdef SpikeDetectorGUI < handle
                     obj.spikeTimes = spikeResults.sp;
                 end
                 
-                if strcmp(obj.streamName, 'Amplifier_Ch1')
+                if strcmp(obj.streamName, AnalysisConstant.AMP_CH_ONE)
                     obj.cellData.epochs(obj.epochInd(obj.curEpochInd)).attributes('spikes_ch1') = obj.spikeTimes;
                 else
                     obj.cellData.epochs(obj.epochInd(obj.curEpochInd)).attributes('spikes_ch2') = obj.spikeTimes;
@@ -163,7 +163,7 @@ classdef SpikeDetectorGUI < handle
                         obj.spikeTimes = spikeTimes;
                     end
                     
-                    if strcmp(obj.streamName, 'Amplifier_Ch1')
+                    if strcmp(obj.streamName, AnalysisConstant.AMP_CH_ONE)
                         obj.cellData.epochs(obj.epochInd(i)).attributes('spikes_ch1') = spikeTimes;
                     else
                         obj.cellData.epochs(obj.epochInd(i)).attributes('spikes_ch2') = spikeTimes;
@@ -212,7 +212,7 @@ classdef SpikeDetectorGUI < handle
                         obj.spikeTimes = spikeTimes;
                     end
                     
-                    if strcmp(obj.streamName, 'Amplifier_Ch1')
+                    if strcmp(obj.streamName, AnalysisConstant.AMP_CH_ONE)
                         obj.cellData.epochs(obj.epochInd(i)).attributes('spikes_ch1') = spikeTimes;
                     else
                         obj.cellData.epochs(obj.epochInd(i)).attributes('spikes_ch2') = spikeTimes;
@@ -231,7 +231,7 @@ classdef SpikeDetectorGUI < handle
             
             
             %load spike times if they are present
-            if strcmp(obj.streamName, 'Amplifier_Ch1')
+            if strcmp(obj.streamName, AnalysisConstant.AMP_CH_ONE)
                 if ~isnan(obj.cellData.epochs(obj.epochInd(obj.curEpochInd)).get('spikes_ch1'))
                     obj.spikeTimes = obj.cellData.epochs(obj.epochInd(obj.curEpochInd)).get('spikes_ch1');
                 else
