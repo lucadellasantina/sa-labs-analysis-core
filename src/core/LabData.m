@@ -361,7 +361,7 @@ classdef LabData < handle
             if ischar(cellTypes)
                 cellTypes = {cellTypes};
             end
-
+            
             resultTree = AnalysisTree();
             nodeData = struct('name', ['Collected analysis tree: ' analysisName]);
             resultTree = resultTree.set(1, nodeData);
@@ -370,27 +370,23 @@ classdef LabData < handle
                 cellType = cellTypes{i};
                 disp(['Analyzing type ' cellType ': '...
                     num2str(i) ' of ' num2str(length(cellTypes))]);
-                
-                
+
                 cellTypeTree = AnalysisTree();
                 nodeData.name = [cellType];
                 cellTypeTree = cellTypeTree.set(1, nodeData);
                 cellNames = obj.getCellsOfType(cellType);
                 
-                for j = 1 : length(cellNames);
+                for j = 1 : length(cellNames)
                     
                     cellName = cellNames{j};
                     disp(['Analyzing cell ' cellName ': '...
                         num2str(j) ' of ' num2str(length(cellNames))]);
                     
                     parts = obj.getCurrentCellNameParts(cellName);
-                    
-                    for k = 1 : length(parts)
-                        cellTypeTree = analyze(cellNames{j}, cellTypeTree, analysisName, cellFilter, epochFilter);
-                    end
-                                        
+                    cellfun(@(part) analyze(part), parts)
+
                     if isempty(parts)
-                        cellTypeTree = analyze(cellNames{j}, cellTypeTree, analysisName, cellFilter, epochFilter);
+                        analyze(cellName);
                     end
                 end
                 
@@ -399,11 +395,11 @@ classdef LabData < handle
                 end
             end
             
-            function tree = analyze(name, destinationTree, vargin)
-                tree = destinationTree;
-                resulTree = doSingleAnalysis(name, vargin);
-                if ~isempty(resulTree)
-                    tree = destinationTree.graft(1, resulTree);
+            function analyze(name)
+                
+                tree = doSingleAnalysis(name, analysisName, cellFilter, epochFilter);
+                if ~isempty(tree)
+                    cellTypeTree = cellTypeTree.graft(1, tree);
                 end
             end
         end
