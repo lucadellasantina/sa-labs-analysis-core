@@ -319,19 +319,19 @@ classdef LabData < handle
                 
                 parts = obj.getCurrentCellNameParts(cellName);
                 
-                if isempty(parts)
+                if ~ isempty(parts)
+                    
+                    splitCellTree = AnalysisTree();
+                    nodeData = struct('name', ['Split cell: ' cellName]);
+                    splitCellTree = splitCellTree.set(1, nodeData);
+
+                    for j = 1 : length(parts)
+                        splitCellTree = graft(parts{j}, splitCellTree);
+                    end
+                    resultTree = graft([], resultTree, splitCellTree);
+                else
                     resultTree = graft(curCellName, resultTree);
-                    continue
                 end
-                
-                splitCellTree = AnalysisTree();
-                nodeData = struct('name', ['Split cell: ' cellName]);
-                splitCellTree = splitCellTree.set(1, nodeData);
-                
-                for j = 1 : length(parts)
-                    splitCellTree = graft(parts{j}, splitCellTree);
-                end
-                resultTree = graft([], resultTree, splitCellTree);
             end
            
             function d = graft(name, destination, source)

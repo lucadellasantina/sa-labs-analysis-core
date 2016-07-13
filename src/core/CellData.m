@@ -1,264 +1,375 @@
 classdef CellData < handle
     
     properties
-        attributes %map for attributes from data file
-        epochs
-        epochGroups
-        savedDataSets = containers.Map;
-        savedFileName = '';
-        savedFilters = containers.Map;
-        tags = containers.Map;
-        cellType = '';
-        prefsMapName = '';
-        somaSize = [];
-        imageFile = ''; %cell image
-        notes = ''; %unstructured text field for adding notes
-        location = []; %[X, Y, whichEye] (X,Y in microns; whichEye is -1 for left eye and +1 for right eye)
+        attributes                          % Map for attributes from data file (h5group root attributes + Nepochs)
+        epochs                              % Array of EpochData
+        epochGroups                         % TODO
+        savedDataSets = containers.Map()    % DataSets saved from cell data curator
+        savedFileName = ''                  % Current H5 file name without extension
+        savedFilters = containers.Map()     % TODO
+        tags = containers.Map()             % TODO
+        cellType = ''                       % CellType will be assignment from LabDataGUI
+        prefsMapName = ''                   % TODO
+        somaSize = []                       % TODO
+        imageFile = ''                      % Cell image
+        notes = ''                          % Unstructured text field for adding notes
+        location = []                       % [X, Y, whichEye] (X,Y in microns; whichEye is -1 for left eye and +1 for right eye)
     end
     
-    
     methods
+        
         function obj = CellData(fname)
+            % CellData - creates celldata class object from raw data file
+            %   (1) If nargin < 1 then util/recordings/symphony2Mapper is responsible for
+            %       constructing cell data object
+            %   (2) Otherwise it constructs array of epochData with
+            %       protocol parameter as attributes & data links for
+            %       amplifier streams
+            
             if nargin < 1
                 return
             end
-            %creates CellData object from raw data file
+            
             [~, obj.savedFileName, ~] = fileparts(fname);
             info = hdf5info(fname,'ReadAttributes',false);
             info = info.GroupHierarchy(1);
             
             obj.attributes = mapAttributes(info.Groups(1), fname);
-            %stuff here for epoch group attributes
+            n = length(info.Groups);
             
-            %Epoch attributes (protocol properties)
-            %and data links
-            %EpochDataGroups = info.Groups(1).Groups(2).Groups;
-            
-            %search through all EpochGroups (not just first one!!!)
-            %GWS fixed on 6/6/14
-            L = length(info.Groups);
             EpochDataGroups = [];
-            for i=1:L
-                EpochDataGroups = [EpochDataGroups info.Groups(i).Groups(2).Groups];
+            for i = 1 : n
+                EpochDataGroups = [EpochDataGroups info.Groups(i).Groups(2).Groups]; %#ok
             end
-            Nepochs = length(EpochDataGroups);
-            %keyboard;
-            obj.epochs = EpochData.empty(Nepochs, 0);
-            %keyboard;
-            %deal with epoch order here, not recorded in order
-            %epochTimes = zeros(1,Nepochs);
-            z=1;
+            
+            index = 1;
             epochTimes = [];
-            for i=1:Nepochs
-                if length(EpochDataGroups(i).Groups) >= 3 %complete epoch
+            for i = 1 : length(EpochDataGroups)
+                
+                if length(EpochDataGroups(i).Groups) >= 3 %Complete epoch
                     attributeMap = mapAttributes(EpochDataGroups(i), fname);
-                    epochTimes(z) = attributeMap('startTimeDotNetDateTimeOffsetUTCTicks');
-                    okEpochInd(z) = i;
-                    z=z+1;
+                    epochTimes(index) = attributeMap(AnalysisConstant.H5_EPOCH_START_TIME); %#ok
+                    okEpochInd(index) = i; %#ok
+                    index = index + 1;
                 end
             end
             
-            Nepochs = length(epochTimes);
-            if Nepochs>0
-                obj.attributes('Nepochs') = Nepochs;
-                
-                [epochTimes_sorted, ind] = sort(epochTimes);
-                epochTimes_sorted = epochTimes_sorted - epochTimes_sorted(1);
-                epochTimes_sorted = double(epochTimes_sorted) / 1E7; %ticks to s
-                
-                z=1;
-                for i=1:Nepochs
-                    curEpoch = EpochData();
-                    groupInd = okEpochInd(ind(i));
-                    curEpoch.parentCell = obj;
-                    curEpoch.loadParams(EpochDataGroups(groupInd).Groups(1), fname);
-                    curEpoch.attributes('epochStartTime') = epochTimes_sorted(i);
-                    curEpoch.attributes('epochNum') = i;
-                    curEpoch.addDataLinks(EpochDataGroups(groupInd).Groups(2).Groups);
-                    obj.epochs(i) = curEpoch;
-                end
+            nEpochs = length(epochTimes);
+            if nEpochs < 0
+                return;
             end
+            
+            [epochTimes_sorted, indices] = sort(epochTimes);
+            epochTimes_sorted = epochTimes_sorted - epochTimes_sorted(1);
+            epochTimes_sorted = double(epochTimes_sorted) / 1E7; % Ticks to second
+            
+            obj.epochs = EpochData.empty(nEpochs, 0);
+            for i = 1 : nEpochs
+                
+                groupInd = okEpochInd(indices(i));
+                curEpoch = EpochData();
+                curEpoch.attributes(AnalysisConstant.EPOCH_START_TIME) = epochTimes_sorted(i);
+                curEpoch.attributes(AnalysisConstant.EPOCH_NUMBER) = i;
+                curEpoch.parentCell = obj;
+                curEpoch.loadParams(EpochDataGroups(groupInd).Groups(1), fname);
+                curEpoch.addDataLinks(EpochDataGroups(groupInd).Groups(2).Groups);
+                obj.epochs(i) = curEpoch;
+            end
+            obj.attributes(AnalysisConstant.TOTAL_EPOCHS) = nEpochs;
         end
         
-        function vals = getEpochVals(obj, paramName, epochInd)
+        function vals = getEpochVals(obj, paramName, indices)
+            % getEpochVals - returns list (or) matrices of parameter values
+            % for the given param name and for the given indices.
+            
             if nargin < 3
-                epochInd = 1:obj.get('Nepochs');
+                indices = 1 : obj.get(AnalysisConstant.TOTAL_EPOCHS);
             end
-            L = length(epochInd);
-            if isempty(L)
+            n = length(indices);
+            
+            if isempty(n)
                 vals = [];
                 return;
             end
-            vals = cell(1,L);
-            allNumeric = true;
-            for i=1:L
-                v = obj.epochs(epochInd(i)).get(paramName);
-                if isempty(v)
-                    vals{i} = NaN;
-                elseif strcmp(v, '<null>') %temp hack: null string?
-                    vals{i} = nan;
-                else
-                    vals{i} = v;
+            
+            vals = cell(1,n);
+            numbers = true;
+            
+            for i = 1 : n
+                value = NaN;
+                v = obj.epochs(indices(i)).get(paramName);
+                
+                if ~ isempty(v) && ~ strcmp(v, '<null>') % Temp hack: null string?
+                    value = v;
                 end
-                if ~isnumeric(vals{i})
-                    allNumeric = false;
+                
+                if ~ isnumeric(value)
+                    numbers = false;
                 else
-                    vals{i} = double(vals{i});
+                    value = double(value);
                 end
+                vals{i} = value;
             end
-            if allNumeric
+            
+            if numbers
                 vals = cell2mat(vals);
             end
-            
         end
         
-        function allKeys = getEpochKeysetUnion(obj, epochInd)
+        function allKeys = getEpochKeysetUnion(obj, indices)
+            
             if nargin < 2
-                epochInd = 1:obj.get('Nepochs');
+                indices = 1 : obj.get(AnalysisConstant.TOTAL_EPOCHS);
             end
-            L = length(epochInd);
-            if isempty(L)
-                allKeys = [];
-                return;
-            end
-            fullKeySet = [];
-            for i=1:L
-                fullKeySet = [fullKeySet obj.epochs(epochInd(i)).attributes.keys];
+            allKeys = [];
+            n = length(indices);
+            
+            if isempty(n)
+                return
             end
             
-            allKeys = unique(fullKeySet);
+            keySet = [];
+            % poor implementation for finding unique elements
+            for i = 1 : n
+                keySet = [keySet obj.epochs(indices(i)).attributes.keys];
+            end
+            
+            allKeys = unique(keySet);
         end
         
         function [params, vals] = getNonMatchingParamVals(obj, epochInd, excluded)
+            
             if nargin < 3
                 excluded = '';
             end
-            excluded = {excluded, 'numberOfAverages', 'epochStartTime', 'epochNum', 'identifier'};
+            
+            excluded = {excluded, AnalysisConstant.NUMBER_OF_AVERAGES,...
+                AnalysisConstant.EPOCH_START_TIME, AnalysisConstant.EPOCH_NUMBER,...
+                AnalysisConstant.EPOCH_IDENTIFIER };
+            
             allKeys = obj.getEpochKeysetUnion(epochInd);
-            L = length(allKeys);
+            n = length(allKeys);
             params = {};
             vals = {};
-            z = 1;
-            for i=1:L
-                if ~strcmp(allKeys{i}, excluded)
-                    curVals = getEpochVals(obj, allKeys{i}, epochInd);
-                    curVals = curVals(~isnan_cell(curVals));
-                    if iscell(curVals)
-                        for j=1:length(curVals)
-                            if isnumeric(curVals{j})
-                                curVals{j} = num2str(curVals{j});
+            index = 1;
+            
+            for i = 1 : n
+                key = allKeys{i};
+                if ~ strcmp(key, excluded)
+                    values = getEpochVals(obj, key, epochInd);
+                    values = values(~ isnan_cell(values));
+                    
+                    if iscell(values)
+                        for j = 1 : length(values)
+                            if isnumeric(values{j})
+                                values{j} = num2str(values{j});
                             end
                         end
                     end
+                    uniqueVals = unique(values);
                     
-                    uniqueVals = unique(curVals);
                     if length(uniqueVals) > 1
-                        params{z} = allKeys{i};
-                        vals{z} = uniqueVals;
-                        z=z+1;
+                        params{index} = allKeys{i};
+                        vals{index} = uniqueVals;
+                        index = index + 1;
                     end
                 end
             end
         end
         
         function [dataMean, xvals, dataStd, units] = getMeanData(obj, epochInd, streamName)
+            
             if nargin < 3
                 streamName = AnalysisConstant.AMP_CH_ONE;
             end
-            L = length(epochInd);
+            n = length(epochInd);
+            
             dataPoints = length(obj.epochs(epochInd(1)).getData(streamName));
-            M = zeros(L,dataPoints);
-            for i=1:L
+            data = zeros(n, dataPoints);
+            
+            for i = 1 : n
                 [curData, curXvals, curUnits] = obj.epochs(epochInd(i)).getData(streamName);
-                if i==1
+                if i == 1
                     xvals = curXvals;
                     units = curUnits;
                 end
-                M(i,:) = curData;
+                data(i,:) = curData;
             end
-            dataMean = mean(M,1);
-            dataStd = std(M,1);
-        end
-        
-        function plotMeanData(obj, epochInd, subtractBaseline, lowPass, streamName)
-            if nargin < 5
-                streamName = AnalysisConstant.AMP_CH_ONE;
-            end
-            if nargin < 4
-                lowPass = [];
-            end
-            if nargin < 4
-                subtractBaseline = true;
-            end
-            
-            ax = gca;
-            sampleEpoch = obj.epochs(epochInd(1));
-            sampleRate = sampleEpoch.get('sampleRate');
-            stimLen = sampleEpoch.get('stimTime')*1E-3; %s
-            [dataMean, xvals, dataStd, units] = obj.getMeanData(epochInd, streamName);
-            %could use dataStd to plot with error lines
-            
-            if ~isempty(dataMean)
-                if ~isempty(lowPass)
-                    dataMean = LowPassFilter(dataMean, lowPass, 1/sampleRate);
-                end
-                if subtractBaseline
-                    baseline = mean(dataMean(xvals<0));
-                    if isnan(baseline) %hack for missing baseline time
-                        baseline = mean(dataMean(xvals<0.25)); %use 250 ms
-                    end
-                    dataMean = dataMean - baseline;
-                end
-                
-                plot(ax, xvals, dataMean);
-                if ~isempty(stimLen)
-                    hold(ax, 'on');
-                    startLine = line('Xdata', [0 0], 'Ydata', get(ax, 'ylim'), ...
-                        'Color', 'k', 'LineStyle', '--');
-                    endLine = line('Xdata', [stimLen stimLen], 'Ydata', get(ax, 'ylim'), ...
-                        'Color', 'k', 'LineStyle', '--');
-                    set(startLine, 'Parent', ax);
-                    set(endLine, 'Parent', ax);
-                end
-                xlabel(ax, 'Time (s)');
-                ylabel(ax, units);
-                hold(ax, 'off');
-            end
+            dataMean = mean(data,1);
+            dataStd = std(data,1);
         end
         
         function [spCount, xvals] = getPSTH(obj, epochInd, binWidth, streamName)
+            
             if nargin < 4
                 streamName = AnalysisConstant.AMP_CH_ONE;
             end
+            
             if nargin < 3 || isempty(binWidth)
-                binWidth = 10; %ms
+                binWidth = 10; % ms
             end
+            
             sampleEpoch = obj.epochs(epochInd(1));
             dataPoints = length(sampleEpoch.getData(streamName));
-            sampleRate = sampleEpoch.get('sampleRate');
+            sampleRate = sampleEpoch.get(AnalysisConstant.SAMPLE_RATE);
             samplesPerMS = round(sampleRate/1E3);
-            samplesPerBin = round(binWidth*samplesPerMS);
-            bins = 0:samplesPerBin:dataPoints;
+            samplesPerBin = round(binWidth * samplesPerMS);
+            bins = 0 : samplesPerBin : dataPoints;
             
             %compute PSTH
             allSpikes = [];
-            L = length(epochInd);
-            for i=1:L
-                allSpikes = [allSpikes, obj.epochs(epochInd(i)).getSpikes(streamName)];
-            end
-            spCount = histc(allSpikes,bins);
-            if isempty(spCount)
-                spCount = zeros(1,length(bins));
+            for i= 1 : length(epochInd);
+                allSpikes = [allSpikes, obj.epochs(epochInd(i)).getSpikes(streamName)]; %#ok
             end
             
-            stimStart = sampleEpoch.get('preTime')*1E-3; %s
+            spCount = histc(allSpikes, bins);
+            if isempty(spCount)
+                spCount = zeros(1, length(bins));
+            end
+            
+            stimStart = sampleEpoch.get('preTime') * 1e-3; %s
             if isnan(stimStart)
                 stimStart = 0;
             end
             xvals = bins/sampleRate - stimStart;
-            
             %convert to Hz
-            spCount = spCount / L / (binWidth*1E-3);
+            spCount = spCount / n / (binWidth*1E-3);
+        end
+        
+        function detectSpikes(obj, mode, threshold, epochInd, interactive, streamName)
+            
+            if nargin < 6
+                streamName = AnalysisConstant.AMP_CH_ONE;
+            end
+            
+            if nargin < 5
+                interactive = true;
+            end
+            
+            if nargin < 4
+                epochInd = 1 : obj.get(AnalysisConstant.TOTAL_EPOCHS);
+            end
+            
+            if nargin < 3
+                threshold = 15;
+            end
+            
+            if nargin < 2
+                mode = AnalysisConstant.SPIKE_DETECTION_STD_DEV;
+            end
+            
+            n = length(epochInd);
+            params.spikeDetectorMode = mode;
+            params.spikeThreshold = threshold;
+            
+            if interactive
+                SpikeDetectorGUI(obj, epochInd, params, streamName);
+            else
+                for i = 1 : n
+                    obj.epochs(epochInd(i)).detectSpikes(params, streamName);
+                end
+            end
+            
+        end
+        
+        function dataSet = filterEpochs(obj, queryString, subSet)
+            
+            if nargin < 3
+                subSet = 1 : obj.get(AnalysisConstant.TOTAL_EPOCHS);
+            end
+            
+            n = length(subSet);
+            dataSet = [];
+            
+            if strcmp(queryString, '?') || isempty(queryString)
+                dataSet = 1 : n;
+                return
+            end
+            
+            for i = 1 : n
+                M = obj.epochs(subSet(i)); %variable name of map in query string is M
+                if eval(queryString)
+                    dataSet = [dataSet subSet(i)];
+                end
+            end
+        end
+        
+        function val = filterCell(obj, queryString)
+            % returns true or false for this cell
+            
+            if strcmp(queryString, '?') || isempty(queryString)
+                val = true;
+                return
+            end
+            
+            M = obj; %variable name of map in query string is M
+            val = eval(queryString);
+        end
+        
+        function val = get(obj, paramName)
+            % get - Checks attributes and tags
+            
+            if ~ obj.attributes.isKey(paramName) && ~ obj.tags.isKey(paramName)
+                val = nan;
+            elseif obj.tags.isKey(paramName) %tags take precedence over attributes
+                val = obj.tags(paramName);
+            else
+                val = obj.attributes(paramName);
+            end
+        end
+        
+        function plotMeanData(obj, epochInd, subtractBaseline, lowPass, streamName)
+            
+            if nargin < 5
+                streamName = AnalysisConstant.AMP_CH_ONE;
+            end
+            
+            if nargin < 4
+                lowPass = [];
+                subtractBaseline = true;
+            end
+            
+            [dataMean, xvals, dataStd, units] = obj.getMeanData(epochInd, streamName); %#ok Could use dataStd to plot with error lines
+            
+            if isempty(dataMean)
+                return
+            end
+            
+            ax = gca;
+            sampleEpoch = obj.epochs(epochInd(1));
+            sampleRate = sampleEpoch.get(AnalysisConstant.SAMPLE_RATE);
+            stimLen = sampleEpoch.get(AnalysisConstant.STIM_TIME) * 1e-3;
+            
+            if ~ isempty(lowPass)
+                dataMean = LowPassFilter(dataMean, lowPass, 1/sampleRate);
+            end
+            
+            if subtractBaseline
+                baseline = mean(dataMean(xvals < 0));
+                if isnan(baseline) % Hack for missing baseline time
+                    baseline = mean(dataMean(xvals < 0.25)); %use 250 ms
+                end
+                dataMean = dataMean - baseline;
+            end
+            
+            plot(ax, xvals, dataMean);
+            if ~ isempty(stimLen)
+                hold(ax, 'on');
+                startLine = line('Xdata', [0 0],...
+                    'Ydata', get(ax, 'ylim'), ...
+                    'Color', 'k',...
+                    'LineStyle', '--');
+                endLine = line('Xdata', [stimLen stimLen],...
+                    'Ydata', get(ax, 'ylim'), ...
+                    'Color', 'k',...
+                    'LineStyle', '--');
+                set(startLine, 'Parent', ax);
+                set(endLine, 'Parent', ax);
+            end
+            
+            xlabel(ax, 'Time (s)');
+            ylabel(ax, units);
+            hold(ax, 'off');
             
         end
         
@@ -267,49 +378,40 @@ classdef CellData < handle
                 streamName = AnalysisConstant.AMP_CH_ONE;
             end
             
-            %get spikes
-            L = length(epochInd);
-            spikeTimes = cell(L,1);
-            for i=1:L
+            % Get spikes
+            n = length(epochInd);
+            spikeTimes = cell(n, 1);
+            for i = 1 : n
                 [spikeTimes{i}, timeAxis_spikes] = obj.epochs(epochInd(i)).getSpikes(streamName);
             end
             ax = gca;
             hold(ax, 'on');
             
-            % point display
-%             for i=1:L
-%                 h(i) = scatter(ax, timeAxis_spikes(spikeTimes{i}), i .* ones(1,length(spikeTimes{i})));
-%                 set(h(i), 'Marker', '*', 'MarkerEdgeColor', 'k');
-%             end
-            
-            % line display
-            for i=1:L
+            % Line display
+            for i=1:n
                 spikes = timeAxis_spikes(spikeTimes{i});
-                for st_i = 1:length(spikes)
+                for st_i = 1 : length(spikes)
                     x = spikes(st_i);
                     line([x, x], [i-0.4, i+0.4]);
                 end
-            end            
+            end
             
-            % use image display
-%             img = [];
-%             for i=1:L
-%                 h(i) = scatter(ax, timeAxis_spikes(spikeTimes{i}), i .* ones(1,length(spikeTimes{i})));
-%                 set(h(i), 'Marker', '*', 'MarkerEdgeColor', 'k');
-%             end
-%             imagesc(ax, img);
-            
-            set(ax, 'Ytick', 1:1:L);
+            set(ax, 'Ytick', 1:1:n);
             set(ax, 'Xlim', [timeAxis_spikes(1), timeAxis_spikes(end)]);
-            set(ax, 'Ylim', [0, L+1]);
-            %start and end lines
+            set(ax, 'Ylim', [0, n+1]);
+            
             sampleEpoch = obj.epochs(epochInd(1));
-            stimLen = sampleEpoch.get('stimTime')*1E-3; %s
-            if ~isempty(stimLen)
-                startLine = line('Xdata', [0 0], 'Ydata', get(ax, 'ylim'), ...
-                    'Color', 'k', 'LineStyle', '--');
-                endLine = line('Xdata', [stimLen stimLen], 'Ydata', get(ax, 'ylim'), ...
-                    'Color', 'k', 'LineStyle', '--');
+            stimLen = sampleEpoch.get(AnalysisConstant.STIM_TIME) * 1e-3; %s
+            
+            if ~ isempty(stimLen)
+                startLine = line('Xdata', [0 0],...
+                    'Ydata', get(ax, 'ylim'), ...
+                    'Color', 'k',...
+                    'LineStyle', '--');
+                endLine = line('Xdata', [stimLen stimLen],...
+                    'Ydata', get(ax, 'ylim'), ...
+                    'Color', 'k',...
+                    'LineStyle', '--');
                 set(startLine, 'Parent', ax);
                 set(endLine, 'Parent', ax);
             end
@@ -327,16 +429,20 @@ classdef CellData < handle
             
             ax = gca;
             sampleEpoch = obj.epochs(epochInd(1));
-            stimLen = sampleEpoch.get('stimTime')*1E-3; %s
+            stimLen = sampleEpoch.get(AnalysisConstant.STIM_TIME) * 1e-3; %s
             [spCount, xvals] = obj.getPSTH(epochInd, binWidth, streamName);
             
             plot(ax, xvals, spCount);
-            if ~isempty(stimLen)
+            if ~ isempty(stimLen)
                 hold(ax, 'on');
-                startLine = line('Xdata', [0 0], 'Ydata', get(ax, 'ylim'), ...
-                    'Color', 'k', 'LineStyle', '--');
-                endLine = line('Xdata', [stimLen stimLen], 'Ydata', get(ax, 'ylim'), ...
-                    'Color', 'k', 'LineStyle', '--');
+                startLine = line('Xdata', [0 0],...
+                    'Ydata', get(ax, 'ylim'), ...
+                    'Color', 'k',...
+                    'LineStyle', '--');
+                endLine = line('Xdata', [stimLen stimLen],...
+                    'Ydata', get(ax, 'ylim'), ...
+                    'Color', 'k',...
+                    'LineStyle', '--');
                 set(startLine, 'Parent', ax);
                 set(endLine, 'Parent', ax);
             end
@@ -344,81 +450,11 @@ classdef CellData < handle
             ylabel(ax, 'Spike rate (Hz)');
             %hold(ax, 'off');
         end
-             
-        function detectSpikes(obj, mode, threshold, epochInd, interactive, streamName)
-            if nargin < 6
-                streamName = AnalysisConstant.AMP_CH_ONE;
-            end
-            if nargin < 5
-                interactive = true;
-            end
-            if nargin < 4
-                epochInd = 1:obj.get('Nepochs');
-            end
-            if nargin < 3
-                threshold = 15;
-            end
-            if nargin < 2
-                mode = 'Stdev';
-            end
-            L = length(epochInd);
-            params.spikeDetectorMode = mode;
-            params.spikeThreshold = threshold;
-            if interactive
-                SpikeDetectorGUI(obj, epochInd, params, streamName);
-            else
-                for i=1:L
-                    obj.epochs(epochInd(i)).detectSpikes(params, streamName);
-                end
-            end
-        end
-        
-        
-        function dataSet = filterEpochs(obj, queryString, subSet)
-            if nargin < 3
-                subSet = 1:obj.get('Nepochs');
-            end
-            L = length(subSet);
-            dataSet = [];
-            if strcmp(queryString, '?') || isempty(queryString)
-                dataSet = 1:L;
-            else
-                for i=1:L
-                    M = obj.epochs(subSet(i)); %variable name of map in query string is M
-                    %queryString
-                    %i
-                    %eval(queryString)
-                    if eval(queryString)
-                        dataSet = [dataSet subSet(i)];
-                    end
-                end
-            end
-        end
-        
-        function val = filterCell(obj, queryString)
-            %returns true or false for this cell
-            if strcmp(queryString, '?') || isempty(queryString)
-                val = true;
-            else
-                M = obj; %variable name of map in query string is M
-                val = eval(queryString);
-            end
-        end
-        
-        function val = get(obj, paramName) %checks attributes and tags
-            if ~obj.attributes.isKey(paramName) && ~obj.tags.isKey(paramName)
-                %disp(['Error: ' paramName ' not found']);
-                val = nan;
-            elseif obj.tags.isKey(paramName) %tags take precedence over attributes
-                val = obj.tags(paramName);
-            else
-                val = obj.attributes(paramName);
-            end
-        end
         
         function display(obj)
-            displayAttributeMap(obj.attributes)
+            displayAttributeMap(obj.attributes);
         end
         
     end
+    
 end

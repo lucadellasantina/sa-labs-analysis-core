@@ -1,0 +1,15 @@
+ContrastResp	ContrastRespAnalysis
+MovingBar	MovingBarAnalysis
+IV	IVAnalysis
+LightStep	LightStepAnalysis
+SpotsMultiSize	SpotsMultiSizeAnalysis
+BarsMultiAngle	BarsMultiAngleAnalysis
+DriftingGratings	DriftingGratingsAnalysis
+SplitField	SplitFieldAnalysis
+TextureMatrix	TextureMatrixAnalysis
+Annulus	AnnulusAnalysis
+DriftingTexture		DriftingTextureAnalysis
+AutoCenter	AutoCenterAnalysis
+IorVPulse	IorVPulseAnalysis
+WhiteNoiseFlicker	WhiteNoiseFlickerAnalysis
+WhiteNoiseIorV		WhiteNoiseIorVAnalysis

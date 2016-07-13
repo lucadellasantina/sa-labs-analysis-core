@@ -1,8 +1,9 @@
 classdef AnalysisTree < tree
+    
     properties
-        filename
-        filepath
-        name %descriptive name of analysis
+        filename    % h5 file name    
+        filepath    % h5 file path
+        name        % Descriptive name of analysis
     end
     
     methods
