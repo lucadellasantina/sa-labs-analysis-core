@@ -294,16 +294,16 @@ classdef CellData < handle
             end
         end
         
-        function val = filterCell(obj, queryString)
+        function tf = filterCell(obj, queryString)
             % returns true or false for this cell
             
             if strcmp(queryString, '?') || isempty(queryString)
-                val = true;
+                tf = true;
                 return
             end
             
             M = obj; %variable name of map in query string is M
-            val = eval(queryString);
+            tf = eval(queryString);
         end
         
         function val = get(obj, paramName)

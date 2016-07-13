@@ -81,17 +81,6 @@ end
 
 end
 
-function table = loadAnalysisTable()
-
-% getAnalysisTable - Open DataSetsAnalyses.txt file that defines
-% the mapping between data set names and analysis classes
-
-global PREFERENCE_FILES_FOLDER
-
-fid = fopen([PREFERENCE_FILES_FOLDER '\DataSetAnalyses.txt'], 'r');
-table = textscan(fid, '%s\t%s');
-fclose(fid);
-end
 
 function p = loadAnaylsisParameters(clazz, parameterSet)
 global ANALYSIS_FOLDER
@@ -100,28 +89,6 @@ result = load([ANALYSIS_FOLDER 'analysisParams' filesep clazz filesep parameterS
 p = result.params;
 end
 
-function [p, cellData] = loadCellData(cellName)
-
-% Deal with cell names that include '-Ch1' or '-Ch2'
-global ANALYSIS_FOLDER
-
-p = struct();
-p.deviceName = AnalysisConstant.AMP_CH_ONE;
-loc = strfind(cellName, '-Ch1');
-
-if ~ isempty(loc)
-    cellName = cellName(1 : loc-1);
-end
-
-loc = strfind(cellName, '-Ch2');
-if ~ isempty(loc)
-    cellName = cellName(1 : loc -1);
-    p.deviceName = AnalysisConstant.AMP_CH_TWO;
-end
-
-result = load([ANALYSIS_FOLDER 'cellData' filesep cellName]);
-cellData = result.cellData;
-end
 
 function map = loadPreferenceMap(filename)
 

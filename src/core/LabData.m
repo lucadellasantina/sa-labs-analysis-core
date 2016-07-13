@@ -233,7 +233,6 @@ classdef LabData < handle
         end
                 
         function updateDataSets(obj, cellNames)
-            %TODO refactoring
             
             if nargin < 2
                 cellNames = obj.cellTypes.values;
@@ -245,37 +244,35 @@ classdef LabData < handle
             
             for i = 1 : length(cellNames)
                 
-                curCellName = cellNames{i};
-                curCellName_orig = curCellName;
+                cellName = cellNames{i};
+                defaultName = cellName;
+                cellName = strrep(cellName, '-Ch1', '');
+                cellName = strrep(cellName, '-Ch2', '');
                 
-                % TOASK why ch1 and ch2 ?
-                curCellName = strrep(curCellName, '-Ch1', '');
-                curCellName = strrep(curCellName, '-Ch2', '');
+                remove(obj.allDataSets, defaultName);
+                parts = obj.getCurrentCellNameParts(cellName);
+                cellfun(@(part) addToAllDataSet(defaultName, part), parts)
                 
-               curCellNameParts = obj.getCurrentCellNameParts(curCellName);
+                if isempty(parts)
+                    addToAllDataSet(defaultName, cellName)
+                end
+            end
+            
+            function addToAllDataSet(key, name)
                 
-                if isempty(curCellNameParts)
-                    load([obj.analysisFolder 'cellData' filesep curCellName]); %loads cellData
-                    obj.allDataSets(curCellName_orig) = cellData.savedDataSets.keys;
+                result = load([obj.analysisFolder 'cellData' filesep name]);
+                values =  result.cellData.savedDataSets.keys;
+                
+                if isKey(obj.allDataSets, key)
+                    obj.allDataSets(key) = values;
                 else
-                    for j = 1 : length(curCellNameParts)
-                        load([obj.analysisFolder 'cellData' filesep curCellNameParts{j}]); %loads cellData
-                        
-                        if j == 1
-                            obj.allDataSets(curCellName_orig) = cellData.savedDataSets.keys;
-                        else
-                            obj.allDataSets(curCellName_orig) = [obj.allDataSets(curCellName_orig), cellData.savedDataSets.keys];
-                        end
-                    end
+                    obj.allDataSets(key) =  [obj.allDataSets(key), values];
                 end
             end
         end
         
         function analyzeCells(obj, cellNames)
-            
-            % CellNames can be a single str or a cell array of cell names
-            % (as returned by getCellsOfType)
-            
+
             if ischar(cellNames)
                 cellNames = {cellNames};
             end
@@ -296,7 +293,6 @@ classdef LabData < handle
             
             function analyze(name)
                  % call to util/analysis/analazeCell.m
-                 
                  analysisTree = analyzeCell(name); %#ok
                  save([obj.analysisFolder 'analysisTrees' filesep name], 'analysisTree');
             end
@@ -338,8 +334,8 @@ classdef LabData < handle
                 d = destination;
                 
                 if nargin < 3
-                    load([obj.analysisFolder 'analysisTrees' filesep name]);
-                    source = analysisTree;
+                    result = load([obj.analysisFolder 'analysisTrees' filesep name]);
+                    source = result.analysisTree;
                 end
                 
                 if length(source.Node) > 1
@@ -360,52 +356,56 @@ classdef LabData < handle
                 cellFilter = [];
             end
             if nargin < 3
-                cellTypes = obj.allCellTypes;
+                cellTypes = obj.cellTypes.keys;
             end
             if ischar(cellTypes)
                 cellTypes = {cellTypes};
             end
-            
-            %set up output tree
-            resultTree = AnalysisTree;
-            nodeData.name = ['Collected analysis tree: ' analysisName];
+
+            resultTree = AnalysisTree();
+            nodeData = struct('name', ['Collected analysis tree: ' analysisName]);
             resultTree = resultTree.set(1, nodeData);
             
-            for i=1:length(cellTypes)
-                curType = cellTypes{i};
-                disp(['Analyzing type ' curType ': ' num2str(i) ' of ' num2str(length(cellTypes))]);
-                %set up type output tree
-                curTypeTree = AnalysisTree;
-                nodeData.name = [curType];
-                curTypeTree = curTypeTree.set(1, nodeData);
+            for i = 1 : length(cellTypes)
+                cellType = cellTypes{i};
+                disp(['Analyzing type ' cellType ': '...
+                    num2str(i) ' of ' num2str(length(cellTypes))]);
                 
-                cellNames = obj.getCellsOfType(curType);
-                for j=1:length(cellNames);
-                    curCellName = cellNames{j};
-                    disp(['Analyzing cell ' curCellName ': ' num2str(j) ' of ' num2str(length(cellNames))]);
-                    curCellNameParts = obj.getCurrentCellNameParts(curCellName);
+                
+                cellTypeTree = AnalysisTree();
+                nodeData.name = [cellType];
+                cellTypeTree = cellTypeTree.set(1, nodeData);
+                cellNames = obj.getCellsOfType(cellType);
+                
+                for j = 1 : length(cellNames);
                     
-                    if isempty(curCellNameParts)
-                        curResultTree = doSingleAnalysis(cellNames{j}, analysisName, cellFilter, epochFilter);
-                        if ~isempty(curResultTree)
-                            curTypeTree = curTypeTree.graft(1, curResultTree);
-                        end
-                    else
-                        for k=1:length(curCellNameParts)
-                            curResultTree = doSingleAnalysis(curCellNameParts{k}, analysisName, cellFilter, epochFilter);
-                            if ~isempty(curResultTree)
-                                curTypeTree = curTypeTree.graft(1, curResultTree);
-                            end
-                            
-                        end
+                    cellName = cellNames{j};
+                    disp(['Analyzing cell ' cellName ': '...
+                        num2str(j) ' of ' num2str(length(cellNames))]);
+                    
+                    parts = obj.getCurrentCellNameParts(cellName);
+                    
+                    for k = 1 : length(parts)
+                        cellTypeTree = analyze(cellNames{j}, cellTypeTree, analysisName, cellFilter, epochFilter);
                     end
-                    
+                                        
+                    if isempty(parts)
+                        cellTypeTree = analyze(cellNames{j}, cellTypeTree, analysisName, cellFilter, epochFilter);
+                    end
                 end
-                if length(curTypeTree.Node)>1
-                    resultTree = resultTree.graft(1, curTypeTree);
+                
+                if length(cellTypeTree.Node) > 1
+                    resultTree = resultTree.graft(1, cellTypeTree);
                 end
             end
             
+            function tree = analyze(name, destinationTree, vargin)
+                tree = destinationTree;
+                resulTree = doSingleAnalysis(name, vargin);
+                if ~isempty(resulTree)
+                    tree = destinationTree.graft(1, resulTree);
+                end
+            end
         end
         
     end   
