@@ -316,7 +316,7 @@ classdef LabData < handle
                 parts = obj.getCurrentCellNameParts(cellName);
                 
                 if isempty(parts)
-                    resultTree = graft(curCellName, resultTree);
+                    resultTree = graft(cellName, resultTree);
                     continue
                 end
                 

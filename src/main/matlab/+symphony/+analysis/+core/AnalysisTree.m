@@ -73,61 +73,71 @@ classdef AnalysisTree < tree
                 return;
             end
             
-            curParam = paramList{1};
-            if isa(curParam, 'function_handle')
-                for i=1:length(dataSet)
-                    v = curParam(cellData.epochs(dataSet(i)));
-                    if isscalar(v)
-                        allVals(i) = v;
-                    else
-                        allVals{i} = num2str(v);
-                    end
-                end
+            if isa(paramList{1}, 'function_handle')
+                fun = paramList{1};
+                values = arrayfun(@(d) execute(fun, cellData.epochs(d)), dataSet);
             else
-                allVals = cellData.getEpochVals(paramList{1}, dataSet);
+                values = cellData.getEpochVals(paramList{1}, dataSet);
             end
-            uniqueVals = unique(allVals);
             
-            for i=1:length(uniqueVals)
-                if iscell(uniqueVals)
-                    curVal = uniqueVals{i};
-                else
-                    curVal = uniqueVals(i);
-                end
-                newDataSet = [];
-                for j=1:length(dataSet)
-                    if iscell(allVals)
-                        epochVal = allVals{j};
-                    else
-                        epochVal = allVals(j);
-                    end
-                    if ischar(curVal)
-                        if strcmp(curVal, epochVal)
-                            newDataSet = [newDataSet dataSet(j)];
-                        end
-                    else
-                        if curVal == epochVal
-                            newDataSet = [newDataSet dataSet(j)];
-                        end
-                    end
-                end
-                if ~isempty(newDataSet)
-                    nodeData = struct;
+            parameter = paramList{1};
+            uniqueValues = unique(values);
+            for i = 1 : length(uniqueValues)
+                value = get(uniqueValues, i);
+                newDataSet = filter(dataSet, values, value);
+
+                if ~ isempty(newDataSet)
+                    nodeData = struct();
                     
-                    if isa(curParam, 'function_handle')
-                        nodeData.splitParam = func2str(curParam);
-                        nodeData.name = [func2str(curParam) '==' num2str(curVal)];
+                    if isa(parameter, 'function_handle')
+                        nodeData.splitParam = func2str(parameter);
+                        nodeData.name = [func2str(parameter) '==' num2str(value)];
                     else
-                        nodeData.splitParam = curParam;
-                        nodeData.name = [curParam '==' num2str(curVal)];
+                        nodeData.splitParam = parameter;
+                        nodeData.name = [parameter '==' num2str(value)];
                     end
-                    nodeData.splitValue = curVal;
+                    
+                    nodeData.splitValue = value;
                     nodeData.epochID = newDataSet;
                     [obj, newID] = obj.addnode(rootNodeID, nodeData);
+                    
                     %recursive call
                     if length(paramList) > 1
-                        obj = obj.buildCellTree(newID, cellData, newDataSet, paramList(2:end));
+                        obj = obj.buildCellTree(newID, cellData, newDataSet, paramList(2 : end));
                     end
+                end
+            end
+
+            function ds = filter(dataSet, values, key)
+                ds = [];
+                for j = 1 : length(dataSet)
+                    destKey = get(values, j);
+                    
+                    if ischar(key)
+                        if strcmp(key, destKey)
+                            ds = [ds dataSet(j)];
+                        end
+                    else
+                        if key == destKey
+                            ds = [ds dataSet(j)];
+                        end
+                    end
+                end
+            end
+
+            function value = get(object, index)
+                if iscell(object)
+                   value = object{index};
+                else
+                   value = object(index);    
+                end
+            end
+
+            function result = execute(fun, args)
+
+               result = fun(args);
+                if ~ isscalar(result)
+                    result = num2str(result);
                 end
             end
         end
