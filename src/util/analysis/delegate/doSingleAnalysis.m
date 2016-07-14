@@ -46,10 +46,7 @@ for i = 1 : length(dataSetKeys);
         
         dataSet = cellData.savedDataSets(dataSetKey);
         filterOut = cellData.filterEpochs(epochFilter.makeQueryString(), dataSet);
-        
-        if length(filterOut) == length(dataSet) % All epochs match filter
-            proccedAnalysis = true;
-        end
+        proccedAnalysis = length(filterOut) == length(dataSet);
     end
     
     if proccedAnalysis

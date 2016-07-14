@@ -1,56 +1,62 @@
 classdef LightStepAnalysis < AnalysisTree
+    
     properties
-        StartTime = 0;
-        EndTime = 0;
+        StartTime = 0
+        EndTime = 0
     end
     
     methods
+        
         function obj = LightStepAnalysis(cellData, dataSetName, params)
+            
             if nargin < 3
-                params.deviceName = 'Amplifier_Ch1';
-            end
-            if strcmp(params.deviceName, 'Amplifier_Ch1')
-                params.ampModeParam = 'ampMode';
-            else
-                params.ampModeParam = 'amp2Mode';
+                params.deviceName = AnalysisConstant.AMP_CH_ONE;
             end
             
-            nameStr = [cellData.savedFileName ': ' dataSetName ': LightStepAnalysis'];
-            obj = obj.setName(nameStr);
+            if strcmp(params.deviceName, AnalysisConstant.AMP_CH_ONE)
+                params.ampModeParam =  AnalysisConstant.AMP_CH_ONE_MODE;
+            else
+                params.ampModeParam = AnalysisConstant.AMP_CH_TWO_MODE;
+            end
+            
+            name = [cellData.savedFileName ': ' dataSetName ' : ' class(obj)];
+            protocolAttributes = {'RstarIntensity', params.ampModeParam, 'amplifierMode'};
             dataSet = cellData.savedDataSets(dataSetName);
+            
+            obj = obj.setName(name);
             obj = obj.copyAnalysisParams(params);
-            obj = obj.copyParamsFromSampleEpoch(cellData, dataSet, ...
-                {'RstarMean', 'RstarIntensity', params.ampModeParam, 'amplifierMode', 'spotSize', 'offsetX', 'offsetY'}); %TODO: fix amplifier mode part for 2 amp experiments
+            obj = obj.copyParamsFromSampleEpoch(cellData, dataSet, protocolAttributes);
             obj = obj.buildCellTree(1, cellData, dataSet, {'RstarMean'});
         end
         
         function obj = doAnalysis(obj, cellData)
+            
             rootData = obj.get(1);
             leafIDs = obj.findleaves();
-            L = length(leafIDs);
             
-            for i=1:L %for each leaf node
-                curNode = obj.get(leafIDs(i));
+            for i = 1 : length(leafIDs) %for each leaf node
+                node = obj.get(leafIDs(i));
+                
                 if strcmp(rootData.(rootData.ampModeParam), 'Cell attached')
-                    outputStruct = getEpochResponses_CA(cellData, curNode.epochID, ...
+                    outputStruct = getEpochResponses_CA(cellData, node.epochID, ...
                         'DeviceName', rootData.deviceName,'StartTime', obj.StartTime, 'EndTime', obj.EndTime);
                 elseif strcmp(rootData.amplifierMode, 'IClamp')
                     %spike data?
-                    spCount = cellData.getPSTH(curNode.epochID, [], rootData.deviceName);
+                    spCount = cellData.getPSTH(node.epochID, [], rootData.deviceName);
                     if sum(spCount) > 0 %has spikes
-                        outputStruct = getEpochResponses_CA(cellData, curNode.epochID, ...
+                        outputStruct = getEpochResponses_CA(cellData, node.epochID, ...
                         'DeviceName', rootData.deviceName,'StartTime', obj.StartTime, 'EndTime', obj.EndTime);
                     else
-                        outputStruct = getEpochResponses_WC(cellData, curNode.epochID, ...
+                        outputStruct = getEpochResponses_WC(cellData, node.epochID, ...
                         'DeviceName', rootData.deviceName,'StartTime', obj.StartTime, 'EndTime', obj.EndTime);
                     end                                        
                 else %whole cell, Vclamp
-                    outputStruct = getEpochResponses_WC(cellData, curNode.epochID, ...
+                    outputStruct = getEpochResponses_WC(cellData, node.epochID, ...
                         'DeviceName', rootData.deviceName,'StartTime', obj.StartTime, 'EndTime', obj.EndTime);
                 end
                 outputStruct = getEpochResponseStats(outputStruct);
-                curNode = mergeIntoNode(curNode, outputStruct);
-                obj = obj.set(leafIDs(i), curNode);
+                node = mergeIntoNode(node, outputStruct);
+                obj = obj.set(leafIDs(i), node);
             end
             
         end

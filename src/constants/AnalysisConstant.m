@@ -1,4 +1,4 @@
-classdef AnalysisConstant
+classdef AnalysisConstant < handle
     
     properties(Constant)
         AMP_CH_ONE = 'Amp1'

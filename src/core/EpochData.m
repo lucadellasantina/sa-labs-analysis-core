@@ -86,7 +86,6 @@ classdef EpochData < handle
                 || (strcmp(streamName, AnalysisConstant.AMP_CH_TWO) &&...
                 strcmp(obj.get(AnalysisConstant.AMP_CH_TWO_MODE), AnalysisConstant.AMP_MODE_CELL_ATTACHED));
             
-            
             if ~ cellAttached
                 return
             end

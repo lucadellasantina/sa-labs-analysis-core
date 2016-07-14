@@ -111,10 +111,10 @@ while ischar(lineIn)
     paramSets = [];
     
     while ~isempty(remPart)
-       [paramSet, remPart] = strtok(remPart);
+       [paramSet, remPart] = strtok(remPart); %#ok
        
        if ~isempty(paramSet)           
-           paramSets{index} = paramSet;
+           paramSets{index} = paramSet; %#ok
            index = index + 1;
        end
     end

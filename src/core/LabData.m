@@ -1,9 +1,9 @@
 classdef LabData < handle
     
     properties
-        cellTypes       % Keys are cell type names (e.g. On Alpha), values are cell names (e.g. 042214Ac1)
-        allDataSets     % Keys are cell names, values are cell arrays of data set names
-        analysisFolder  % Path to analysis folder fetched from global variable
+        cellTypes           % Keys are cell type names (e.g. On Alpha), values are cell names (e.g. 042214Ac1)
+        allDataSets         % Keys are cell names, values are cell arrays of data set names
+        analysisFolder      % Path to analysis folder fetched from global variable
     end
     
     methods
@@ -263,7 +263,7 @@ classdef LabData < handle
                 result = load([obj.analysisFolder 'cellData' filesep name]);
                 values =  result.cellData.savedDataSets.keys;
                 
-                if isKey(obj.allDataSets, key)
+                if ~ isKey(obj.allDataSets, key)
                     obj.allDataSets(key) = values;
                 else
                     obj.allDataSets(key) =  [obj.allDataSets(key), values];

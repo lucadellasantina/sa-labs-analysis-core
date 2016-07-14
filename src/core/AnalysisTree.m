@@ -262,7 +262,6 @@ classdef AnalysisTree < tree
         
         function plotLeaf(node, cellData)
             %do nothing - to be overwritten by each analysis class
-            
         end
         
     end
