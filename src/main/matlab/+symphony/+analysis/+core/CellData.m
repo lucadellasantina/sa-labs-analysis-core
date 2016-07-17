@@ -53,10 +53,9 @@ classdef CellData < handle
         function [params, vals] = getNonMatchingParamVals(obj, epochInd, excluded)
             
             keys = setdiff(obj.getEpochKeysetUnion(epochInd), excluded);
-            n = length(keys);
             map = containers.Map();
             
-            for i = 1 : n
+            for i = 1 : length(keys)
                 values = obj.getEpochVals(keys{i}, epochInd);
                 map(key) =  unique(values);
             end
