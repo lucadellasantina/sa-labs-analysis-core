@@ -3,30 +3,35 @@ classdef AnalysisDataService < handle
     properties
         symphonyParser
         analysisDao
+        preferenceDao
     end
     
     methods
-        
+                
         function data = parseSymphonyFiles(obj, date)
             data = obj.symphonyParser.parse(date);
             obj.analysisDao.saveCellData(data);
         end
         
-        function saveDataSets(obj, cellName)
-            obj.analysisDao.saveCellData(dataSet);
+        function folder = createProject(obj, date)
+            import symphony.analysis.constants.*;
+            
+            dao = obj.analysisDao;
+            names = dao.findCellDataNames(date);
+
+            if isempty(names)
+                throw(Exceptions.NO_CELL_DATA.create());
+            end
+            names = obj.preferenceDao.mergeCellNames(names);
+            folder = dao.createProject(names);
         end
         
-        function updateDataSets(obj, cellName)
-        end
-        
-        function tf = isCellDataExist(obj, date)
-            names = obj.analysisDao.findCellDataNames(date);
-            tf = isempty(names);
-        end
-        
-        function tf = isDataSetExist(obj, dataSetName)
-            names = obj.analysisDao.findCellDataSetNames(dataSetName);
-            tf = isempty(names);
+        function data = preProcess(obj, data, functions)
+            for i = 1 : numel(functions)
+                fun = functions{i};
+                data = fun(data);
+            end
+            obj.analysisDao.saveCellData(data);
         end
     end
     
