@@ -7,7 +7,7 @@ List of changes compared to source repository
 
 - Existing [preference files](https://github.com/SchwartzNU/PreferenceFiles) are cloned to [resources](./resources) directory
 - refactored for folder oraganization and code readability.
-- symphony2Mapper extracts symphony-matlab2 H5 file to existing cellData and EpochData formats. 
+- [symphony2Mapper](./src/util/recordings/symphony2Mapper.m) extracts symphony-matlab2 H5 file to existing cellData and EpochData formats. 
 
 ## Clone
 
