@@ -9,26 +9,30 @@ classdef AnalysisTree < tree
     methods
         
         function cellName = getCellName(obj, nodeInd)
-            cellName = obj.getParameterValue('cellName', nodeInd);
+            import symphony.analysis.constants*;
+            cellName = obj.getParameterValue(AnalysisConstant.CELL_NAME, nodeInd, 0);
         end
         
         function mode = getMode(obj, nodeInd)
-            mode = obj.getParameterValue('ampModeParam', nodeInd);
+            import symphony.analysis.constants*;
+            mode = obj.getParameterValue(AnalysisConstant.AMP_MODE_PARAM, nodeInd, 1);
         end
         
         function device = getDevice(obj, nodeInd)
-            device = obj.getParameterValue('deviceName', nodeInd);
+            import symphony.analysis.constants*;
+            device = obj.getParameterValue(AnalysisConstant.DEVICE_NAME, nodeInd, 1);
         end
         
         function className = getClassName(obj, nodeInd)
-            className = obj.getParameterValue('class', nodeInd);
+            import symphony.analysis.constants*;
+            className = obj.getParameterValue(AnalysisConstant.CLAZZ, nodeInd, 1);
         end
         
-        function value = getParameterValue(obj, parameter, nodeInd)
+        function value = getParameterValue(obj, parameter, nodeInd, leastExpectedInd)
             nodeData = obj.get(nodeInd);
             value = [];
             while ~ isfield(nodeData, parameter);
-                if nodeInd == 0
+                if nodeInd == leastExpectedInd
                     return;
                 end
                 

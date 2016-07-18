@@ -1,6 +1,11 @@
 classdef AnalysisConstant < handle
     
     properties(Constant)
+        CELL_NAME = 'cellName';
+        AMP_MODE_PARAM = 'ampModeParam'
+        DEVICE_NAME = 'deviceName'
+        CLAZZ = 'class'
+        
         AMP_CH_ONE = 'Amp1'
         AMP_CH_TWO = 'Amp2'
         AMP_CH_THREE = 'Amp3'

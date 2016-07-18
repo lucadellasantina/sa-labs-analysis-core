@@ -122,7 +122,6 @@ classdef AnalysisTreeBuilder < handle
                 obj.setNode(parent, nodeData);
             end
         end
-
         
         function setNode(obj, parent, node)
             obj.tree = obj.tree.set(parent, node);
