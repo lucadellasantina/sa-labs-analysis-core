@@ -1,6 +1,0 @@
-green rod
-s cone
-m cone
-l cone
-rod bipolar
-a2 amacrine

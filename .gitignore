@@ -7,10 +7,13 @@
 # Binary
 *.mlappinstall
 *.h5
+*.mat
 target/
 
 # Logs
 *.log
 logs/
 
-target/
+#Test fixtures
+*/analysis/*
+*/rawDataFolder/*

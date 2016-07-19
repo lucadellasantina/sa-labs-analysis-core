@@ -6,6 +6,7 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
         analysisFolder
         rawDataFolder
         preferenceFolder
+        dateFormat
     end
     
     methods
@@ -57,6 +58,15 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
         function set.preferenceFolder(obj, f)
             validateattributes(f, {'char', 'function_handle'}, {'2d'});
             obj.put('preferenceFolder', f);
+        end
+        
+         function f = get.dateFormat(obj)
+            f = obj.get('dateFormat', @(date)datestr(date, 'mmddyy'));
+        end
+        
+        function set.dateFormat(obj, f)
+            validateattributes(f, { 'function_handle'}, {'2d'});
+            obj.put('dateFormat', f);
         end
     end
     

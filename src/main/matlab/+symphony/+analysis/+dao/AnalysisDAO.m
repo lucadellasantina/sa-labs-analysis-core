@@ -11,15 +11,20 @@ classdef AnalysisDao < handle & mdepin.Bean
         end
         
         function fnames = findRawDataFiles(obj, date)
+            date = obj.repository.dateFormat(date);
+            path = [obj.repository.rawDataFolder filesep];
+            info = dir([path date '*c*.h5']);
+            fnames = arrayfun(@(d) [path d.name], info, 'UniformOutput', false);
         end
         
         function saveCellData(obj, data)
-            dir = [obj.repository.analysisFolder 'cellData' filesep];
+            dir = [obj.repository.analysisFolder filesep 'cellData' filesep];
             save([dir, data.savedFileName], 'data');
         end
         
         function projectFolder = createProject(obj, cellNames)
-            projectFolder = [obj.repository.analysisFolder 'Projects' filesep date '_temp'];
+            today = obj.repository.dateFormat(now);
+            projectFolder = [obj.repository.analysisFolder filesep 'Projects' filesep today '_temp'];
             symphony.analysis.util.file.overWrite(projectFolder);
             
             fid = fopen([projectFolder filesep 'cellNames.txt'], 'w');
@@ -31,9 +36,10 @@ classdef AnalysisDao < handle & mdepin.Bean
             fclose(fid);
         end
         
-        function names = findCellDataNames(date)
-            info = dir([obj.repository.analysisFolder 'cellData' filesep date '*c*.mat']);
-            names = arrayfun(@(d) d.name(1 : end-2), info);
+        function names = findCellDataNames(obj, date)
+            date = obj.repository.dateFormat(date);
+            info = dir([obj.repository.analysisFolder filesep 'cellData' filesep date '*c*.mat']);
+            names = arrayfun(@(d) {d.name(1 : end-4)}, info);
         end
     end
     

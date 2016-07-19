@@ -27,7 +27,7 @@ classdef App < handle
         end
 
         function p = getResource(varargin)
-            resourcesPath = fullfile(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath'))))), 'resources');
+            resourcesPath = fullfile(fileparts(fileparts(fileparts(fileparts(fileparts(mfilename('fullpath')))))), 'resources');
             p = fullfile(resourcesPath, varargin{:});
         end
 

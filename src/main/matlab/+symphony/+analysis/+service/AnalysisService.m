@@ -12,10 +12,10 @@ classdef AnalysisService < handle & mdepin.Bean
         end
         
         function data = parseSymphonyFiles(obj, date)
-            fnames = obj.analysisDao.findRawDataFiles(date);
+            files = obj.analysisDao.findRawDataFiles(date);
             
-            for i = 1 : numel(fnames)
-                parser = symphony.analysis.parser.getInstance(fnames{i});
+            for i = 1 : numel(files)
+                parser = symphony.analysis.parser.getInstance(files{i});
                 data = parser.parse().getResult();
                 obj.analysisDao.saveCellData(data);
             end

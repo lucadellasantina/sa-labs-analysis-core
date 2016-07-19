@@ -23,7 +23,6 @@ classdef PreferenceDao < handle & mdepin.Bean
             obj = obj@mdepin.Bean(config);
             obj.cellTags = containers.Map();
             obj.epochTags = containers.Map();
-            obj.loadPreference();
         end
         
         function loadPreference(obj)
