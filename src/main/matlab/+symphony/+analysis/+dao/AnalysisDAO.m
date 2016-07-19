@@ -1,4 +1,4 @@
-classdef AnalysisDao < handle
+classdef AnalysisDao < handle & mdepin.Bean
     
     properties
         repository
@@ -6,9 +6,16 @@ classdef AnalysisDao < handle
     
     methods
         
+        function obj = AnalysisDao(config)
+            obj = obj@mdepin.Bean(config);
+        end
+        
+        function fnames = findRawDataFile(obj, date)
+        end
+        
         function saveCellData(obj, data)
-             dir = [obj.repository.analysisFolder 'cellData' filesep];
-             save([dir, data.savedFileName], 'data');
+            dir = [obj.repository.analysisFolder 'cellData' filesep];
+            save([dir, data.savedFileName], 'data');
         end
         
         function projectFolder = createProject(obj, cellNames)
@@ -23,7 +30,7 @@ classdef AnalysisDao < handle
             end
             fclose(fid);
         end
-      
+        
         function names = findCellDataNames(date)
             info = dir([obj.repository.analysisFolder 'cellData' filesep date '*c*.mat']);
             names = arrayfun(@(d) d.name(1 : end-2), info);

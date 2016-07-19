@@ -1,16 +1,24 @@
-classdef AnalysisService < handle
+classdef AnalysisService < handle & mdepin.Bean
     
     properties
-        symphonyParser
         analysisDao
         preferenceDao
     end
     
     methods
-                
+        
+        function obj = AnalysisService(config)
+            obj = obj@mdepin.Bean(config);
+        end
+        
         function data = parseSymphonyFiles(obj, date)
-            data = obj.symphonyParser.parse(date);
-            obj.analysisDao.saveCellData(data);
+            fnames = obj.analysisDao.findRawDataFile(date);
+            
+            for i = 1 : numel(fnames)
+                parser = symphony.analysis.parser.getInstance(fnames{i});
+                data = parser.parse().getResult();
+                obj.analysisDao.saveCellData(data);
+            end
         end
         
         function folder = createProject(obj, date)
@@ -18,7 +26,7 @@ classdef AnalysisService < handle
             
             dao = obj.analysisDao;
             names = dao.findCellDataNames(date);
-
+            
             if isempty(names)
                 throw(Exceptions.NO_CELL_DATA.create());
             end

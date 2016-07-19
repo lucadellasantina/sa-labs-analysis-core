@@ -5,3 +5,6 @@
 	path = lib/matlab-tree
 	url = https://github.com/raacampbell/matlab-tree.git
 
+[submodule "lib/mdepin"]
+	path = lib/mdepin
+	url = https://github.com/mattmcd/mdepin.git

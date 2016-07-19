@@ -21,7 +21,7 @@ classdef Symphony2Parser < symphony.analysis.parser.SymphonyParser
     
     methods
         
-        function parse(obj)
+        function obj = parse(obj)
             
             import symphony.analysis.constants*;
             import symphony.analysis.core.*;

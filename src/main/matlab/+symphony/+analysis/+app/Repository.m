@@ -1,4 +1,4 @@
-classdef Repository < appbox.Settings
+classdef Repository < appbox.Settings & mdepin.Bean
     
     properties
         startupFile
@@ -9,6 +9,10 @@ classdef Repository < appbox.Settings
     end
     
     methods
+        
+         function obj = Repository(config)
+            obj = obj@mdepin.Bean(config);
+        end 
         
         function f = get.startupFile(obj)
             f = obj.get('startupFile', '');

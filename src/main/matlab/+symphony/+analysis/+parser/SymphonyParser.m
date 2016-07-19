@@ -1,8 +1,10 @@
 classdef SymphonyParser < handle
     
+    properties
+        fname
+    end
     
     methods
-        
         function map = mapAttributes(obj, h5group, map)
             if nargin < 3
                 map = containers.Map();
@@ -28,6 +30,13 @@ classdef SymphonyParser < handle
     methods(Abstract)
         parse(obj)
         getResult(obj)
+    end
+    
+    methods(Static)
+        
+        function version = getVersion(fname)
+             version = h5readatt(fname, '/', 'version');
+        end
     end
 end
 

@@ -1,7 +1,7 @@
-classdef PreferenceDao < handle
+classdef PreferenceDao < handle & mdepin.Bean
     
-    properties(Access = private)
-        folder
+    properties
+        repository
     end
     
     properties(SetAccess = private)
@@ -16,11 +16,11 @@ classdef PreferenceDao < handle
         FILE_EPOCH_TAGS = 'EpochTags.txt'
         FILE_MERGED_CELLS = 'MergedCells.txt'
     end
-        
+    
     methods
         
-        function obj = PreferenceDao(repository)
-            obj.folder = repository.preferenceFolder;
+        function obj = PreferenceDao(config)
+            obj = obj@mdepin.Bean(config);
             obj.cellTags = containers.Map();
             obj.epochTags = containers.Map();
             obj.loadPreference();
@@ -29,9 +29,10 @@ classdef PreferenceDao < handle
         function loadPreference(obj)
             import symphony.analysis.util.*;
             
-            obj.cellTypeNames = importdata([obj.folder filesep obj.FILE_CELL_TYPE_NAMES], '\n');
-            obj.cellTags = file.readTextToMap([obj.folder filesep obj.FILE_CELL_TAGS]);
-            obj.epochTags = file.readTextToMap([obj.folder filesep obj.FILE_MERGED_CELLS]);
+            folder = obj.repository.preferenceFolder;
+            obj.cellTypeNames = importdata([folder filesep obj.FILE_CELL_TYPE_NAMES], '\n');
+            obj.cellTags = file.readTextToMap([folder filesep obj.FILE_CELL_TAGS]);
+            obj.epochTags = file.readTextToMap([folder filesep obj.FILE_MERGED_CELLS]);
         end
         
         function names = mergeCellNames(obj, names)
