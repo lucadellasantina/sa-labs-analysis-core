@@ -10,7 +10,7 @@ classdef AnalysisDao < handle & mdepin.Bean
             obj = obj@mdepin.Bean(config);
         end
         
-        function fnames = findRawDataFile(obj, date)
+        function fnames = findRawDataFiles(obj, date)
         end
         
         function saveCellData(obj, data)

@@ -1,4 +1,4 @@
-classdef Repository < appbox.Settings & mdepin.Bean
+classdef FileRepository < appbox.Settings & mdepin.Bean
     
     properties
         startupFile
@@ -10,7 +10,7 @@ classdef Repository < appbox.Settings & mdepin.Bean
     
     methods
         
-         function obj = Repository(config)
+         function obj = FileRepository(config)
             obj = obj@mdepin.Bean(config);
         end 
         
@@ -42,12 +42,12 @@ classdef Repository < appbox.Settings & mdepin.Bean
         end
         
         function f = get.rawDataFolder(obj)
-            f = obj.get('analysisFolder', fullfile(char(java.lang.System.getProperty('user.home')), 'data', 'analysis'));
+            f = obj.get('rawDataFolder', fullfile(char(java.lang.System.getProperty('user.home')), 'data', 'rawDataFolder'));
         end
         
         function set.rawDataFolder(obj, f)
             validateattributes(f, {'char', 'function_handle'}, {'2d'});
-            obj.put('analysisFolder', f);
+            obj.put('rawDataFolder', f);
         end
         
         function f = get.preferenceFolder(obj)
