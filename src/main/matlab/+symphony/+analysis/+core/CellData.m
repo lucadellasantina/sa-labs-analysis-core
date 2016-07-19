@@ -18,32 +18,33 @@ classdef CellData < handle
     
     methods
         
-        function values = getEpochVals(obj, parameter, indices)
-            % getEpochVals - returns list (or) matrices of parameter values
-            % for the given param name and for the given indices.
-            n = length(indices);
-            values = [];
+        function values = getEpochValues(obj, parameter, indices)
+            fun = @(epoch) epoch.get(parameter);
             
-            if isempty(n)
-                return;
+            if isa(parameter, 'function_handle')
+                fun = parameter;
             end
-            
+            n = length(indices);            
             values = cell(1,n);
+            
             for i = 1 : n
-                value = obj.epochs(indices(i)).get(parameter);
+                value = fun(obj.epochs(indices(i)));
                 values{i} = value;
+            end
+            if sum(cellfun(@isnumeric, values)) == n
+                values = cell2mat(values);
             end
         end
         
+        function ds = createNewDataSet(dataSet, values, uniqueValue)
+            ds = [];
+            %TODO 
+        end
+        
         function keys = getEpochKeysetUnion(obj, indices)
-            keys = [];
             n = length(indices);
-            
-            if isempty(n)
-                return
-            end
-            
             keySet = [];
+            
             for i = 1 : n
                 keySet = [keySet obj.epochs(indices(i)).attributes.keys]; %#ok
             end

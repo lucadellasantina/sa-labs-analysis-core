@@ -1,4 +1,4 @@
-classdef AnalysisDataService < handle
+classdef AnalysisService < handle
     
     properties
         symphonyParser

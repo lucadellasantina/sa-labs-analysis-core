@@ -17,12 +17,12 @@ classdef AnalysisTreeBuilder < handle
         
         function buildCellTree(obj, rootNodeID, cellData, dataSet, paramList)
             
-            values = cellData.getEpochVals(paramList{1}, dataSet);
+            values = cellData.getEpochValues(paramList{1}, dataSet);
             parameter = paramList{1};
             uniqueValues = unique(values);
             
             for i = 1 : length(uniqueValues)
-                newDataSet = cellData.filter(dataSet, values, uniqueValues(i));
+                newDataSet = cellData.createNewDataSet(dataSet, values, uniqueValues(i));
                 
                 if ~ isempty(newDataSet)
                     nodeData = struct();
