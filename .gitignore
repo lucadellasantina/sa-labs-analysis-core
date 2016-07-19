@@ -15,5 +15,5 @@ target/
 logs/
 
 #Test fixtures
-*/analysis/*
-*/rawDataFolder/*
+**/analysis/**
+**/rawDataFolder/**
