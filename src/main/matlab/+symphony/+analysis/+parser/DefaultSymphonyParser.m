@@ -13,7 +13,7 @@ classdef DefaultSymphonyParser < symphony.analysis.parser.SymphonyParser
             data = CellData();
             [~, data.savedFileName, ~] = fileparts(obj.fname);
             
-            info = hdf5info(fname,'ReadAttributes',false);
+            info = h5info(obj.fname);
             info = info.GroupHierarchy(1);
             
             data.attributes = obj.mapAttributes(info.Groups(1), obj.fname);

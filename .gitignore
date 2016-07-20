@@ -16,4 +16,5 @@ logs/
 
 #Test fixtures
 **/analysis/**
+**/parser/**
 **/rawDataFolder/**

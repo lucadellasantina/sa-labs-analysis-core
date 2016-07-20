@@ -5,6 +5,7 @@ classdef SymphonyParser < handle
     end
     
     methods
+        
         function map = mapAttributes(obj, h5group, map)
             if nargin < 3
                 map = containers.Map();
@@ -21,7 +22,7 @@ classdef SymphonyParser < handle
                 if ~ isempty(root)
                     name = attributes(i).Name(root(end) + 1 : end);
                 end
-                map(name) = attributes(i).Value;
+                    map(name) = attributes(i).Value;
             end
         end
         

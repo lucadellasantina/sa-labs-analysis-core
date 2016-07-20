@@ -19,7 +19,7 @@ classdef DaoTest < matlab.unittest.TestCase
             obj.beanFactory = mdepin.getBeanFactory(which('TestContext.m'));
             repository = obj.beanFactory.getBean('fileRepository');
             
-            fixture = strrep(fileparts(repository.searchPath), 'main', 'test');
+            fixture = [fileparts(which('test.m')) filesep 'fixtures'];
             repository.preferenceFolder = [fixture filesep 'PreferenceFiles'];
             repository.analysisFolder = [fixture filesep 'analysis'];
             repository.rawDataFolder = [fixture filesep 'rawDataFolder'];
