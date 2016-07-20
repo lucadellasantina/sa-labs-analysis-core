@@ -1,8 +1,7 @@
 classdef DaoTest < matlab.unittest.TestCase
     
     properties
-        analysisDao
-        preferenceDao
+        beanFactory
         testCellDatas
         cellNames
     end
@@ -17,35 +16,24 @@ classdef DaoTest < matlab.unittest.TestCase
         function initContext(obj)
             import symphony.analysis.*;
             
-            ctx = struct();
+            obj.beanFactory = mdepin.getBeanFactory(which('TestContext.m'));
+            repository = obj.beanFactory.getBean('fileRepository');
             
-            ctx.analysisDao.class = 'symphony.analysis.dao.AnalysisDao';
-            ctx.analysisDao.repository = 'fileRepository';
-            ctx.preferenceDao.class = 'symphony.analysis.dao.PreferenceDao';
-            ctx.preferenceDao.repository = 'fileRepository';
-            ctx.fileRepository.class = 'symphony.analysis.app.FileRepository';
-            
-            obj.analysisDao = mdepin.createApplication(ctx, 'analysisDao');
-            obj.preferenceDao = mdepin.createApplication(ctx, 'preferenceDao');
-            
-            rep = obj.analysisDao.repository;
-            fixture = strrep(fileparts(rep.searchPath), 'main', 'test');
-            rep.preferenceFolder = [fixture filesep 'PreferenceFiles'];
-            rep.analysisFolder = [fixture filesep 'analysis'];
-            rep.rawDataFolder = [fixture filesep 'rawDataFolder'];
-            
-            util.file.overWrite(rep.analysisFolder);
-            util.file.overWrite(rep.rawDataFolder);
-            util.file.overWrite([rep.analysisFolder filesep 'cellData']);
-            
-            obj.preferenceDao.repository = rep;
-            
+            fixture = strrep(fileparts(repository.searchPath), 'main', 'test');
+            repository.preferenceFolder = [fixture filesep 'PreferenceFiles'];
+            repository.analysisFolder = [fixture filesep 'analysis'];
+            repository.rawDataFolder = [fixture filesep 'rawDataFolder'];
+       
+            util.file.overWrite(repository.analysisFolder);
+            util.file.overWrite(repository.rawDataFolder);
+            util.file.overWrite([repository.analysisFolder filesep 'cellData']);
+
             obj.testCellDatas = core.CellData.empty(10, 0);
             obj.cellNames = cell(obj.NO_OF_FILES, 1);
 
             for i = 1 : obj.NO_OF_FILES
                 name = [datestr(now, 'mmddyy') obj.FILE_PREFIX num2str(i)];
-                path = [rep.rawDataFolder filesep  name '.h5'];
+                path = [repository.rawDataFolder filesep  name '.h5'];
                 h5create(path ,'/ds' , [10 20]);
                 h5writeatt(path, '/','version', 1);
                 cellData = symphony.analysis.core.CellData();
@@ -60,14 +48,14 @@ classdef DaoTest < matlab.unittest.TestCase
     methods(Test)
         
         function testFileRepositorySettings(obj)
-            rep = obj.analysisDao.repository;
+            rep = obj.beanFactory.getBean('fileRepository');
             obj.verifyGreaterThan(regexp(rep.analysisFolder, '\w*analysis'), 1);
             obj.verifyGreaterThan(regexp(rep.rawDataFolder, '\w*rawDataFolder'), 1);
             obj.verifyGreaterThan(regexp(rep.preferenceFolder, '\w*PreferenceFiles'), 1);
         end
         
         function testFindRawDataFiles(obj)
-            dao = obj.analysisDao;
+            dao = obj.beanFactory.getBean('analysisDao');
             files = dao.findRawDataFiles(date);
             obj.verifyEqual(numel(files), obj.NO_OF_FILES);
             
@@ -79,7 +67,7 @@ classdef DaoTest < matlab.unittest.TestCase
         end
         
         function testSaveCellData(obj)
-            dao = obj.analysisDao;
+            dao = obj.beanFactory.getBean('analysisDao');
             path = [dao.repository.analysisFolder filesep 'cellData' filesep];
             arrayfun(@(d) dao.saveCellData(d), obj.testCellDatas);
             
@@ -90,13 +78,14 @@ classdef DaoTest < matlab.unittest.TestCase
         end
         
         function testCreateProject(obj)
-             folder = obj.analysisDao.createProject(obj.cellNames);
+             dao = obj.beanFactory.getBean('analysisDao');
+             folder = dao.createProject(obj.cellNames);
              text = importdata([folder filesep 'cellNames.txt'],'\n');
              obj.verifyEqual(obj.cellNames, text);
         end
         
         function testFindCellDataNames(obj)
-            dao = obj.analysisDao;
+            dao = obj.beanFactory.getBean('analysisDao');
             names = dao.findCellDataNames(date);
             obj.verifyEmpty(setdiff(obj.cellNames, names));
             names = dao.findCellDataNames(datestr(busdate(date, 1)));
@@ -104,7 +93,7 @@ classdef DaoTest < matlab.unittest.TestCase
         end
         
         function testLoadPreference(obj)
-            dao = obj.preferenceDao;
+            dao = obj.beanFactory.getBean('preferenceDao');
             dao.loadPreference();
             obj.verifyEqual(dao.cellTags.keys, sort({'QualityRating' , 'RecordedBy'}))
             obj.verifyEqual(dao.cellTags('QualityRating'), {'4', '3', '2', '1'});

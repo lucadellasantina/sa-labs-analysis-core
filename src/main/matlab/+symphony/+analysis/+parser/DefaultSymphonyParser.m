@@ -7,7 +7,7 @@ classdef DefaultSymphonyParser < symphony.analysis.parser.SymphonyParser
     methods
         
         function obj = parse(obj)
-            import symphony.analysis.constants*;
+            import symphony.analysis.constants.*;
             import symphony.analysis.core.*;
             
             data = CellData();
