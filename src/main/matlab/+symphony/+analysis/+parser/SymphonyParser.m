@@ -18,11 +18,12 @@ classdef SymphonyParser < handle
             for i = 1 : length(attributes)
                 name = attributes(i).Name;
                 root = strfind(name, '/');
-                
+                value = attributes(i).Value;
+
                 if ~ isempty(root)
                     name = attributes(i).Name(root(end) + 1 : end);
                 end
-                    map(name) = attributes(i).Value;
+                    map(name) = value;
             end
         end
         
