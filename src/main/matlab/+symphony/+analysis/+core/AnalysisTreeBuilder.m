@@ -15,19 +15,18 @@ classdef AnalysisTreeBuilder < handle
             obj.setNode(1, nodeData);
         end
         
-        function buildCellTree(obj, rootNodeID, cellData, dataSet, paramList)
+        function buildCellTree(obj, rootNodeID, cellData, epochIndices, paramList)
             
-            values = cellData.getEpochValues(paramList{1}, dataSet);
-            parameter = paramList{1};
+            [values, parameterDescription] = cellData.getEpochValues(paramList{1}, epochIndices);
             uniqueValues = unique(values);
             
             for i = 1 : length(uniqueValues)
-                newDataSet = cellData.createNewDataSet(dataSet, values, uniqueValues(i));
+                newDataSet = cellData.createNewDataSet(epochIndices, values, uniqueValues(i));
                 
                 if ~ isempty(newDataSet)
                     nodeData = struct();
-                    nodeData.splitParam = parameter;
-                    nodeData.name = [parameter '==' num2str(value)];
+                    nodeData.splitParam = parameterDescription;
+                    nodeData.name = [parameterDescription '==' num2str(value)];
                     nodeData.splitValue = value;
                     nodeData.epochID = newDataSet;
                     

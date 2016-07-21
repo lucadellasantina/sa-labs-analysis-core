@@ -54,9 +54,9 @@ classdef Symphony2Parser < symphony.analysis.parser.SymphonyParser
                 parameterMap('epochNum') = i;
                 parameterMap('epochStartTime') = sortedEpochTime(i);
                 
-                e = EpochData;
+                e = EpochData();
                 e.parentCell = cell;
-                e.attributes = parameterMap;
+                e.attributes = containers.Map(parameterMap.keys, parameterMap.values);
                 e.dataLinks = obj.getResponses(h5Epochs(index).Groups(3).Groups);
                 e.response = @(stream) h5read(obj.fname, e.dataLinks(stream));
                 epochData(i)= e;

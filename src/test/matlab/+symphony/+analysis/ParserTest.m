@@ -8,7 +8,7 @@ classdef ParserTest < matlab.unittest.TestCase
     
     properties(Constant)
         SYMPHONY_V1_FILE = '061915Ac4.h5'
-        SYMPHONY_V2_FILE = '210716Ac1.h5'   % total epochs
+        SYMPHONY_V2_FILE = '210716Ac1.h5'   % TODO replace with json or other format
         TEST_FILE = 'test.h5';
     end
     
@@ -92,8 +92,16 @@ classdef ParserTest < matlab.unittest.TestCase
             [~, name, ~] = ref.getProtocolId(epochs(1).Name);
             obj.verifyEqual(name, 'fi.helsinki.biosci.ala_laurila.protocols.LedPulse')
             
-            cellData = ref.parse().getResult();
-            epoch = cellData.epochs(1);
+            cellData = ref.parse().getResult() %#ok
+            epochs = cellData.epochs;
+            previousEpochTime = -1;
+            for i = 1 : numel(epochs)
+                time = epochs(i).attributes('epochStartTime');
+                obj.verifyGreaterThan(time, previousEpochTime);
+                obj.verifyEqual(epochs(i).attributes('epochNum'), i);
+                previousEpochTime = time;
+            end
+            epoch = epochs(1) %#ok
             duration = epoch.attributes('preTime') + epoch.attributes('stimTime') + epoch.attributes('tailTime'); % (ms)
             samplingRate = epoch.attributes('sampleRate');
             data = epoch.getResponse('Amp1');

@@ -1,4 +1,4 @@
-classdef EpochData < handle
+classdef EpochData < handle & matlab.mixin.CustomDisplay
     
     properties
         attributes      % Map holding protocol and epoch attributes from h5 data
@@ -27,6 +27,29 @@ classdef EpochData < handle
         function r = getResponse(obj, device)
             r = obj.response(device);
         end
+    end
+    
+    methods(Access = protected)
         
+        function header = getHeader(obj)
+            type = obj.parentCell.cellType;
+            if isempty(type)
+                type = 'unassigned';
+            end
+            header = ['Displaying epoch information of ' type ' cell type '];
+        end
+        
+        function groups = getPropertyGroups(obj)
+            attrKeys = obj.attributes.keys;
+            deviceKeys = obj.dataLinks.keys;
+            groups = matlab.mixin.util.PropertyGroup.empty(0, 2);
+            
+            display = struct();
+            for i = 1 : numel(attrKeys)
+                display.(attrKeys{i}) = obj.attributes(attrKeys{i});
+            end
+            groups(1) = display;
+            groups(2) = deviceKeys;
+        end
     end
 end
