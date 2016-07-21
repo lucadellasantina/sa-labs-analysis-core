@@ -16,7 +16,7 @@ classdef DefaultSymphonyParser < symphony.analysis.parser.SymphonyParser
             info = h5info(obj.fname);
             info = info.GroupHierarchy(1);
             
-            data.attributes = obj.mapAttributes(info.Groups(1), obj.fname);
+            data.attributes = obj.mapAttributes(info.Groups(1));
             n = length(info.Groups);
             
             EpochDataGroups = [];
@@ -29,7 +29,7 @@ classdef DefaultSymphonyParser < symphony.analysis.parser.SymphonyParser
             for i = 1 : length(EpochDataGroups)
                 
                 if length(EpochDataGroups(i).Groups) >= 3 %Complete epoch
-                    attributeMap = obj.mapAttributes(EpochDataGroups(i), obj.fname);
+                    attributeMap = obj.mapAttributes(EpochDataGroups(i));
                     epochTimes(index) = attributeMap(AnalysisConstant.H5_EPOCH_START_TIME); %#ok
                     okEpochInd(index) = i; %#ok
                     index = index + 1;
@@ -54,7 +54,7 @@ classdef DefaultSymphonyParser < symphony.analysis.parser.SymphonyParser
                 epoch.attributes(AnalysisConstant.EPOCH_START_TIME) = epochTimes_sorted(i);
                 epoch.attributes(AnalysisConstant.EPOCH_NUMBER) = i;
                 epoch.parentCell = data;
-                epoch.attributes = obj.mapAttributes(EpochDataGroups(groupInd).Groups(1), obj.fname);
+                epoch.attributes = obj.mapAttributes(EpochDataGroups(groupInd).Groups(1));
                 epoch.dataLinks = obj.addDataLinks(EpochDataGroups(groupInd).Groups(2).Groups);
                 epoch.response = @(stream) h5read(obj.fname, epoch.dataLinks(stream));
                 data.epochs(i) = epoch;

@@ -45,12 +45,12 @@ classdef Symphony2Parser < symphony.analysis.parser.SymphonyParser
                 
                 if ~ strcmp(protocolId, lastProtocolId)
                     % start of new protocol
-                    parameterMap = obj.mapAttributes(protocolPath, obj.fname);
+                    parameterMap = obj.mapAttributes(protocolPath);
                     parameterMap('displayName') = name;
                     lastProtocolId = protocolId;
                 end
                 
-                parameterMap = obj.mapAttributes(h5Epochs(index).Groups(2), obj.fname, parameterMap);
+                parameterMap = obj.mapAttributes(h5Epochs(index).Groups(2), parameterMap);
                 parameterMap('epochNum') = i;
                 parameterMap('epochStartTime') = sortedEpochTime(i);
                 

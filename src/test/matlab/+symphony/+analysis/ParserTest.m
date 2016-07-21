@@ -33,10 +33,16 @@ classdef ParserTest < matlab.unittest.TestCase
             
             ref = parser.getInstance([obj.path obj.SYMPHONY_V1_FILE]);
             obj.verifyClass(ref, ?symphony.analysis.parser.DefaultSymphonyParser);
-            %data = ref.parse();
-           ref = parser.getInstance([obj.path obj.SYMPHONY_V2_FILE]);
+            ref = parser.getInstance([obj.path obj.SYMPHONY_V2_FILE]);
             obj.verifyClass(ref, ?symphony.analysis.parser.Symphony2Parser);
         end
+        
+        function testMapAttributes(obj)
+            
+        end
+        
+        function testFlattenEpochs(obj)
+            
+        end
     end
-end
-
+    
