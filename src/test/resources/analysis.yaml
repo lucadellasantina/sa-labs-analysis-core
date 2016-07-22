@@ -1,0 +1,47 @@
+--- 
+# Describes the type of analysis one intend to do
+analysis : LightStep
+
+# Describes the level of tree in the following order 
+build-tree-by : 
+  - device-stream
+  - data-set
+  - ampHoldSignal
+  - rstarMean
+
+# (1)
+# Describes the node device-stream
+#
+# varagin - can take parameters to be added in nodeData struct 
+# and the equivalent value will be looked up from cell data
+#
+# featureExtractor is a function handle that has all its child nodes
+# extractDataSummary - might look up all the nodeData from child nodes and 
+# extracts some meaning full feature and returns it back
+
+device-stream : 
+  vargin : "amp1"
+  featureExtractor : "@(childrens)extractDataSummary(obj, childrens)"
+
+# Describes the node data-set
+data-set :   
+  vargin : "all"
+  featureExtractor : "@(childrens)extractAmpHoldSummary(obj, childrens)"
+
+# Describes the node ampHoldSignal
+ampHoldSignal :   
+  vargin : "all"
+  featureExtractor : "@(childrens)extractRstarSummaryobj, childrens)"
+
+# Describes the node rstarMean,
+#
+# In addition to above
+# varagin can also support function handle where cellData can be evaluated 
+# on the function handle. value returned from function handle defines the 
+# number of nodes in the particular level
+
+rstarMean :   
+  vargin : "@(epoch) convertIntensitytoRStar (obj, epoch)"
+  featureExtractor : "@(childrens)extractRstarMean(obj, childrens)"  
+
+  

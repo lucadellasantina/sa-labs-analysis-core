@@ -1,4 +1,4 @@
-classdef Feature < handle
+classdef Feature < handle & matlab.mixin.Heterogeneous
     
     properties
         id
