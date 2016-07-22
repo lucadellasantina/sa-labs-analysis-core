@@ -95,17 +95,19 @@ classdef ParserTest < matlab.unittest.TestCase
             cellData = ref.parse().getResult() %#ok
             epochs = cellData.epochs;
             previousEpochTime = -1;
+            
             for i = 1 : numel(epochs)
                 time = epochs(i).attributes('epochStartTime');
                 obj.verifyGreaterThan(time, previousEpochTime);
                 obj.verifyEqual(epochs(i).attributes('epochNum'), i);
                 previousEpochTime = time;
             end
+            
             epoch = epochs(1) %#ok
             duration = epoch.attributes('preTime') + epoch.attributes('stimTime') + epoch.attributes('tailTime'); % (ms)
             samplingRate = epoch.attributes('sampleRate');
             data = epoch.getResponse('Amp1');
-            obj.verifyEqual(numel(data.quantity), (duration / 10^3) * samplingRate); 
+            obj.verifyEqual(numel(data.quantity), (duration / 10^3) * samplingRate);
         end
     end
 end

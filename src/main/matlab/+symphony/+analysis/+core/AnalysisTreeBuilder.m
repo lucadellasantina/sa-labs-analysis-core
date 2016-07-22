@@ -7,6 +7,9 @@ classdef AnalysisTreeBuilder < handle
     methods
         
         function obj = AnalysisTreeBuilder(tree)
+            if nargin < 1 
+               tree = tree();
+            end
             obj.tree = tree;
         end
         
