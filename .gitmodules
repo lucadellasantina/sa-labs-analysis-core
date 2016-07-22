@@ -8,3 +8,6 @@
 [submodule "lib/mdepin"]
 	path = lib/mdepin
 	url = https://github.com/mattmcd/mdepin.git
+[submodule "lib/yamlmatlab"]
+	path = lib/yamlmatlab
+	url = https://github.com/ewiger/yamlmatlab.git
