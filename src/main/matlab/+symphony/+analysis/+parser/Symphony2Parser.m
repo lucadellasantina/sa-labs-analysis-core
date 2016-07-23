@@ -26,7 +26,7 @@ classdef Symphony2Parser < symphony.analysis.parser.SymphonyParser
             import symphony.analysis.constants.*;
             import symphony.analysis.core.*;
             
-            cell = CellData();
+            cell = entity.CellData();
             info = h5info(obj.fname);
             h5Epochs = obj.flattenEpochs(info.Groups(1).Groups(2).Groups);
             
@@ -35,7 +35,7 @@ classdef Symphony2Parser < symphony.analysis.parser.SymphonyParser
             sortedEpochTime = double(time - time(1)).* 1e-7;
             
             lastProtocolId = [];
-            epochData = EpochData.empty(numel(h5Epochs), 0);
+            epochData = entity.EpochData.empty(numel(h5Epochs), 0);
             [protocolId, name, protocolPath] = obj.getProtocolId(h5Epochs(1).Name);
             
             for i = 1 : numel(h5Epochs)
@@ -54,11 +54,11 @@ classdef Symphony2Parser < symphony.analysis.parser.SymphonyParser
                 parameterMap('epochNum') = i;
                 parameterMap('epochStartTime') = sortedEpochTime(i);
                 
-                e = EpochData();
+                e = entity.EpochData();
                 e.parentCell = cell;
                 e.attributes = containers.Map(parameterMap.keys, parameterMap.values);
                 e.dataLinks = obj.getResponses(h5Epochs(index).Groups(3).Groups);
-                e.response = @(stream) h5read(obj.fname, e.dataLinks(stream));
+                e.responseHandle = @(path) h5read(obj.fname, path);
                 epochData(i)= e;
                 
                 [protocolId, name, protocolPath] = obj.getProtocolId(epochPath);

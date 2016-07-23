@@ -10,7 +10,7 @@ classdef DefaultSymphonyParser < symphony.analysis.parser.SymphonyParser
             import symphony.analysis.constants.*;
             import symphony.analysis.core.*;
             
-            data = CellData();
+            data = entity.CellData();
             [~, data.savedFileName, ~] = fileparts(obj.fname);
             
             info = h5info(obj.fname);
@@ -46,17 +46,17 @@ classdef DefaultSymphonyParser < symphony.analysis.parser.SymphonyParser
             epochTimes_sorted = epochTimes_sorted - epochTimes_sorted(1);
             epochTimes_sorted = double(epochTimes_sorted) / 1E7; % Ticks to second
             
-            data.epochs = EpochData.empty(nEpochs, 0);
+            data.epochs = entity.EpochData.empty(nEpochs, 0);
             for i = 1 : nEpochs
                 
                 groupInd = okEpochInd(indices(i));
-                epoch = EpochData();
+                epoch = entity.EpochData();
                 epoch.attributes(AnalysisConstant.EPOCH_START_TIME) = epochTimes_sorted(i);
                 epoch.attributes(AnalysisConstant.EPOCH_NUMBER) = i;
                 epoch.parentCell = data;
                 epoch.attributes = obj.mapAttributes(EpochDataGroups(groupInd).Groups(1));
                 epoch.dataLinks = obj.addDataLinks(EpochDataGroups(groupInd).Groups(2).Groups);
-                epoch.response = @(stream) h5read(obj.fname, epoch.dataLinks(stream));
+                epoch.responseHandle = @(path) h5read(obj.fname, path);
                 data.epochs(i) = epoch;
             end
             data.attributes(AnalysisConstant.TOTAL_EPOCHS) = nEpochs;

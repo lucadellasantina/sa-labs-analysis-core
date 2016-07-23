@@ -1,7 +1,7 @@
 function map  = addToMap(map, key, value)
 
-if iskey(map, key)
-    map(value) = [map(key), value];
+if isKey(map, key)
+    map(key) = [map(key), value];
 else
     map(key) = value;
 end

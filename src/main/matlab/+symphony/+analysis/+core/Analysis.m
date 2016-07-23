@@ -5,7 +5,7 @@ classdef Analysis < handle
         cellData
     end
     
-    properties(Access = protected)
+    properties(SetAccess = private, GetAccess = protected)
         treeBuilder
     end
     

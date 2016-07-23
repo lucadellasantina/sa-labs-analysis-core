@@ -40,22 +40,63 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             %      obj.getEpochValues('r_star', [1:100])
             %      obj.getEpochValues(@(epoch) calculateRstar(epoch), [1:100])
             
-            fun = @(epoch) epoch.get(parameter);
+            functionHandle = @(epoch) epoch.get(parameter);
             parameterDescription = parameter;
             
             if isa(parameter, 'function_handle')
-                fun = parameter;
-                parameterDescription = func2str(fun);
+                functionHandle = parameter;
+                parameterDescription = func2str(functionHandle);
             end
             n = length(epochIndices);
             values = cell(1,n);
             
             for i = 1 : n
-                value = fun(obj.epochs(epochIndices(i)));
+                value = functionHandle(obj.epochs(epochIndices(i)));
                 values{i} = value;
             end
             if sum(cellfun(@isnumeric, values)) == n
                 values = cell2mat(values);
+            end
+        end
+        
+        function [map, parameterDescription] = getEpochValuesMap(obj, parameter, epochIndices)
+                       
+            % getEpochValuesMap - By deafult returns attribute values as key
+            % and matching epochs indices as values 
+            %
+            % @ see also getEpochValues
+            %
+            % If the parameter is a function handle, it applies the function
+            % to given epoch and returns its attribute values and epochs
+            % indices
+            %
+            % Parameter - epoch attributes or function handle
+            % epochIndices - list of epoch indices to be lookedup
+            %
+            % Usage -
+            %      obj.getEpochValuesMap('r_star', [1:100])
+            %      obj.getEpochValuesMap(@(epoch) calculateRstar(epoch), [1:100])
+            
+            functionHandle = @(epoch) epoch.get(parameter);
+            parameterDescription = parameter;
+            
+            if isa(parameter, 'function_handle')
+                functionHandle = parameter;
+                parameterDescription = func2str(functionHandle);
+            end
+            n = length(epochIndices);
+            map = containers.Map();
+            
+            for i = 1 : n
+                epochIndex = epochIndices(i);
+                epoch = obj.epochs(epochIndex);
+                value = functionHandle(epoch);
+                map = symphony.analysis.util.collections.addToMap(map, num2str(value), epochIndex);
+            end
+            
+            keys = map.keys;
+            if isempty([keys{:}])
+                map = [];
             end
         end
         
@@ -94,7 +135,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             % get - Returns value for given parameter name
             % Tags take precedence over attributes
             
-            val = Nan;
+            val = [];
             if obj.tags.isKey(paramName)
                 val = obj.tags(paramName);
             end
@@ -114,10 +155,10 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
                 return
             end
             
-            fun = str2func(queryString);
+            functionHandle = str2func(queryString);
             for i = 1 : n
-                d = obj.epochs(subSet(i)); % variable name of map in query string is M
-                if fun(d)
+                d = obj.epochs(subSet(i)); 
+                if functionHandle(d)
                     dataSet = [dataSet subSet(i)]; %#ok
                 end
             end
@@ -130,8 +171,8 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
                 tf = true;
                 return
             end
-            fun = str2func(queryString);
-            tf = fun(obj);
+            functionHandle = str2func(queryString);
+            tf = functionHandle(obj);
         end
         
     end

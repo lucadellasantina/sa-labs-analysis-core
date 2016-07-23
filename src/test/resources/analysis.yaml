@@ -2,6 +2,9 @@
 # Describes the type of analysis one intend to do
 analysis : LightStep
 
+copyParameters :
+  - abc
+
 # Describes the level of tree in the following order 
 build-tree-by : 
   - device-stream
@@ -10,7 +13,7 @@ build-tree-by :
   - rstarMean
 
 # (1)
-# Describes the node device-stream
+# Discribes the node device-stream
 #
 # varagin - can take parameters to be added in nodeData struct 
 # and the equivalent value will be looked up from cell data
@@ -20,18 +23,25 @@ build-tree-by :
 # extracts some meaning full feature and returns it back
 
 device-stream : 
-  vargin : "amp1"
-  featureExtractor : "@(childrens)extractDataSummary(obj, childrens)"
+  split-param : "Amp1"
+  split-value : 'Amplifier_ch1'
+  featureExtractor : 
+    - analysis.CellSummaryExtractor
+
 
 # Describes the node data-set
 data-set :   
-  vargin : "all"
-  featureExtractor : "@(childrens)extractAmpHoldSummary(obj, childrens)"
+  split-param : "savedDataSets"
+  split-value : "all"
+  featureExtractor :
+      - analysis.DataSetSummaryExtractor
 
 # Describes the node ampHoldSignal
 ampHoldSignal :   
-  vargin : "all"
-  featureExtractor : "@(childrens)extractRstarSummaryobj, childrens)"
+  split-param : "ampHoldSignal"
+  split-value : "all"
+  featureExtractor : 
+    - analysis.HoldingResponseSummaryExtractor
 
 # Describes the node rstarMean,
 #
@@ -41,7 +51,8 @@ ampHoldSignal :
 # number of nodes in the particular level
 
 rstarMean :   
-  vargin : "@(epoch) convertIntensitytoRStar (obj, epoch)"
-  featureExtractor : "@(childrens)extractRstarMean(obj, childrens)"  
-
+  split-param : rstar
+  split-value : "@(epoch) convertIntensitytoRStar (obj, epoch)"
+  featureExtractor : 
+    -  analysis.RstarMeanExtractor
   
