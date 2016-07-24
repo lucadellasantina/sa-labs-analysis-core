@@ -55,6 +55,18 @@ classdef EpochData < handle & matlab.mixin.CustomDisplay
             path = obj.dataLinks(device);
             r = obj.responseHandle(path);
         end
+        
+        function attributeKeys = unionAttributeKeys(obj, attributeKeys)
+            % unionAttributeKeys - returns the union of { current instance 
+            % attribute keys } and passed argument {attributeKeys}
+            
+            if isempty(attributeKeys)
+                attributeKeys = obj.attributes.keys;
+                return
+            end
+            
+            attributeKeys = union(attributeKeys, obj.attributes.keys);
+        end
     end
     
     methods(Access = protected)

@@ -40,6 +40,10 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             %      obj.getEpochValues('r_star', [1:100])
             %      obj.getEpochValues(@(epoch) calculateRstar(epoch), [1:100])
             
+            if nargin < 3
+                epochIndices = 1 : numel(obj.epochs);
+            end
+            
             functionHandle = @(epoch) epoch.get(parameter);
             parameterDescription = parameter;
             
@@ -60,9 +64,9 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
         end
         
         function [map, parameterDescription] = getEpochValuesMap(obj, parameter, epochIndices)
-                       
+            
             % getEpochValuesMap - By deafult returns attribute values as key
-            % and matching epochs indices as values 
+            % and matching epochs indices as values
             %
             % @ see also getEpochValues
             %
@@ -76,6 +80,10 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             % Usage -
             %      obj.getEpochValuesMap('r_star', [1:100])
             %      obj.getEpochValuesMap(@(epoch) calculateRstar(epoch), [1:100])
+            
+            if nargin < 3
+                epochIndices = 1 : numel(obj.epochs);
+            end
             
             functionHandle = @(epoch) epoch.get(parameter);
             parameterDescription = parameter;
@@ -100,30 +108,34 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             end
         end
         
-        function keys = getEpochKeysetUnion(obj, epochIndices)
+        function keySet = getEpochKeysetUnion(obj, epochIndices)
             
             % getEpochKeysetUnion - returns unqiue attributes from epoch
             % array
+            
+            if nargin < 2
+                epochIndices = 1 : numel(obj.epochs);
+            end
             
             n = length(epochIndices);
             keySet = [];
             
             for i = 1 : n
-                keySet = [keySet obj.epochs(epochIndices(i)).attributes.keys]; %#ok
+                epoch = obj.epochs(epochIndices(i));
+                keySet = epoch.unionAttributeKeys(keySet);
             end
-            keys = unique(keySet);
         end
         
-        function [params, vals] = getNonMatchingParamValues(obj, epochInd, excluded)
+        function [params, vals] = getNonMatchingParamValues(obj, excluded, epochIndices)
             
             % getNonMatchingParamValues - returns unqiue attributes & values
             % apart from excluded attributes
             
-            keys = setdiff(obj.getEpochKeysetUnion(epochInd), excluded);
+            keys = setdiff(obj.getEpochKeysetUnion(epochIndices), excluded);
             map = containers.Map();
             
             for i = 1 : length(keys)
-                values = obj.getEpochValues(keys{i}, epochInd);
+                values = obj.getEpochValues(keys{i}, epochIndices);
                 map(key) =  unique(values);
             end
             params = map.keys;
@@ -157,7 +169,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             
             functionHandle = str2func(queryString);
             for i = 1 : n
-                d = obj.epochs(subSet(i)); 
+                d = obj.epochs(subSet(i));
                 if functionHandle(d)
                     dataSet = [dataSet subSet(i)]; %#ok
                 end
@@ -180,24 +192,32 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
     methods(Access = protected)
         
         function header = getHeader(obj)
-            type = obj.cellType;
-            if isempty(type)
-                type = 'unassigned';
+            try
+                type = obj.cellType;
+                if isempty(type)
+                    type = 'unassigned';
+                end
+                header = ['Displaying information about ' type ' cell type '];
+            catch
+                header = getHeader@matlab.mixin.CustomDisplay(obj);
             end
-            header = ['Displaying information about ' type ' cell type '];
         end
         
         function groups = getPropertyGroups(obj)
-            attrKeys = obj.attributes.keys;
-            dataSetKeys = obj.savedDataSets.keys;
-            groups = matlab.mixin.util.PropertyGroup.empty(0, 2);
-            
-            display = struct();
-            for i = 1 : numel(attrKeys)
-                display.(attrKeys{i}) = obj.attributes(attrKeys{i});
+            try
+                attrKeys = obj.attributes.keys;
+                dataSetKeys = obj.savedDataSets.keys;
+                groups = matlab.mixin.util.PropertyGroup.empty(0, 2);
+                
+                display = struct();
+                for i = 1 : numel(attrKeys)
+                    display.(attrKeys{i}) = obj.attributes(attrKeys{i});
+                end
+                groups(1) = display;
+                groups(2) = dataSetKeys;
+            catch
+                groups = getPropertyGroups@matlab.mixin.CustomDisplay(obj);
             end
-            groups(1) = display;
-            groups(2) = dataSetKeys;
         end
     end
     

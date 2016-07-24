@@ -59,6 +59,10 @@ classdef EntityTest < matlab.unittest.TestCase
             values = {'cell-attached', 'cell-attached', 'whole-cell'};
             epochData.attributes = containers.Map(keys, values);
             obj.verifyEqual(sort(epochData.getMode('mode')), values);
+            keys{end + 1} = 'unqiue';
+            
+            obj.verifyEqual(epochData.unionAttributeKeys(keys), sort(keys));
+            obj.verifyEqual(sort(epochData.unionAttributeKeys([])), sort(keys(1 : end-1)));
         end
     end
     
@@ -115,6 +119,18 @@ classdef EntityTest < matlab.unittest.TestCase
             
             [map, ~] = cellData.getEpochValuesMap('unknown', 1 : 5 : 100);
             obj.verifyEmpty(map);
+        end
+        
+        function testGetEpochKeysetUnion(obj)
+            import symphony.analysis.core.entity.*;
+            cellData = CellData();
+            cellData.epochs = obj.epochs;
+            
+            keySet = cellData.getEpochKeysetUnion(1 : 5 : 100);
+            obj.verifyEqual(keySet, {'intensity', 'stimTime'});
+            
+            keySet = cellData.getEpochKeysetUnion();
+            obj.verifyEqual(keySet, {'intensity', 'stimTime'});
         end
         
     end
