@@ -1,59 +1,42 @@
 classdef Analysis < handle
-
-    properties(SetAccess = private)
-        configurationStruct
-        cellData
-    end
     
-    properties(SetAccess = private, GetAccess = protected)
-        treeBuilder
-    end
-    
-    properties(Dependent)
-        tree
+    properties(SetAccess = protected)
+        featureBuilderContext
+        nodeManager
     end
     
     methods
-
-        function obj = Analysis(config, data, tree)
+        
+        function obj = Analysis(context, tree)
             if nargin < 2
                 tree = tree();
             end
-            obj.cellData = data;
-            obj.configurationStruct = config;
-            obj.treeBuilder = core.AnalysisTreeBuilder(tree);
+            obj.nodeManager = NodeManager(tree);
+            obj.featureBuilderContext = context;
         end
         
-        function doAnalysis(obj)
-            obj.build();
-            obj.extract();
-            obj.organize();
+        function do(obj)
+            obj.buildTree();
+            obj.createFeatures();
         end
         
-        function tree = get.tree(obj)
-            tree= obj.treeBuilder.tree;
+        
+        function createFeatures(obj)
+            context = obj.featureBuilderContext;
+            splitParameters = context.keys;
+            
+            for i = 1 : numel(splitParameters)
+                splitParameter = splitParameters{i};
+                builders = context(splitParameters);
+                arrayfun(@(builder) builder.build(splitParameter), builders);
+            end
         end
+    end
+
+    methods(Abstract)
+        buildTree(obj)
+        createFeature(obj, builders, splitParameters)
     end
     
-    methods(Access = protected)
-        
-        function build(obj)
-        end
-        
-        function extract(obj)
-            % iterate through config feature extractor 
-            % and extract features
-             features = featureExtractor.extract(obj.cellData);
-             obj.addFeatures(features);
-        end
-        
-        function organize(obj)
-        end
-    end
-    
-    methods(Access = private)
-        function addFeatures(obj, features)
-        end
-    end
 end
 
