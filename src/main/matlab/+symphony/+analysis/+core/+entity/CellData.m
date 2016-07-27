@@ -2,9 +2,9 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
     
     properties
         attributes                          % Map for attributes from data file (h5group root attributes + Nepochs)
-        epochs                              % Array of EpochData
+        epochs                              % Array of symphony.analysis.core.entity.EpochData
         epochGroups                         % TODO
-        savedDataSets                       % DataSets saved from cell data curator
+        savedDataSets                       % DataSets saved from cell data curator with key as 'data set name' and value as 'epoch Indices'
         savedFileName = ''                  % Current H5 file name without extension
         savedFilters                        % TODO
         tags                                % TODO
@@ -126,20 +126,45 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             end
         end
         
-        function [params, vals] = getNonMatchingParamValues(obj, excluded, epochIndices)
+        function [params, vals] = getUniqueNonMatchingParamValues(obj, excluded, epochIndices)
             
             % getNonMatchingParamValues - returns unqiue attributes & values
             % apart from excluded attributes
+            %
+            % Return parameters
+            %    params - cell array of strings
+            %    values - cell array of value data type
+            
+            if nargin < 3
+                epochIndices = 1 : numel(obj.epochs);
+            end
             
             keys = setdiff(obj.getEpochKeysetUnion(epochIndices), excluded);
             map = containers.Map();
             
             for i = 1 : length(keys)
-                values = obj.getEpochValues(keys{i}, epochIndices);
+                key = keys{i};
+                values = obj.getEpochValues(key, epochIndices);
                 map(key) =  unique(values);
             end
             params = map.keys;
             vals = map.values;
+        end
+        
+        function [params, vals] = getUniqueParamValues(obj, epochIndices)
+            
+            % getUniqueParamValues - returns unqiue attributes & values
+            %
+            % see also getUniqueNonMatchingParamValues
+            %
+            % Return parameters
+            %    params - cell array of strings
+            %    values - cell array of value data type
+            
+            if nargin < 2
+                epochIndices = 1 : numel(obj.epochs);
+            end
+            [params, vals] = obj.getUniqueNonMatchingParamValues([], epochIndices);
         end
         
         function val = get(obj, paramName)
@@ -150,6 +175,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             val = [];
             if obj.tags.isKey(paramName)
                 val = obj.tags(paramName);
+                return
             end
             
             if obj.attributes.isKey(paramName)
@@ -176,7 +202,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             end
         end
         
-        function tf = filterCell(obj, queryString)
+        function tf = has(obj, queryString)
             % returns true or false for this cell
             
             if strcmp(queryString, '?') || isempty(queryString)
@@ -219,6 +245,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
                 groups = getPropertyGroups@matlab.mixin.CustomDisplay(obj);
             end
         end
+        
     end
     
 end

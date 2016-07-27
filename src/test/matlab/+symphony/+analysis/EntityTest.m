@@ -28,6 +28,7 @@ classdef EntityTest < matlab.unittest.TestCase
                 obj.epochs(i) = e;
             end
         end
+        
     end
     
     methods(Test)
@@ -64,6 +65,7 @@ classdef EntityTest < matlab.unittest.TestCase
             obj.verifyEqual(epochData.unionAttributeKeys(keys), sort(keys));
             obj.verifyEqual(sort(epochData.unionAttributeKeys([])), sort(keys(1 : end-1)));
         end
+        
     end
     
     % Test methods for CellData
@@ -133,6 +135,57 @@ classdef EntityTest < matlab.unittest.TestCase
             obj.verifyEqual(keySet, {'intensity', 'stimTime'});
         end
         
+        function testGetUniqueNonMatchingParamValues(obj)
+            import symphony.analysis.core.entity.*;
+            cellData = CellData();
+            cellData.epochs = obj.epochs;
+            
+            [params, values] = cellData.getUniqueNonMatchingParamValues({'intensity'} ,1 : 5 : 100);
+            obj.verifyEqual(params, {'stimTime'});
+            % unique stim time @see prepareEpochData
+            obj.verifyLength(values{1}, 10);
+            % get the first element (value corresponds to 'stimTime') from cell array
+            actual = sort(unique(values{1}));
+            expected = arrayfun(@(i)cellstr([num2str(20 * i) 'ms' ]), 1: 10);
+            obj.verifyEqual(actual, sort(expected));
+            
+            [params, values] = cellData.getUniqueNonMatchingParamValues({'intensity', 'stimTime'});
+            obj.verifyEmpty(params);
+            obj.verifyEmpty(values);
+            
+            [params, values] = cellData.getUniqueNonMatchingParamValues([] ,1 : 5 : 100);
+            verify();
+            [params, values] = cellData.getUniqueNonMatchingParamValues({} ,1 : 5 : 100);
+            verify();
+            [params, values] = cellData.getUniqueNonMatchingParamValues('unknown' ,1 : 5 : 100);
+            verify();
+            
+            function verify()
+                obj.verifyEqual(params, {'intensity', 'stimTime'});
+                obj.verifyLength(values{1}, 10);
+                obj.verifyLength(values{2}, 10);
+                % test intensity values
+                obj.verifyEqual(values{1}, (10 * [1: 10]))
+                % test again stimTime values
+                actualValue = sort(unique(values{2}));
+                obj.verifyEqual(actualValue, sort(expected));
+            end
+            
+            [params, values] = cellData.getUniqueParamValues(1 : 5 : 100);
+            verify();
+        end
+        
+        function testGet(obj)
+            import symphony.analysis.core.entity.*;
+            cellData = CellData();
+            cellData.attributes = containers.Map({'other', 'string'}, {'bla', 'test'});
+            cellData.tags = containers.Map('other', 'tag');
+            
+            obj.verifyEqual(cellData.get('other'), 'tag');
+            obj.verifyEqual(cellData.get('string'), 'test');
+            obj.verifyEmpty(cellData.get('unknown'));
+            obj.verifyEmpty(cellData.get([]));
+        end
     end
     
 end

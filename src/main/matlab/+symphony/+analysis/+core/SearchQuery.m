@@ -56,7 +56,7 @@ classdef SearchQuery < hgsetget %search query object to use with searchLeafNodes
             for i=1:N
                 if ischar(self.values{i})
                     if strcmp(self.operators{i},'==') %and the condition is equality, do a strcmp
-                        s = ['strcmp(M.get(' '''' self.fieldnames{i} '''' '),' '''' self.values{i} '''' ')'];
+                        s = ['strcmp(data.get(' '''' self.fieldnames{i} '''' '),' '''' self.values{i} '''' ')'];
                     else
                         disp('Error: only equality can be tested for strings');
                     end
@@ -64,21 +64,21 @@ classdef SearchQuery < hgsetget %search query object to use with searchLeafNodes
                     for j=1:length(self.values{i})
                         if ~isempty(str2num(self.values{i}{j})) %a number
                             if j==1
-                                s = ['(M.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} self.values{i}{j}];
+                                s = ['(data.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} self.values{i}{j}];
                             elseif j < length(self.values{i})
-                                s = [s, ' || ' 'M.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} self.values{i}{j}];
+                                s = [s, ' || ' 'data.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} self.values{i}{j}];
                             else
-                                s = [s, ' || ' 'M.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} self.values{i}{j} ')'];
+                                s = [s, ' || ' 'data.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} self.values{i}{j} ')'];
                             end
                             
                         elseif strcmp(self.operators{i},'==') %and the condition is equality, do a strcmp
                             
                             if j==1
-                                s = ['(strcmp(M.get(' '''' self.fieldnames{i} '''' '),'  '''' num2str(self.values{i}{j}) '''' ')'];
+                                s = ['(strcmp(data.get(' '''' self.fieldnames{i} '''' '),'  '''' num2str(self.values{i}{j}) '''' ')'];
                             elseif j < length(self.values{i})
-                                s = [s, ' || ' 'strcmp(M.get(' '''' self.fieldnames{i} '''' '),'  '''' num2str(self.values{i}{j}) '''' ')'];
+                                s = [s, ' || ' 'strcmp(data.get(' '''' self.fieldnames{i} '''' '),'  '''' num2str(self.values{i}{j}) '''' ')'];
                             else
-                                s = [s, ' || ' 'strcmp(M.get(' '''' self.fieldnames{i} '''' '),'  '''' num2str(self.values{i}{j}) '''' '))'];
+                                s = [s, ' || ' 'strcmp(data.get(' '''' self.fieldnames{i} '''' '),'  '''' num2str(self.values{i}{j}) '''' '))'];
                             end
                             
                         else
@@ -89,19 +89,20 @@ classdef SearchQuery < hgsetget %search query object to use with searchLeafNodes
                     if length(self.values{i}) > 1
                         for j=1:length(self.values{i})
                             if j==1
-                                s = ['(M.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} num2str(self.values{i}(j))];
+                                s = ['(data.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} num2str(self.values{i}(j))];
                             elseif j < length(self.values{i})
-                                s = [s, ' || ' 'M.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} num2str(self.values{i}(j))];
+                                s = [s, ' || ' 'data.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} num2str(self.values{i}(j))];
                             else
-                                s = [s, ' || ' 'M.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} num2str(self.values{i}(j)) ')'];
+                                s = [s, ' || ' 'data.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} num2str(self.values{i}(j)) ')'];
                             end
                         end
                     else
-                        s = ['M.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} num2str(self.values{i})];
+                        s = ['data.get(' '''' self.fieldnames{i} '''' ')' self.operators{i} num2str(self.values{i})];
                     end
                 end
                 queryString = regexprep(queryString, ['@' num2str(i)], s, 'once');
             end
+            queryString = ['@(data)' queryString];
         end
         
         function displayCondition(self)
