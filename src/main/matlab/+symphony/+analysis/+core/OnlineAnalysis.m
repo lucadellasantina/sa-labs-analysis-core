@@ -1,4 +1,4 @@
-classdef OnlineAnalysis < symhpony.analysis.core.Analysis
+classdef OnlineAnalysis < symphony.analysis.core.Analysis
     
     properties(Transient)
         epochStream
@@ -10,11 +10,11 @@ classdef OnlineAnalysis < symhpony.analysis.core.Analysis
         end
         
         
-        function createFeature(obj, builders, splitParameters)
-            for i = 1 : numel(builders)
-                builder = builders(i);
-                builder.epochHandler = @(device, index) obj.epochStream.response(device);
-                builder.build(splitParameters);
+        function createFeature(obj, extractors, splitParameters)
+            for i = 1 : numel(extractors)
+                extractor = extractors(i);
+                extractor.epochHandler = @(device, index) obj.epochStream.response(device);
+                extractor.extract(splitParameters);
             end
         end
     end

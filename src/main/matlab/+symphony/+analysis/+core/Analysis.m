@@ -1,7 +1,7 @@
 classdef Analysis < handle
     
     properties(SetAccess = protected)
-        featureBuilderContext
+        featureExtractorContext
         nodeManager
     end
     
@@ -11,8 +11,9 @@ classdef Analysis < handle
             if nargin < 2
                 tree = tree();
             end
+            import symphony.analysis.core.*;
             obj.nodeManager = NodeManager(tree);
-            obj.featureBuilderContext = context;
+            obj.featureExtractorContext = context;
         end
         
         function do(obj)
@@ -22,20 +23,20 @@ classdef Analysis < handle
         
         
         function createFeatures(obj)
-            context = obj.featureBuilderContext;
+            context = obj.featureExtractorContext;
             splitParameters = context.keys;
             
             for i = 1 : numel(splitParameters)
                 splitParameter = splitParameters{i};
-                builders = context(splitParameters);
-                arrayfun(@(builder) builder.build(splitParameter), builders);
+                extractors = context(splitParameter);
+                arrayfun(@(extractor) extractor.extract(splitParameter), extractors);
             end
         end
     end
 
     methods(Abstract)
         buildTree(obj)
-        createFeature(obj, builders, splitParameters)
+        createFeature(obj, extractors, splitParameters)
     end
     
 end

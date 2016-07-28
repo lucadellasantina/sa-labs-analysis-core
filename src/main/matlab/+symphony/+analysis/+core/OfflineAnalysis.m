@@ -12,7 +12,7 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
     methods
         
         function obj = OfflineAnalysis(request)
-            obj@symphony.analysis.core.Analysis(request.builderContext);
+            obj@symphony.analysis.core.Analysis(request.extractorContext);
             obj.requestCache = request;
             obj.cellData = request.cellData;
             obj.spiltParameters = request.splitParameters;
@@ -22,11 +22,11 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
            obj.buildByDataSet();
         end
         
-        function createFeature(obj, builders, splitParameters)
-            for i = 1 : numel(builders)
-                builder = builders(i);
-                builder.epochHandler = @(device, index) obj.cellData.epochs(index).response(device); 
-                builder.build(splitParameters);
+        function createFeature(obj, extractors, splitParameters)
+            for i = 1 : numel(extractors)
+                extractor = extractors(i);
+                extractor.epochHandler = @(device, index) obj.cellData.epochs(index).response(device); 
+                extractor.extract(splitParameters);
             end
         end
         
