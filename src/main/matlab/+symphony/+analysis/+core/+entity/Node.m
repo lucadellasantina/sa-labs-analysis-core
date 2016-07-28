@@ -2,16 +2,16 @@ classdef Node < handle & matlab.mixin.CustomDisplay
     
     properties
         id                  % Identifier of the node, assigned by NodeManager @see NodeManager.addNode
-        name                % Descriptive name of the node syntax, except root its usually [splitParameter = splitValue]
+        name                % Descriptive name of the node, except root its usually of format [splitParameter = splitValue]
         splitParameter      % Defines level of node in tree
         splitValue          % Defines the branch of tree
-        featureMap          % Feature map with key as FeatureDescription.type and value as Feature instance
+        featureMap          % Feature map with key as FeatureDescription.type and value as @see Feature instance
         plotHandlesMap      % plot handles for set of features
         epochIndices        % List of epoch indices to be processed in Offline analysis. @see CellData and FeatureExtractor.extract
     end
     
     properties(SetAccess = private)
-        parameters          % Matlab structure to store other properties and value types are scalar or cell arrays
+        parameters          % Matlab structure to store other properties and value (types are scalar or cell arrays)
     end
     
     methods
@@ -68,8 +68,8 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             
             % getFeature - returns the feature based on FeatureDescription
             % implementaion reference
-            
             key = char(featureDescription.type);
+            
             feature = [];
             if isKey(obj.featureMap, key)
                 feature = obj.featureMap(key);
@@ -97,6 +97,62 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             end
         end
         
+        function update(obj, node, in, out)
+            
+            % Generic code to handle merge from source node to destination
+            % obj(node). It merges following,
+            %
+            %   1. properties 
+            %   2. Feature 
+            %   3. parameters 'matlab structure'
+            %
+            % arguments
+            % node - source node 
+            % in  - It may be one of source node property, parameter and feature 
+            % out - It may be one of destination obj(node) property, parameter and feature 
+            
+            % safe casting
+            in = char(in);
+            out = char(out);
+            
+            % case 1 - node.in and obj.out is present has properties 
+            if isprop(obj, out) && isprop(node, in)
+                old = obj.(out);
+                obj.(out) = symphony.analysis.util.collections.addToCell(old, node.(in));
+                return
+                
+            end
+            % case 2 - node.in is struct parameters & obj.out is class property
+            if isprop(obj, out)
+                old = obj.(out);
+                obj.(out) = symphony.analysis.util.collections.addToCell(old, node.getParameter(in));
+                return
+            end
+            
+            % case 3 node.in is class property but obj.out is struct
+            % parameters
+            if isprop(node, in)
+                obj.appendParameter(out, node.(in));
+                return
+            end
+            
+            % case 4 in == out and its a key of featureMap
+            keys = node.featureMap.keys;
+            if ismember(in, keys)
+                
+                if ~ strcmp(in, out)
+                    error('in:out:mismatch', 'In and out should be same for appending feature map')
+                end
+                
+                feature = node.featureMap(in);
+                obj.appendFeature(feature.description, feature.data);
+                return
+            end
+         
+            % case 5 just append the in to out struct parameters
+            % for unknown in parameters, it creates empty out paramters
+            obj.appendParameter(out, node.getParameter(in));
+        end
     end
     
     methods(Access = private)

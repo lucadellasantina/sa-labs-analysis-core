@@ -1,11 +1,11 @@
 classdef Feature < handle & matlab.mixin.Heterogeneous
     
     properties
-        id
         name
         type
         units
         data
+        description
     end
     
     methods(Static)
@@ -13,6 +13,10 @@ classdef Feature < handle & matlab.mixin.Heterogeneous
         function obj = create(featureDescription)
             constructor = str2func(featureDescription.clazz);
             obj = constructor();
+            obj.name = char(featureDescription.type);
+            obj.type = featureDescription.clazz;
+            obj.units = featureDescription.units;
+            obj.description = featureDescription;
         end
     end
     

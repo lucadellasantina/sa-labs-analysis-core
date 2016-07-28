@@ -241,6 +241,61 @@ classdef EntityTest < matlab.unittest.TestCase
             feature = node.appendFeature(description, []);
             obj.verifyEqual(feature.data, 2 : 1010);
             
+            
+        end
+        
+        function testUpdate(obj)
+            import symphony.analysis.core.entity.*;
+            node = Node();
+            node.name = 'Child';
+            description = FeatureId.TEST_FEATURE.description;
+            node.appendFeature(description, 1 : 1000);
+            descriptionTwo = FeatureId.TEST_SECOND_FEATURE.description;
+            node.appendFeature(descriptionTwo, ones(1,1000));
+            node.appendParameter('string', 'Foo bar');
+            node.appendParameter('int', 8);
+            node.appendParameter('cell', {'one', 'two'});
+            
+            newNode = Node();
+            newNode.appendParameter('int', 1);
+            newNode.appendParameter('string', 'Foo bar');
+            newNode.name = 'Parent';
+            
+            param = FeatureId.TEST_SECOND_FEATURE;
+            newNode.update(node, param, param)
+            
+            % case 1 property check
+            newNode.update(node, 'name', 'name');
+            obj.verifyEqual(newNode.name, {'Parent', 'Child'});
+            
+            % case 2 name(out) and parameter(in) check
+            newNode.update(node, 'cell', 'name');
+            obj.verifyEqual(newNode.name, {'Parent', 'Child', 'one', 'two'});
+            
+            % case 3 feature map check
+            obj.verifyEqual(newNode.featureMap.keys, { char(param) });
+            feature = newNode.featureMap.values;
+            obj.verifyEqual(feature{:}.data, ones(1,1000));
+            
+            obj.verifyError(@()newNode.update(node, param, FeatureId.TEST_FEATURE), 'in:out:mismatch')
+            
+            % case 4 name(in) and parameter(out) check
+            newNode.update(node, 'name', 'cell');
+            obj.verifyEqual(newNode.name, {'Parent', 'Child', 'one', 'two'});
+            
+            % case 5 parameter check
+            newNode.update(node, 'int', 'int');
+            obj.verifyEqual(newNode.parameters.int, {1, 8});
+            newNode.update(node, 'unknown', 'unknown');
+            obj.verifyEmpty(newNode.parameters.unknown);
+            
+            
+            % consistency check for old node
+            obj.verifyEqual(node.featureMap.keys, {char(FeatureId.TEST_FEATURE), char(param)});
+            features = node.featureMap.values;
+            features = [features{:}];
+            obj.verifyEqual([features(:).data], [(1 : 1000), ones(1,1000)]);
+            
         end
     end
     
