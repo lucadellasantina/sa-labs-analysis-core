@@ -30,6 +30,7 @@ classdef EntityTest < matlab.unittest.TestCase
         end
         
     end
+    % Test methods for EpochData
     
     methods(Test)
         
@@ -185,6 +186,61 @@ classdef EntityTest < matlab.unittest.TestCase
             obj.verifyEqual(cellData.get('string'), 'test');
             obj.verifyEmpty(cellData.get('unknown'));
             obj.verifyEmpty(cellData.get([]));
+        end
+    end
+    
+    % Test methods for Node
+    
+    methods(Test)
+        
+        function testParameters(obj)
+            import symphony.analysis.core.entity.*;
+            node = Node();
+            params = struct();
+            params.preTime = '500ms';
+            params.epochId = {1,2};
+            
+            node.setParameters([]);
+            obj.verifyEmpty(node.parameters);
+            
+            node.setParameters(params);
+            obj.verifyEqual(node.parameters, params);
+            
+            node.appendParameter('preTime', '20ms');
+            node.appendParameter('epochId', 3);
+            node.appendParameter('new', {'param1', 'param2'});
+            
+            obj.verifyEqual(node.getParameter('epochId'), {1, 2, 3});
+            obj.verifyEqual(node.getParameter('preTime'), {'500ms', '20ms'});
+            obj.verifyEqual(node.getParameter('new'), {'param1', 'param2'});
+            obj.verifyEmpty(node.getParameter('unknow'));
+            
+            node.appendParameter('new', {'param3', 'param4'});
+            obj.verifyEqual(node.getParameter('new'), {'param1', 'param2', 'param3', 'param4'});
+        end
+        
+        function testFeature(obj)
+            import symphony.analysis.core.entity.*;
+            node = Node();
+            description = FeatureId.TEST_FEATURE.description;
+            feature = node.getFeature(description);
+            obj.verifyEmpty(feature);
+            feature = node.appendFeature(description, 1 : 1000);
+            
+            obj.verifyEqual(node.getFeature(description).data, 1 : 1000);
+            % check feature as reference object
+            feature.data = feature.data + ones(1,1000);
+            obj.verifyEqual(node.getFeature(description).data, 2 : 1001);
+            % scalar check
+            node.appendFeature(description, 1002);
+            obj.verifyEqual(node.getFeature(description).data, 2 : 1002);
+            % vector check
+            node.appendFeature(description, 1003 : 1010);
+            obj.verifyEqual(node.getFeature(description).data, 2 : 1010);
+            
+            feature = node.appendFeature(description, []);
+            obj.verifyEqual(feature.data, 2 : 1010);
+            
         end
     end
     
