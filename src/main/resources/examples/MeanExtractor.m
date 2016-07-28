@@ -1,7 +1,7 @@
 classdef MeanExtractor < symphony.analysis.core.FeatureExtractor
     
     properties
-        description = FeatureDescriptionEnum.MEAN_RESPONSE
+        description = FeatureId.MEAN_RESPONSE.description
         processEpoch = true
     end
     

@@ -13,10 +13,10 @@ classdef spikeAmplitudeExtractor < symphony.analysis.core.FeatureExtractor
             spikeTimes = util.getSpikes(epoch, device);
             [spikeAmplitude, averageWaveForm] = util.getSpikeAmplitudes(epoch, spikeTimes);
             
-            node.getFeature(FeatureDescriptionEnum.SPIKE_AMP).data = spikeAmplitude;
-            node.getFeature(FeatureDescriptionEnum.SPIKE_TIMES).data = spikeTimes;
+            node.getFeature(FeatureId.SPIKE_AMP.description).data = spikeAmplitude;
+            node.getFeature(FeatureId.SPIKE_TIMES.description).data = spikeTimes;
             
-            feature = node.getFeature(FeatureDescriptionEnum.AVERAGE_WAVE_FORM);
+            feature = node.getFeature(FeatureIdentifier.AVERAGE_WAVE_FORM);
             
             if isempty(feature.data)
                 feature.data = zeros(1, 41);
@@ -25,7 +25,7 @@ classdef spikeAmplitudeExtractor < symphony.analysis.core.FeatureExtractor
         end
         
         function handleFeature(~, node)
-            feature = node.getFeature(FeatureDescriptionEnum.AVERAGE_WAVE_FORM);
+            feature = node.getFeature(FeatureId.AVERAGE_WAVE_FORM.description);
             feature.data = feature.data/range(feature.data);
         end
     end

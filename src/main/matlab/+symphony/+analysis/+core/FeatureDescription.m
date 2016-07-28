@@ -1,6 +1,6 @@
 classdef FeatureDescription < handle
     
-    properties(Abstract)
+    properties
         clazz
         units
         type
