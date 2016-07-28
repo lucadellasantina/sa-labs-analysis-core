@@ -18,25 +18,25 @@ classdef Analysis < handle
         
         function do(obj)
             obj.buildTree();
-            obj.createFeatures();
+            obj.extractFeatures();
         end
         
         
-        function createFeatures(obj)
+        function extractFeatures(obj)
             context = obj.featureExtractorContext;
             splitParameters = context.keys;
             
             for i = 1 : numel(splitParameters)
                 splitParameter = splitParameters{i};
                 extractors = context(splitParameter);
-                arrayfun(@(extractor) extractor.extract(splitParameter), extractors);
+                obj.delegateFeatureExtraction(extractors, splitParameter);
             end
         end
     end
 
     methods(Abstract)
         buildTree(obj)
-        createFeature(obj, extractors, splitParameters)
+        delegateFeatureExtraction(obj, extractors, splitParameters)
     end
     
 end

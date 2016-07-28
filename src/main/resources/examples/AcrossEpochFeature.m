@@ -1,4 +1,4 @@
-classdef AcrossEpochFeature < symphony.analysis.core.Feature
+classdef AcrossEpochFeature < symphony.analysis.core.entity.Feature
     
     properties
         count

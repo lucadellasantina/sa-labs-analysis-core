@@ -12,13 +12,7 @@ classdef NodeManager < handle
             node.name = name;
             obj.setnode(1, node);
         end
-        
-        function copyParameters(obj, id, params)
-            node = obj.tree.get(id);
-            node.setParameters(params);
-            obj.setnode(id, node);
-        end
-        
+                
         function percolateUp(obj, nodeIds, varargin)
             
             if length(varargin) == 2 && iscell(varargin{1}) && iscell(varargin{2})
