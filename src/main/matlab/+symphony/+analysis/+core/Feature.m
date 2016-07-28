@@ -8,7 +8,12 @@ classdef Feature < handle & matlab.mixin.Heterogeneous
         data
     end
     
-    methods
+    methods(Static)
+        
+        function obj = create(featureDescription)
+            constructor = str2fun(featureDescription.clazz);
+            obj = constructor();
+        end
     end
     
 end
