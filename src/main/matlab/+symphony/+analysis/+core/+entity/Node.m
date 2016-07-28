@@ -1,4 +1,4 @@
-classdef Node < handle
+classdef Node < handle & matlab.mixin.CustomDisplay
     
     properties
         id
@@ -7,8 +7,8 @@ classdef Node < handle
         splitValue
         parameters
         epochIndices
-        features
-        extractor
+        featureMap
+        plotHandles
     end
     
     methods
@@ -29,6 +29,26 @@ classdef Node < handle
                 obj.(property) = value;
             else
                 obj.parameters.(property) = value;
+            end
+        end
+        
+        function feature = getFeature(obj, featureDescription)
+            key = featureDescription.type;
+            
+            if isKey(obj.featureMap, key)
+               feature = obj.featureMap(key);
+               return
+            end
+            obj.featureMap(key) = Feature.create(featureDescription);
+        end
+        
+        function appendFeature(obj, key, value)
+            if isscalar(value)
+                obj.features(key).data(end + 1) = value;
+            else
+                old = obj.features(key).data;
+                new = [old, value];
+                obj.features(key).data = new;
             end
         end
     end
