@@ -2,7 +2,7 @@ classdef FeatureExtractor < handle
     
     properties
         nodeManager
-        epochHandler
+        epochIterator
     end
     
     properties(Abstract)
@@ -17,20 +17,20 @@ classdef FeatureExtractor < handle
             %	order(n) for online analysis
             % 	order(n^2) for offline analysis
             
-            nodes = obj.nodeManager.findBySplitParameter(parameter);
+            nodes = obj.nodeManager.findNodesByName(parameter);
             for i = 1 : numel(nodes)
                 node = nodes(i);
                 n = numel(node.epochIndices);
                 
                 if obj.processEpoch
-                    arrayfun(@(index) obj.extractFromEpoch(node,...
-                        obj.epochHandler(index)), 1 : n);
+                    arrayfun(@(index) obj.handleEpoch(node,...
+                        obj.epochIterator(index)), 1 : n);
                 end
             end
             obj.extractFromFeature(obj, node);
         end
         
-        function handleEpoch(obj, node, epoch) %#ok <MANU>
+        function handleFeature(obj, node, epoch) %#ok <MANU>
         end
         
         function handleFeature(obj, node) %#ok <MANU>

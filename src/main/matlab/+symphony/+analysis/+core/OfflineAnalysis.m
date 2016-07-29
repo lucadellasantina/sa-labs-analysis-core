@@ -25,7 +25,7 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
         function delegateFeatureExtraction(obj, extractors, splitParameters)
             for i = 1 : numel(extractors)
                 extractor = extractors(i);
-                extractor.epochHandler = @(device, index) obj.cellData.epochs(index); 
+                extractor.epochIterator = @(device, index) obj.cellData.epochs(index); 
                 extractor.extract(splitParameters);
             end
         end
