@@ -15,9 +15,14 @@ classdef ParserTest < matlab.unittest.TestCase
     methods (TestClassSetup)
         function setSkipTest(obj)
             obj.path = [fileparts(which('test.m')) filesep 'fixtures' filesep 'parser' filesep];
+            
+            if ~ exist(obj.path, 'file')
+                mkdir(obj.path)
+            end
+            
             if ~ exist([obj.path obj.SYMPHONY_V1_FILE], 'file') && ~ exist([obj.path obj.SYMPHONY_V2_FILE], 'file')
                 obj.skipTest = true;
-                obj.skipMessage = (['Skipping ' class(obj) ' '...
+                obj.skipMessage = @(test)(['Skipping ' class(obj) '.' test ' ; '...
                     obj.SYMPHONY_V1_FILE ' and ' obj.SYMPHONY_V2_FILE...
                     ' are not found in matlab path']);
             end
@@ -39,7 +44,7 @@ classdef ParserTest < matlab.unittest.TestCase
         
         function testGetInstance(obj)
             if(obj.skipTest)
-                disp(obj.skipMessage);
+                disp(obj.skipMessage('testGetInstance'));
                 return;
             end
             import symphony.analysis.*;
@@ -78,7 +83,7 @@ classdef ParserTest < matlab.unittest.TestCase
         
         function testParse(obj)
             if(obj.skipTest)
-                disp(obj.skipMessage);
+                disp(obj.skipMessage('testParse'));
                 return;
             end
             import symphony.analysis.*;
