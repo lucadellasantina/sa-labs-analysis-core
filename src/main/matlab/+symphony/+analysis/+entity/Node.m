@@ -1,24 +1,36 @@
 classdef Node < handle & matlab.mixin.CustomDisplay
     
-    properties
+    properties(SetAccess = ?symphony.analysis.core.NodeManager)
         id                  % Identifier of the node, assigned by NodeManager @see NodeManager.addNode
+        epochIndicesCache   % Read only epoch Indices, used as cache
+    end
+    
+    properties(SetAccess = immutable)
         name                % Descriptive name of the node, except root its usually of format [splitParameter = splitValue]
         splitParameter      % Defines level of node in tree
         splitValue          % Defines the branch of tree
-        featureMap          % Feature map with key as FeatureDescription.type and value as @see Feature instance
-        plotHandlesMap      % plot handles for set of features
-        epochIndices        % List of epoch indices to be processed in Offline analysis. @see CellData and FeatureExtractor.extract
     end
     
     properties(SetAccess = private)
         parameters          % Matlab structure to store other properties and value (types are scalar or cell arrays)
     end
     
+    properties
+        featureMap          % Feature map with key as FeatureDescription.type and value as @see Feature instance
+        epochIndices        % List of epoch indices to be processed in Offline analysis. @see CellData and FeatureExtractor.extract
+    end
+    
     methods
         
-        function obj = Node()
+        function obj = Node(splitParameter, splitValue, name)
+            if nargin < 3
+                name = [splitParameter '==' splitValue];
+            end
+            
             obj.featureMap = containers.Map();
-            obj.plotHandlesMap = containers.Map();
+            obj.name = name;
+            obj.splitParameter = splitParameter;
+            obj.splitValue = splitValue;
         end
         
         function setParameters(obj, parameters)
@@ -86,7 +98,7 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             feature = obj.getFeature(featureDescription);
             
             if isempty(feature)
-                feature = symphony.analysis.core.entity.Feature.create(featureDescription);
+                feature = symphony.analysis.entity.Feature.create(featureDescription);
                 obj.featureMap(key) = feature;
             end
             
@@ -102,20 +114,20 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             % Generic code to handle merge from source node to destination
             % obj(node). It merges following,
             %
-            %   1. properties 
-            %   2. Feature 
+            %   1. properties
+            %   2. Feature
             %   3. parameters 'matlab structure'
             %
             % arguments
-            % node - source node 
-            % in  - It may be one of source node property, parameter and feature 
-            % out - It may be one of destination obj(node) property, parameter and feature 
+            % node - source node
+            % in  - It may be one of source node property, parameter and feature
+            % out - It may be one of destination obj(node) property, parameter and feature
             
             % safe casting
             in = char(in);
             out = char(out);
             
-            % case 1 - node.in and obj.out is present has properties 
+            % case 1 - node.in and obj.out is present has properties
             if isprop(obj, out) && isprop(node, in)
                 old = obj.(out);
                 obj.(out) = symphony.analysis.util.collections.addToCell(old, node.(in));
@@ -148,7 +160,7 @@ classdef Node < handle & matlab.mixin.CustomDisplay
                 obj.appendFeature(feature.description, feature.data);
                 return
             end
-         
+            
             % case 5 just append the in to out struct parameters
             % for unknown in parameters, it creates empty out paramters
             obj.appendParameter(out, node.getParameter(in));

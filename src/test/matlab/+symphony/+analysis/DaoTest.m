@@ -28,7 +28,7 @@ classdef DaoTest < matlab.unittest.TestCase
             util.file.overWrite(repository.rawDataFolder);
             util.file.overWrite([repository.analysisFolder filesep 'cellData']);
 
-            obj.testCellDatas = core.entity.CellData.empty(10, 0);
+            obj.testCellDatas = entity.CellData.empty(10, 0);
             obj.cellNames = cell(obj.NO_OF_FILES, 1);
 
             for i = 1 : obj.NO_OF_FILES
@@ -36,7 +36,7 @@ classdef DaoTest < matlab.unittest.TestCase
                 path = [repository.rawDataFolder filesep  name '.h5'];
                 h5create(path ,'/ds' , [10 20]);
                 h5writeatt(path, '/','version', 1);
-                cellData = symphony.analysis.core.entity.CellData();
+                cellData = symphony.analysis.entity.CellData();
                 cellData.savedFileName = name;
                 
                 obj.testCellDatas(i) = cellData;

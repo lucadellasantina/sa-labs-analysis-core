@@ -30,7 +30,7 @@ classdef FeatureExtractor < handle
             obj.extractFromFeature(obj, node);
         end
         
-        function handleFeature(obj, node, epoch) %#ok <MANU>
+        function handleEpoch(obj, node, epoch) %#ok <MANU>
         end
         
         function handleFeature(obj, node) %#ok <MANU>

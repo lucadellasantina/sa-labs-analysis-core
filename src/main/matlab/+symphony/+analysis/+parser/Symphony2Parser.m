@@ -24,7 +24,7 @@ classdef Symphony2Parser < symphony.analysis.parser.SymphonyParser
         function obj = parse(obj)
             
             import symphony.analysis.constants.*;
-            import symphony.analysis.core.*;
+            import symphony.analysis.*;
             
             cell = entity.CellData();
             info = h5info(obj.fname);

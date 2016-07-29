@@ -1,13 +1,11 @@
 classdef NodeManager < handle
     
-    properties(Access = private, SetObservable)
+    properties(SetAccess = protected)
         tree
-    end
-    
-    properties(SetAccess = private)
         searchIndex
         featureIndex
     end
+    
     
     methods
         
@@ -17,22 +15,20 @@ classdef NodeManager < handle
             obj.featureIndex = tree();
         end
         
-        function setName(obj, name)
-            import symphony.analysis.core.*;
-            node = entity.Node();
-            node.name = name;
-            obj.setnode(1, node);
-        end
-        
-        function id = addNode(obj, id, splitParamName, spiltValue, epochIndices)
+        function setRootName(obj, name)
             
             import symphony.analysis.*;
-            node = core.entity.Node();
-            node.name = [splitParamName '==' spiltValue];
-            node.splitParameter = splitParamName;
-            node.splitValue = spiltValue;
-            node.epochIndices = epochIndices;
+            node = entity.Node([], [], name);
+            node.id = 1;
+            obj.setnode(node.id, node);
+        end
+        
+        function id = addNode(obj, id, splitParameter, spiltValue, epochIndices)
             
+            import symphony.analysis.*;
+            node = entity.Node(splitParameter, spiltValue);
+            node.epochIndices = epochIndices;
+            node.epochIndicesCache = epochIndices;
             id = obj.addnode(id, node);
             node.id = id;
         end
@@ -57,9 +53,14 @@ classdef NodeManager < handle
         end
         
         function nodes = findNodesByName(obj, name)
-            indices = find(obj.searchIndex.strncmp(name, numel(name)));
+            nodes = [];
             
-            nodes = symphony.analysis.core.entity.Node.empty(0, numel(indices));
+            if isempty(name)
+                return
+            end
+            indices = find(obj.searchIndex.regexpi(['\w*' name '\w*']).treefun(@any));
+            
+            nodes = symphony.analysis.entity.Node.empty(0, numel(indices));
             for i = 1 : numel(indices)
                 nodes(i) = obj.tree.get(indices(i));
             end
@@ -116,7 +117,7 @@ classdef NodeManager < handle
         function graft(obj, index, tree2)
             obj.tree = obj.tree.graft(index, tree2);
         end
-    
+        
     end
 end
 

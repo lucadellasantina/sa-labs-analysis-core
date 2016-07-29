@@ -4,12 +4,14 @@
 analysis : LightStep
 
 copyParameters :
-  - abc
+  - ndf
+  - etc
 
 build-tree-by : 
   - device-stream
   - data-set
   - rstarMean
+  - grpEpochs 
 
 device-stream : 
   split-param : "Amp1"
