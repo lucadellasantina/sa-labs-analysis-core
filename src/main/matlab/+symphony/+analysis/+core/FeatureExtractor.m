@@ -2,11 +2,11 @@ classdef FeatureExtractor < handle
     
     properties
         nodeManager
-        epochIterator
+        epochIterator    %TODO rename
     end
     
     properties(Abstract)
-        processEpoch
+        shouldProcessEpoch
     end
     
     methods
@@ -27,7 +27,7 @@ classdef FeatureExtractor < handle
                         obj.epochIterator(index)), 1 : n);
                 end
             end
-            obj.extractFromFeature(obj, node);
+            obj.handleFeature(obj, node);
         end
         
         function handleEpoch(obj, node, epoch) %#ok <MANU>

@@ -1,7 +1,7 @@
-classdef spikeAmplitudeExtractor < symphony.analysis.core.FeatureExtractor
+classdef SpikeExtractor < symphony.analysis.core.FeatureExtractor
     
     properties
-        processEpoch = true
+        shouldProcessEpoch = true
     end
     
     
@@ -16,17 +16,13 @@ classdef spikeAmplitudeExtractor < symphony.analysis.core.FeatureExtractor
             node.getFeature(FeatureId.SPIKE_AMP.description).data = spikeAmplitude;
             node.getFeature(FeatureId.SPIKE_TIMES.description).data = spikeTimes;
             
-            feature = node.getFeature(FeatureIdentifier.AVERAGE_WAVE_FORM);
-            
-            if isempty(feature.data)
-                feature.data = zeros(1, 41);
-            end
-            feature.data = feature.data + length(spikeTimes) .* averageWaveForm;
+            data = length(spikeTimes) .* averageWaveForm;
+            acrossEpochFeature = node.getFeature(FeatureId.AVERAGE_WAVE_FORM.description);
+            acrossEpochFeature.add(data);
         end
         
         function handleFeature(~, node)
-            feature = node.getFeature(FeatureId.AVERAGE_WAVE_FORM.description);
-            feature.data = feature.data/range(feature.data);
+            node.getFeature(FeatureId.AVERAGE_WAVE_FORM.description).divideBy(@range);
         end
     end
     
