@@ -101,6 +101,8 @@ classdef NodeManagerTest < matlab.unittest.TestCase
              obj.manager.percolateUp([childNodes(:).id], 'splitValue', 'rstar_from_child')
              
              obj.verifyEqual(amp1Ligstep.getParameter('rstar_from_child'), {'0.01', '0.1'});
+             handle = @()obj.manager.percolateUp([childNodes(:).id], 'splitValue', 'splitValue');
+             obj.verifyError(handle,'MATLAB:class:SetProhibited');
         end
     end
 end

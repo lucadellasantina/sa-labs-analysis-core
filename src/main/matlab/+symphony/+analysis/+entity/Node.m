@@ -79,12 +79,14 @@ classdef Node < handle & matlab.mixin.CustomDisplay
         function feature = getFeature(obj, featureDescription)
             
             % getFeature - returns the feature based on FeatureDescription
-            % implementaion reference
+            % reference
             key = char(featureDescription.type);
-            
-            feature = [];
+
             if isKey(obj.featureMap, key)
                 feature = obj.featureMap(key);
+            else
+                feature = symphony.analysis.entity.Feature.create(featureDescription);
+                obj.featureMap(key) = feature;
             end
         end
         
@@ -94,14 +96,8 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             % feature.data
             % feature.data has support for arrays and not cell arrays
             
-            key = char(featureDescription.type);
             feature = obj.getFeature(featureDescription);
-            
-            if isempty(feature)
-                feature = symphony.analysis.entity.Feature.create(featureDescription);
-                obj.featureMap(key) = feature;
-            end
-            
+
             if isscalar(value)
                 feature.data(end + 1) = value;
             else
@@ -126,6 +122,10 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             % safe casting
             in = char(in);
             out = char(out);
+            
+            if strcmp(out, 'id')
+                error('id:update:prohibited', 'cannot updated instance id');
+            end
             
             % case 1 - node.in and obj.out is present has properties
             if isprop(obj, out) && isprop(node, in)

@@ -224,9 +224,9 @@ classdef EntityTest < matlab.unittest.TestCase
             node = Node('root', 'param');
             description = FeatureId.TEST_FEATURE.description;
             feature = node.getFeature(description);
-            obj.verifyEmpty(feature);
-            feature = node.appendFeature(description, 1 : 1000);
+            obj.verifyEmpty(feature.data);
             
+            feature = node.appendFeature(description, 1 : 1000);
             obj.verifyEqual(node.getFeature(description).data, 1 : 1000);
             % check feature as reference object
             feature.data = feature.data + ones(1,1000);
@@ -240,8 +240,6 @@ classdef EntityTest < matlab.unittest.TestCase
             
             feature = node.appendFeature(description, []);
             obj.verifyEqual(feature.data, 2 : 1010);
-            
-            
         end
         
         function testUpdate(obj)
@@ -298,6 +296,10 @@ classdef EntityTest < matlab.unittest.TestCase
             features = [features{:}];
             obj.verifyEqual([features(:).data], [(1 : 1000), ones(1,1000)]);
             
+            obj.verifyError(@()newNode.update(node, 'name', 'name'),'MATLAB:class:SetProhibited');
+            obj.verifyError(@()newNode.update(node, 'splitParameter', 'splitParameter'),'MATLAB:class:SetProhibited');
+            obj.verifyError(@()newNode.update(node, 'splitValue', 'splitValue'),'MATLAB:class:SetProhibited');
+            obj.verifyError(@()newNode.update(node, 'id', 'id'), 'id:update:prohibited');
         end
     end
     

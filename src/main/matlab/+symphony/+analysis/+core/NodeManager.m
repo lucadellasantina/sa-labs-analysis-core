@@ -52,6 +52,7 @@ classdef NodeManager < handle
             arrayfun(@(i) byNodes(inParameters{i}, outParameters{i}), 1 : n);
         end
         
+        % TODO move all find functions to visitor
         function nodes = findNodesByName(obj, name)
             nodes = [];
             
