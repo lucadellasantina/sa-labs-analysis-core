@@ -21,17 +21,17 @@ classdef AnalysisService < handle & mdepin.Bean
             end
         end
         
-        function folder = createProject(obj, date)
+        function createProject(obj, date)
             import symphony.analysis.constants.*;
             
             dao = obj.analysisDao;
             names = dao.findCellDataNames(date);
             
             if isempty(names)
-                throw(Exceptions.NO_CELL_DATA.create());
+                obj.parseSymphonyFiles(date);
             end
             names = obj.preferenceDao.mergeCellNames(names);
-            folder = dao.createProject(names);
+            dao.createProject(names);
         end
         
         function data = preProcess(obj, data, functions)

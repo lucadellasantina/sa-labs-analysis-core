@@ -25,7 +25,7 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
         function delegateFeatureExtraction(obj, extractors, splitParameters)
             for i = 1 : numel(extractors)
                 extractor = extractors(i);
-                extractor.epochIterator = @(device, index) obj.cellData.epochs(index); 
+                extractor.epochIterator = @(index) obj.cellData.epochs(index); 
                 extractor.extract(splitParameters);
             end
         end
@@ -46,7 +46,7 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
         
         function buildByParameters(obj, parentId, epochIndices, params)
             
-            if nargin < 5
+            if nargin < 4
                 params = obj.spiltParameters;
             end
             [epochValueMap, description] = obj.cellData.getEpochValuesMap(params{1}, epochIndices);

@@ -13,7 +13,7 @@ classdef OnlineAnalysis < symphony.analysis.core.Analysis
         function delegateFeatureExtraction(obj, extractors, splitParameters)
             for i = 1 : numel(extractors)
                 extractor = extractors(i);
-                extractor.epochHandler = @(device, index) obj.epochStream.response(device);
+                extractor.epochIterator = @() obj.epochStream;
                 extractor.extract(splitParameters);
             end
         end

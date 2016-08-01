@@ -1,8 +1,8 @@
 classdef EpochData < handle & matlab.mixin.CustomDisplay
     
     properties
-        attributes      % Map holding protocol and epoch attributes from h5 data
-        parentCell      % parent cell
+        attributes            % Map holding protocol and epoch attributes from h5 data
+        parentCell            % parent cell
     end
     
     properties (Hidden)
