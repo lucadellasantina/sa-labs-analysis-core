@@ -2,28 +2,21 @@ classdef MeanExtractor < symphony.analysis.core.FeatureExtractor
     
     properties
         description = FeatureId.MEAN_RESPONSE.description
-        processEpoch = true
+        shouldProcessEpoch = true
     end
     
     methods
         
         function handleEpoch(obj, node, epoch)
-            
+
             device = obj.nodeManager.getDevice(node);
             response = epoch.response(device);
-            feature = node.getFeature(obj.description);
-            feature.mean(response);
+            acrossEpochFeature = node.getFeature(obj.description);
+            acrossEpochFeature.mean(response);
         end
         
-        function handleFeature(obj, node) 
-            node.addPlotHandles(obj.description, @(axes) obj.plotMeanFigure(node, axes))
-        end
-        
-        function plotMeanFigure(obj, node, axes)
-            feature = node.getFeatures(obj.description);
-            y = feature.data;
-            x = node.get('epochTime');
-            plot(axes, x, y);
+        function handleFeature(obj)
+            
         end
     end
 end

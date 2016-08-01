@@ -8,13 +8,10 @@ classdef AcrossEpochFeature < symphony.analysis.entity.Feature
     methods
         
         function mean(obj, data)
-            
-            if isempty(obj.data)
-                obj.data = zeros(1, data);
-            end
-            obj.data = (obj.data + data)/ obj.count;
+            obj.data = obj.add(data) / obj.count;
             obj.count = obj.count + 1;
         end
+        
     end
     
 end

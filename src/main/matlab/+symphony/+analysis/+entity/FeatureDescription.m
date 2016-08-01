@@ -4,6 +4,7 @@ classdef FeatureDescription < handle
         clazz
         units
         type
+        figureHandle
     end
     
 end
