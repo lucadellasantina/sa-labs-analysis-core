@@ -19,7 +19,7 @@ classdef AnalysisDao < handle & mdepin.Bean
         
         function saveCellData(obj, data)
             dir = [obj.repository.analysisFolder filesep 'cellData' filesep];
-            save([dir, data.savedFileName], 'data');
+            save([dir data.savedFileName], 'data');
         end
         
         function projectFolder = createProject(obj, cellNames)
@@ -41,6 +41,13 @@ classdef AnalysisDao < handle & mdepin.Bean
             info = dir([obj.repository.analysisFolder filesep 'cellData' filesep date '*c*.mat']);
             names = arrayfun(@(d) {d.name(1 : end-4)}, info);
         end
+        
+        function cellData = loadCellData(obj, cellName)
+            path = [obj.repository.analysisFolder filesep 'cellData' filesep cellName];
+            result = load(path);
+            cellData = result.data;
+        end
+        
     end
     
 end

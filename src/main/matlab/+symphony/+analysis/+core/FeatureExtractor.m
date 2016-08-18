@@ -22,7 +22,7 @@ classdef FeatureExtractor < handle
                 node = nodes(i);
                 n = numel(node.epochIndices);
                 
-                if obj.processEpoch
+                if obj.shouldProcessEpoch
                     arrayfun(@(index) obj.handleEpoch(node,...
                         obj.epochIterator(index)), 1 : n);
                 end

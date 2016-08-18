@@ -11,6 +11,11 @@ classdef EpochData < handle & matlab.mixin.CustomDisplay
     end
     
     methods
+
+        function obj = EpochData()
+            obj.attributes = containers.Map();
+            obj.dataLinks = containers.Map();
+        end
         
         function value = get(obj, name)
             % Returns the matching value for given name from attributes map

@@ -7,8 +7,8 @@ classdef ParserTest < matlab.unittest.TestCase
     end
     
     properties(Constant)
-        SYMPHONY_V1_FILE = '061915Ac4.h5'
-        SYMPHONY_V2_FILE = '210716Ac1.h5'   % TODO replace with json or other format
+        SYMPHONY_V1_FILE = 'symphony_v1.h5'
+        SYMPHONY_V2_FILE = 'symphony_v2.h5'   % TODO replace with json or other format
         TEST_FILE = 'test.h5';
     end
     
@@ -81,38 +81,46 @@ classdef ParserTest < matlab.unittest.TestCase
             
         end
         
-        function testParse(obj)
+        function testSymphony2Parse(obj)
             if(obj.skipTest)
                 disp(obj.skipMessage('testParse'));
                 return;
             end
             import symphony.analysis.*;
             
+            % Parse symphony_v2 file and validate
             fname = [obj.path obj.SYMPHONY_V2_FILE];
             ref = parser.getInstance(fname);
-            i = h5info(fname);
-            epochs = ref.flattenEpochs(i.Groups(1).Groups(2).Groups);
+            info = h5info(fname);
+            epochs = ref.flattenEpochs(info.Groups(1).Groups(2).Groups);
             obj.verifyEqual(numel(epochs), 17);
-            
             [~, name, ~] = ref.getProtocolId(epochs(1).Name);
             obj.verifyEqual(name, 'fi.helsinki.biosci.ala_laurila.protocols.LedPulse')
+            validate('Amp1');
             
-            cellData = ref.parse().getResult() %#ok
-            epochs = cellData.epochs;
-            previousEpochTime = -1;
+            % Parse symphony_v1 file and validate            
+            fname = [obj.path obj.SYMPHONY_V1_FILE];
+            ref = parser.getInstance(fname);
+            validate('Amplifier_Ch1');
             
-            for i = 1 : numel(epochs)
-                time = epochs(i).attributes('epochStartTime');
-                obj.verifyGreaterThan(time, previousEpochTime);
-                obj.verifyEqual(epochs(i).attributes('epochNum'), i);
-                previousEpochTime = time;
+            function validate(amplifier)
+                
+                cellData = ref.parse().getResult() %#ok
+                epochs = cellData.epochs;
+                previousEpochTime = -1;
+                
+                for i = 1 : numel(epochs)
+                    time = epochs(i).attributes('epochStartTime');
+                    obj.verifyGreaterThan(time, previousEpochTime);
+                    obj.verifyEqual(epochs(i).attributes('epochNum'), i);
+                    previousEpochTime = time;
+                end
+                epoch = epochs(1) %#ok
+                duration = epoch.attributes('preTime') + epoch.attributes('stimTime') + epoch.attributes('tailTime'); % (ms)
+                samplingRate = epoch.attributes('sampleRate');
+                data = epoch.getResponse(amplifier);
+                obj.verifyEqual(numel(data.quantity), (duration / 10^3) * samplingRate);
             end
-            
-            epoch = epochs(1) %#ok
-            duration = epoch.attributes('preTime') + epoch.attributes('stimTime') + epoch.attributes('tailTime'); % (ms)
-            samplingRate = epoch.attributes('sampleRate');
-            data = epoch.getResponse('Amp1');
-            obj.verifyEqual(numel(data.quantity), (duration / 10^3) * samplingRate);
         end
     end
 end

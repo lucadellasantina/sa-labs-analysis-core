@@ -3,13 +3,11 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
     properties
         attributes                          % Map for attributes from data file (h5group root attributes + Nepochs)
         epochs                              % Array of symphony.analysis.core.entity.EpochData
+        savedDataSets                       % Saved Data Sets
         epochGroups                         % TODO
-        savedDataSets                       % DataSets saved from cell data curator with key as 'data set name' and value as 'epoch Indices'
-        savedFileName = ''                  % Current H5 file name without extension
-        savedFilters                        % TODO
         tags                                % TODO
+        savedFileName = ''                  % Current H5 file name without extension
         cellType = ''                       % CellType will be assignment from LabDataGUI
-        prefsMapName = ''                   % TODO
         somaSize = []                       % TODO
         imageFile = ''                      % Cell image
         notes = ''                          % Unstructured text field for adding notes
@@ -21,7 +19,6 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
         function obj = CellData()
             obj.attributes = containers.Map();
             obj.savedDataSets = containers.Map();
-            obj.savedFilters = containers.Map();
             obj.tags = containers.Map();
         end
         
@@ -185,21 +182,27 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
         
         function dataSet = filterEpochs(obj, queryString, subSet)
             
-            n = length(subSet);
-            dataSet = [];
-            
-            if strcmp(queryString, '?') || isempty(queryString)
-                dataSet = 1 : n;
-                return
+            if nargin < 3
+                subSet = 1 : obj.get('Nepochs');
             end
             
+            n = length(subSet);
+            
+            if strcmp(queryString, '?') || isempty(queryString)
+                dataSet = symphony.analysis.entity.DataSet(1 : n, queryString);
+                return
+            end
+            epochIndices = [];
+            log4m.getLogger().info(class(obj), [ 'QueryString for epoch filter', queryString]);
             functionHandle = str2func(queryString);
+            
             for i = 1 : n
                 d = obj.epochs(subSet(i));
                 if functionHandle(d)
-                    dataSet = [dataSet subSet(i)]; %#ok
+                    epochIndices = [epochIndices subSet(i)]; %#ok
                 end
             end
+            dataSet = symphony.analysis.entity.DataSet(epochIndices, queryString);
         end
         
         function tf = has(obj, queryString)
@@ -209,6 +212,8 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
                 tf = true;
                 return
             end
+            log4m.getLogger().info(class(obj), [ 'QueryString for cell data ', queryString]);
+            
             functionHandle = str2func(queryString);
             tf = functionHandle(obj);
         end

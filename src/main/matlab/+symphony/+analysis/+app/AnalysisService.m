@@ -11,13 +11,13 @@ classdef AnalysisService < handle & mdepin.Bean
             obj = obj@mdepin.Bean(config);
         end
         
-        function data = parseSymphonyFiles(obj, date)
+        function cellData = parseSymphonyFiles(obj, date)
             files = obj.analysisDao.findRawDataFiles(date);
             
             for i = 1 : numel(files)
                 parser = symphony.analysis.parser.getInstance(files{i});
-                data = parser.parse().getResult();
-                obj.analysisDao.saveCellData(data);
+                cellData = parser.parse().getResult();
+                obj.analysisDao.saveCellData(cellData);
             end
         end
         
@@ -34,12 +34,28 @@ classdef AnalysisService < handle & mdepin.Bean
             dao.createProject(names);
         end
         
-        function data = preProcess(obj, data, functions)
+        function cellData = preProcess(obj, cellData, functions)
+            
             for i = 1 : numel(functions)
                 fun = functions{i};
-                data = fun(data);
+                cellData = fun(cellData);
             end
-            obj.analysisDao.saveCellData(data);
+            obj.analysisDao.saveCellData(cellData);
+        end
+        
+        function saveCellData(obj, cellData)
+            obj.analysisDao.saveCellData(cellData);
+        end
+        
+        function cellData = getCellData(obj, cellName)
+            cellData = obj.analysisDao.loadCellData(cellName);
+        end
+        
+        function tree = doAnalysis(obj, request)
+            
+            analysis = symphony.analysis.core.OfflineAnalysis();
+            tree = analysis.do(request);
+            obj.analysisDao.saveTree(tree);
         end
     end
     

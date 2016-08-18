@@ -19,7 +19,7 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
         end
         
         function buildTree(obj)
-           obj.buildByDataSet();
+           obj.buildLevels();
         end
         
         function delegateFeatureExtraction(obj, extractors, splitParameters)
@@ -34,17 +34,17 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
     
     methods(Access = protected)
         
-        function buildByDataSet(obj)
+        function buildLevels(obj)
             names = obj.cellData.dataSetMap.keys;
             
             for i = 1 : numel(names)
                 epochIndices = obj.cellData.dataSetMap(names(i));
                 id = nodeManager.addNode(1, 'DataSet', names(i), epochIndices);
-                obj.buildByParameters(id, epochIndices);
+                obj.buildBranches(id, epochIndices);
             end
         end
         
-        function buildByParameters(obj, parentId, epochIndices, params)
+        function buildBranches(obj, parentId, epochIndices, params)
             
             if nargin < 4
                 params = obj.spiltParameters;
@@ -62,7 +62,7 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
                 id = nodeManager.addNode(parentId, description, value, epochIndices);
                 
                 if length(params) > 1
-                    obj.buildByParameters(id, epochIndices, params(2 : end));
+                    obj.buildBranches(id, epochIndices, params(2 : end));
                 end
             end
         end

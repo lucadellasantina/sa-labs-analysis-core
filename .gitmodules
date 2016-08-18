@@ -11,3 +11,6 @@
 [submodule "lib/yamlmatlab"]
 	path = lib/yamlmatlab
 	url = https://github.com/ewiger/yamlmatlab.git
+[submodule "lib/MatlabQuery"]
+	path = lib/MatlabQuery
+	url = https://github.com/ragavsathish/MatlabQuery.git

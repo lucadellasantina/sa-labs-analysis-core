@@ -18,6 +18,7 @@ classdef Node < handle & matlab.mixin.CustomDisplay
     properties
         featureMap          % Feature map with key as FeatureDescription.type and value as @see Feature instance
         epochIndices        % List of epoch indices to be processed in Offline analysis. @see CellData and FeatureExtractor.extract
+        
     end
     
     methods

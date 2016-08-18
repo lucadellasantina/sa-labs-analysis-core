@@ -14,12 +14,15 @@ build-tree-by :
   - grpEpochs 
 
 device-stream : 
+
   split-param : "Amp1"
   split-value : 'Amplifier_ch1'
  
 data-set :   
   split-param : "savedDataSets"
   split-value : "all"
+  featureExtractor : 
+    mergeTrees();
  
 rstarMean :   
   split-param : rstar
