@@ -21,7 +21,6 @@ dataSet :
 deviceStream : 
   splitValue : Amplifier_ch1
 
-
 grpEpochs :
   splitValue :
     - G1

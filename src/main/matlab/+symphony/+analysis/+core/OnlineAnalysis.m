@@ -4,18 +4,12 @@ classdef OnlineAnalysis < symphony.analysis.core.Analysis
         epochStream
     end
     
-    methods
+    methods(Access = protected)
         
         function buildTree(obj)
         end
         
-        
-        function delegateFeatureExtraction(obj, extractors, splitParameters)
-            for i = 1 : numel(extractors)
-                extractor = extractors(i);
-                extractor.epochIterator = @() obj.epochStream;
-                extractor.extract(splitParameters);
-            end
+        function setEpochIterator(obj)
         end
     end
 end

@@ -108,7 +108,7 @@ classdef AnalysisTemplate < handle
             
             for i = 1 : numel(parameters)
                 p = parameters{i};
-                if isfield(obj.structure.(p), desc)
+                if isfield(obj.structure, p) && isfield(obj.structure.(p), desc)
                     obj.functionContext(p) = obj.structure.(p).(desc);
                 end
             end

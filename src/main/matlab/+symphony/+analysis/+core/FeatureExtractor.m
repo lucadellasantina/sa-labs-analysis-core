@@ -2,39 +2,22 @@ classdef FeatureExtractor < handle
     
     properties
         nodeManager
-        epochIterator    %TODO rename
-    end
-    
-    properties(Abstract)
-        shouldProcessEpoch
+        epochIterator
     end
     
     methods
         
-        function extract(obj, parameter)
+        function delegate(obj, extractorFunctions, parameter)
             
-            % Performance considerations
-            %	order(n) for online analysis
-            % 	order(n^2) for offline analysis
-            
-            nodes = obj.nodeManager.findNodesByName(parameter);
-            for i = 1 : numel(nodes)
-                node = nodes(i);
-                n = numel(node.epochIndices);
-                
-                if obj.shouldProcessEpoch
-                    arrayfun(@(index) obj.handleEpoch(node,...
-                        obj.epochIterator(index)), 1 : n);
-                end
+            for i = 1 : numel(extractorFunctions)
+                func = str2func(extractorFunctions(i));
+                nodes = obj.nodeManager.findNodesByName(parameter);
+                arrayfun(@(node) func(obj, node, 'parameter', parameter), nodes)
             end
-            obj.handleFeature(obj, node);
         end
         
-        function handleEpoch(obj, node, epoch) %#ok <MANU>
-        end
-        
-        function handleFeature(obj, node) %#ok <MANU>
+        function epoch = getEpoch(obj, index)
+            epoch = obj.epochIterator(index);
         end
     end
-    
 end

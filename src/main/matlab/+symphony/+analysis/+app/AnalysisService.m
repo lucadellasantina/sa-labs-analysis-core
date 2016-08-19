@@ -51,11 +51,18 @@ classdef AnalysisService < handle & mdepin.Bean
             cellData = obj.analysisDao.loadCellData(cellName);
         end
         
-        function tree = doAnalysis(obj, request)
+        function result = doAnalysis(obj, request)
             
-            analysis = symphony.analysis.core.OfflineAnalysis();
-            tree = analysis.do(request);
-            obj.analysisDao.saveTree(tree);
+            analysis = symphony.analysis.core.OfflineAnalysis(request.cellData, request.extractorClazz);
+            templates = request.getTemplates();
+            
+            for i = 1 : numel(templates)
+                template = templates(i);
+                tree = analysis.do(template);
+                obj.analysisDao.saveTree(tree, template);
+                analysis.appendResults(tree);
+            end
+            result = analysis.getResult();
         end
     end
     

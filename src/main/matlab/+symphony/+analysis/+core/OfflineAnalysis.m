@@ -2,70 +2,65 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
     
     properties
         cellData
-        spiltParameters
-    end
-    
-    properties(Access = private)
-        requestCache
     end
     
     methods
         
-        function obj = OfflineAnalysis(request)
-            obj@symphony.analysis.core.Analysis(request.extractorContext);
-            obj.requestCache = request;
-            obj.cellData = request.cellData;
-            obj.spiltParameters = request.splitParameters;
-        end
-        
-        function buildTree(obj)
-           obj.buildLevels();
-        end
-        
-        function delegateFeatureExtraction(obj, extractors, splitParameters)
-            for i = 1 : numel(extractors)
-                extractor = extractors(i);
-                extractor.epochIterator = @(index) obj.cellData.epochs(index); 
-                extractor.extract(splitParameters);
-            end
+        function obj = OfflineAnalysis(name, cellData)
+            obj@symphony.analysis.core.Analysis(name);
+            obj.cellData = cellData;
         end
         
     end
     
     methods(Access = protected)
         
-        function buildLevels(obj)
-            names = obj.cellData.dataSetMap.keys;
+        function buildTree(obj)
+            dataSetMap = obj.cellData.savedDataSets;
+            values = dataSetMap.keys;
+            level = 1;
             
-            for i = 1 : numel(names)
-                epochIndices = obj.cellData.dataSetMap(names(i));
-                id = nodeManager.addNode(1, 'DataSet', names(i), epochIndices);
-                obj.buildBranches(id, epochIndices);
+            splitByDataSet = obj.analysisTemplate.splitParameters{1};
+            otherParameters = obj.analysisTemplate.splitParameters(2:end);
+            
+            for i = 1 : numel(values)
+                values = obj.analysisTemplate.validateLevel(level, splitByDataSet, values);
+                
+                if isempty(values)
+                    throw(symphony.analysis.app.Exceptions.NO_DATA_SET_FOUND.create());
+                end
+                splitValue = values{i};
+                dataSet = dataSetMap(splitValue);
+                id = obj.nodeManager.addNode(1, splitByDataSet, splitValue, dataSet);
+                obj.buildBranches(id, level + 1, dataSet, otherParameters);
             end
         end
         
-        function buildBranches(obj, parentId, epochIndices, params)
+        function buildBranches(obj, level, parentId, dataSet, params)
             
-            if nargin < 4
-                params = obj.spiltParameters;
-            end
-            [epochValueMap, description] = obj.cellData.getEpochValuesMap(params{1}, epochIndices);
-            uniqueValues = epochValueMap.keys;
+            splitBy = params{1};
+            [epochValueMap, filter] = obj.cellData.getEpochValuesMap(splitBy, dataSet.epochIndices);
+            splitValues = obj.analysisTemplate.validateLevel(level, splitBy, epochValueMap.keys);
             
-            for i = 1 : length(uniqueValues)
-                value = uniqueValues(i);
-                epochIndices = epochValueMap(value);
+            for i = 1 : length(splitValues)
+                splitValue = splitValues{i};
+                epochIndices = epochValueMap(splitValue);
                 
                 if isempty(epochIndices)
                     continue
                 end
-                id = nodeManager.addNode(parentId, description, value, epochIndices);
+                dataSet = symphony.analysis.entity.DataSet(epochIndices, filter, splitValue);
+                id = obj.nodeManager.addNode(parentId, splitBy, splitValue, dataSet);
                 
                 if length(params) > 1
-                    obj.buildBranches(id, epochIndices, params(2 : end));
+                    obj.buildBranches(id, level + 1, dataSet, params(2 : end));
                 end
             end
         end
         
+        function setEpochIterator(obj)
+            obj.extractor.epochIterator = @(index) obj.cellData.epochs(index);
+        end
+
     end
 end
