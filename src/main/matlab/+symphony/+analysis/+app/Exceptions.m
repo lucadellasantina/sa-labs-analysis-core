@@ -2,6 +2,7 @@ classdef Exceptions < handle
     
     enumeration
         NO_CELL_DATA('createProject:nocellData', 'cell data not found. Please run parser and try again')
+        NO_DATA_SET_FOUND('buildTree:noDataSet', 'No data set found for specified split value')
     end
     
     properties
