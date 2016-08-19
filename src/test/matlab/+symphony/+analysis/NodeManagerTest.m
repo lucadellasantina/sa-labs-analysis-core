@@ -32,7 +32,7 @@ classdef NodeManagerTest < matlab.unittest.TestCase
             obj.s.ds4_rstar_0_1 = obj.manager.addNode(obj.s.ds4, 'rstar', '0.1', 2:2:250);
             
             disp('Tree information - ');
-            obj.manager.searchIndex.tostring() % print tree
+            obj.manager.getStructure().tostring() % print tree
         end
     end
     

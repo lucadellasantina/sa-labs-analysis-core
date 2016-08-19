@@ -2,8 +2,6 @@ classdef NodeManager < handle
     
     properties(SetAccess = protected)
         tree
-        searchIndex
-        featureIndex
     end
     
     
@@ -11,8 +9,6 @@ classdef NodeManager < handle
         
         function obj = NodeManager(tree)
             obj.tree = tree;
-            obj.searchIndex = tree();
-            obj.featureIndex = tree();
         end
         
         function setRootName(obj, name)
@@ -59,7 +55,7 @@ classdef NodeManager < handle
             if isempty(name)
                 return
             end
-            indices = find(obj.searchIndex.regexpi(['\w*' name '\w*']).treefun(@any));
+            indices = find(obj.getStructure().regexpi(['\w*' name '\w*']).treefun(@any));
             
             nodes = symphony.analysis.entity.Node.empty(0, numel(indices));
             for i = 1 : numel(indices)
@@ -91,6 +87,14 @@ classdef NodeManager < handle
             end
         end
         
+        function appendToRoot(obj, tree2)
+            obj.tree = obj.tree.graft(1, tree2);
+        end
+        
+        function tree = getStructure(obj)
+            tree = obj.tree.treefun(@(node) node.name);
+        end
+        
     end
     
     methods(Access = private)
@@ -107,16 +111,11 @@ classdef NodeManager < handle
         
         function setnode(obj, parent, node)
             obj.tree = obj.tree.set(parent, node);
-            obj.searchIndex = obj.searchIndex.set(parent, node.name);
+
         end
         
         function id = addnode(obj, id, node)
-            obj.searchIndex = obj.searchIndex.addnode(id, node.name);
             [obj.tree, id] = obj.tree.addnode(id, node);
-        end
-        
-        function graft(obj, index, tree2)
-            obj.tree = obj.tree.graft(index, tree2);
         end
         
     end
