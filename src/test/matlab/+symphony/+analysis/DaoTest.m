@@ -46,13 +46,8 @@ classdef DaoTest < matlab.unittest.TestCase
     end
     
     methods(Test)
-        
-        function testFileRepositorySettings(obj)
-            rep = obj.beanFactory.getBean('fileRepository');
-            obj.verifyGreaterThan(regexp(rep.analysisFolder, '\w*analysis'), 1);
-            obj.verifyGreaterThan(regexp(rep.rawDataFolder, '\w*rawDataFolder'), 1);
-            obj.verifyGreaterThan(regexp(rep.preferenceFolder, '\w*PreferenceFiles'), 1);
-        end
+      
+        % Test for Analysis Dao
         
         function testFindRawDataFiles(obj)
             dao = obj.beanFactory.getBean('analysisDao');
@@ -90,6 +85,29 @@ classdef DaoTest < matlab.unittest.TestCase
             obj.verifyEmpty(setdiff(obj.cellNames, names));
             names = dao.findCellDataNames(datestr(busdate(date, 1)));
             obj.verifyEmpty(names);
+        end
+        
+        function testLoadCellData(obj)
+            dao = obj.beanFactory.getBean('analysisDao');
+            fname = [datestr(now, 'mmddyy') obj.FILE_PREFIX '1'];
+            data = dao.loadCellData(fname);
+            obj.verifyEqual(data.savedFileName, fname);
+            
+            dataHandle = @()dao.loadCellData('unknown');
+            obj.verifyError(dataHandle, 'MATLAB:load:couldNotReadFile');
+        end
+    end
+    
+    methods(Test)
+        
+         % Test for fileRepository and preferenceDao
+         
+        function testFileRepositorySettings(obj)
+            % TODO verify folder exisits
+            rep = obj.beanFactory.getBean('fileRepository');
+            obj.verifyGreaterThan(regexp(rep.analysisFolder, '\w*analysis'), 1);
+            obj.verifyGreaterThan(regexp(rep.rawDataFolder, '\w*rawDataFolder'), 1);
+            obj.verifyGreaterThan(regexp(rep.preferenceFolder, '\w*PreferenceFiles'), 1);
         end
         
         function testLoadPreference(obj)
