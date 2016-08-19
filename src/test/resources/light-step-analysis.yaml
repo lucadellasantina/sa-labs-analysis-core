@@ -8,20 +8,19 @@ copyParameters :
   - etc
 
 buildTreeBy : 
-  - deviceStream
   - dataSet
+  - deviceStream
   - grpEpochs
   - rstarMean
   - epochId
 
-deviceStream : 
-  splitValue : Amplifier_ch1
-
- 
 dataSet :   
   featureExtractor : 
     - mergeTrees
- 
+
+deviceStream : 
+  splitValue : Amplifier_ch1
+
 
 grpEpochs :
   splitValue :

@@ -19,12 +19,12 @@ classdef NodeManager < handle
             obj.setnode(node.id, node);
         end
         
-        function id = addNode(obj, id, splitParameter, spiltValue, epochIndices)
+        function id = addNode(obj, id, splitParameter, spiltValue, dataSet)
             
             import symphony.analysis.*;
             node = entity.Node(splitParameter, spiltValue);
-            node.epochIndices = epochIndices;
-            node.epochIndicesCache = epochIndices;
+            node.dataSet = dataSet;
+            node.epochIndices = dataSet.epochIndices;
             id = obj.addnode(id, node);
             node.id = id;
         end

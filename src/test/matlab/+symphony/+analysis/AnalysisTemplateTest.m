@@ -23,21 +23,21 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
         function testProperties(obj)
             template = symphony.analysis.core.AnalysisTemplate(obj.lightStepStructure);
             obj.verifyEqual(template.copyParameters, {'ndf', 'etc'});
-            obj.verifyEqual(template.splitParameters, {'deviceStream', 'dataSet', 'grpEpochs', 'rstarMean', 'epochId'});
+            obj.verifyEqual(template.splitParameters, {'dataSet', 'deviceStream', 'grpEpochs', 'rstarMean', 'epochId'});
         end
         
         function testValidateLevel(obj)
             template = symphony.analysis.core.AnalysisTemplate(obj.lightStepStructure);
             obj.verifyEmpty(template.getSplitValue('unkown'));
             
-            values = template.validateLevel(1, 'deviceStream', 'Amplifier_ch1');
-            obj.verifyEqual(values, {'Amplifier_ch1'});
-            
-            values = template.validateLevel(1, 'deviceStream', {'Amplifier_ch1', 'Amplifier_ch2'});
-            obj.verifyEqual(values, {'Amplifier_ch1'});
-            
-            values = template.validateLevel(2, 'dataSet', 'empty');
+            values = template.validateLevel(1, 'dataSet', 'empty');
             obj.verifyEqual(values, {'empty'});
+                        
+            values = template.validateLevel(2, 'deviceStream', 'Amplifier_ch1');
+            obj.verifyEqual(values, {'Amplifier_ch1'});
+            
+            values = template.validateLevel(2, 'deviceStream', {'Amplifier_ch1', 'Amplifier_ch2'});
+            obj.verifyEqual(values, {'Amplifier_ch1'});
             
             expected = {'G1', 'G3'};
             values = template.validateLevel(3, 'grpEpochs',  {'G0', 'G1', 'G3', 'G5'});

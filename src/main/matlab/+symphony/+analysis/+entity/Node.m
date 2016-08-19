@@ -2,7 +2,7 @@ classdef Node < handle & matlab.mixin.CustomDisplay
     
     properties(SetAccess = ?symphony.analysis.core.NodeManager)
         id                  % Identifier of the node, assigned by NodeManager @see NodeManager.addNode
-        epochIndicesCache   % Read only epoch Indices, used as cache
+        dataSet             % Read only dataSet and used as cache
     end
     
     properties(SetAccess = immutable)
@@ -18,7 +18,6 @@ classdef Node < handle & matlab.mixin.CustomDisplay
     properties
         featureMap          % Feature map with key as FeatureDescription.type and value as @see Feature instance
         epochIndices        % List of epoch indices to be processed in Offline analysis. @see CellData and FeatureExtractor.extract
-        
     end
     
     methods
