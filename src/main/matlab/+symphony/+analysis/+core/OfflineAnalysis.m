@@ -2,8 +2,6 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
     
     properties(Access = private)
         cellData
-        level = 0
-        maximumLevels
     end
     
     methods
@@ -24,10 +22,9 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
             splitParameters = obj.analysisTemplate.splitParameters;
             splitByDataSet = splitParameters{1};
             otherParameters = splitParameters(2:end);
-            obj.maximumLevels = numel(splitParameters);
             
             for i = 1 : numel(values)
-                values = obj.analysisTemplate.validateLevel(obj.getNextLevel(), splitByDataSet, values);
+                values = obj.analysisTemplate.validateSplitValues(splitByDataSet, values);
                 
                 if isempty(values)
                     throw(symphony.analysis.app.Exceptions.NO_DATA_SET_FOUND.create());
@@ -43,7 +40,7 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
             
             splitBy = params{1};
             [epochValueMap, filter] = obj.cellData.getEpochValuesMap(splitBy, dataSet.epochIndices);
-            splitValues = obj.analysisTemplate.validateLevel(obj.getNextLevel(), splitBy, epochValueMap.keys);
+            splitValues = obj.analysisTemplate.validateSplitValues(splitBy, epochValueMap.keys);
             
             for i = 1 : length(splitValues)
                 splitValue = splitValues{i};
@@ -64,17 +61,5 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
         function setEpochIterator(obj)
             obj.extractor.epochIterator = @(index) obj.cellData.epochs(index);
         end
-    end
-    
-    methods(Access = private)
-        
-        function level = getNextLevel(obj)
-            obj.level = obj.level + 1;
-            
-            level = mod(obj.level, obj.maximumLevels);
-            if level == 0
-                level = obj.maximumLevels;
-            end
-        end
-    end
+    end  
 end

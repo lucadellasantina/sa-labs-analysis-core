@@ -24,7 +24,7 @@ classdef Node < handle & matlab.mixin.CustomDisplay
         
         function obj = Node(splitParameter, splitValue, name)
             if nargin < 3
-                name = [splitParameter '==' splitValue];
+                name = [splitParameter '==' num2str(splitValue)];
             end
             
             obj.featureMap = containers.Map();

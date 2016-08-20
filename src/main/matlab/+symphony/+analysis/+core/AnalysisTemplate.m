@@ -21,17 +21,13 @@ classdef AnalysisTemplate < handle
             obj.populateFunctionContext();
         end
         
-        function values = validateLevel(obj, level, parameter, values)
+        function values = validateSplitValues(obj, parameter, values)
             
             % Description - Takes the tree level, split parameter and split
             % value from build tree of analysis class. It validates those
             % parameter with actual analysis template structure
             %
             % returns - array / cell array of value(s)
-            
-            if level ~= find(ismember(obj.splitParameters, parameter));
-                throw(symphony.analysis.app.Exceptions.INVALID_LEVEL.create());
-            end
             templateValues = obj.getSplitValue(parameter);
             
             if ischar(values)

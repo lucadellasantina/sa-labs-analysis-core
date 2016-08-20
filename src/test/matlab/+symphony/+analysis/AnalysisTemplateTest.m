@@ -26,40 +26,40 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
             obj.verifyEqual(template.splitParameters, {'dataSet', 'deviceStream', 'grpEpochs', 'rstarMean', 'epochId'});
         end
         
-        function testValidateLevel(obj)
+        function testValidateSplitValues(obj)
             template = symphony.analysis.core.AnalysisTemplate(obj.lightStepStructure);
             obj.verifyEmpty(template.getSplitValue('unkown'));
             
-            values = template.validateLevel(1, 'dataSet', 'empty');
+            values = template.validateSplitValues('dataSet', 'empty');
             obj.verifyEqual(values, {'empty'});
                         
-            values = template.validateLevel(2, 'deviceStream', 'Amplifier_ch1');
+            values = template.validateSplitValues('deviceStream', 'Amplifier_ch1');
             obj.verifyEqual(values, {'Amplifier_ch1'});
             
-            values = template.validateLevel(2, 'deviceStream', {'Amplifier_ch1', 'Amplifier_ch2'});
+            values = template.validateSplitValues('deviceStream', {'Amplifier_ch1', 'Amplifier_ch2'});
             obj.verifyEqual(values, {'Amplifier_ch1'});
             
             expected = {'G1', 'G3'};
-            values = template.validateLevel(3, 'grpEpochs',  {'G0', 'G1', 'G3', 'G5'});
+            values = template.validateSplitValues('grpEpochs',  {'G0', 'G1', 'G3', 'G5'});
             obj.verifyEqual(values, expected);
             
             expected = {'G3'};
-            values = template.validateLevel(3, 'grpEpochs',  'G3');
+            values = template.validateSplitValues('grpEpochs',  'G3');
             obj.verifyEqual(values, expected);
             
-            handle = @() template.validateLevel(3, 'grpEpochs',  {'unknown'});
+            handle = @() template.validateSplitValues('grpEpochs',  {'unknown'});
             obj.verifyError(handle, symphony.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.msgId);
             
-            values = template.validateLevel(4, 'rstarMean', 1:5);
+            values = template.validateSplitValues('rstarMean', 1:5);
             obj.verifyEqual(values, 1:5);
             
-            values = template.validateLevel(5, 'epochId', 1:3);
+            values = template.validateSplitValues('epochId', 1:3);
             obj.verifyEqual(values, 1:3);
             
-            handle = @()template.validateLevel(5, 'epochId', 6);
+            handle = @()template.validateSplitValues('epochId', 6);
             obj.verifyError(handle, symphony.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.msgId);
             
-            values = template.validateLevel(5, 'epochId', 2:3);
+            values = template.validateSplitValues('epochId', 2:3);
             obj.verifyEqual(values, 2:3);
         end
         
