@@ -1,0 +1,40 @@
+--- 
+# Describes the type of analysis one intend to do
+
+type : LightStep
+
+copyParameters :
+  - ndf
+  - etc
+
+buildTreeBy : 
+  - dataSet
+  - deviceStream
+  - grpEpochs
+  - rstarMean
+  - epochId
+
+dataSet :   
+  featureExtractor : 
+    - mergeTrees
+
+deviceStream : 
+  splitValue : Amplifier_ch1
+
+grpEpochs :
+  splitValue :
+    - G1
+    - G2
+    - G3
+
+rstarMean :   
+  splitValue : '@(epoch) convertIntensitytoRStar (obj, epoch)'
+  featureExtractor : 
+    - MeanExtractor
+    - spikeAmplitudeExtractor
+  
+epochId :
+  splitValue :
+     - 1
+     - 2
+     - 3

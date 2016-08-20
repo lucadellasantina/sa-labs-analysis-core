@@ -5,3 +5,15 @@
 	path = lib/matlab-tree
 	url = https://github.com/raacampbell/matlab-tree.git
 
+[submodule "lib/mdepin"]
+	path = lib/mdepin
+	url = https://github.com/mattmcd/mdepin.git
+[submodule "lib/yamlmatlab"]
+	path = lib/yamlmatlab
+	url = https://github.com/ewiger/yamlmatlab.git
+[submodule "lib/MatlabQuery"]
+	path = lib/MatlabQuery
+	url = https://github.com/ragavsathish/MatlabQuery.git
+[submodule "lib/test/mmockito"]
+	path = lib/test/mmockito
+	url = https://github.com/ragavsathish/mmockito.git
