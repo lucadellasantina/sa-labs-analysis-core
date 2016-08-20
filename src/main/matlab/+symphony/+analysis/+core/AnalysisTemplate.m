@@ -4,13 +4,14 @@ classdef AnalysisTemplate < handle
     % values and extractor functions at the specified tree level
     
     properties(Access = private)
-        structure           % structure from user interface or yaml
-        functionContext     % map containing key as split parameter and value as extractor functions
+        structure           % Structure from user interface or yaml
+        functionContext     % Map containing key as split parameter and value as extractor functions
     end
     
     properties(Dependent)
-        copyParameters      % list of unique-paramters to copied from epoch to node
-        splitParameters     % defines the level in analysis tree
+        copyParameters      % List of unique-paramters to copied from epoch to node
+        splitParameters     % Defines the level in analysis tree
+        type                % Type of analysis
     end
     
     methods
@@ -68,6 +69,10 @@ classdef AnalysisTemplate < handle
         
         function p = get.splitParameters(obj)
             p = obj.structure.(symphony.analysis.app.Constants.TEMPLATE_BUILD_TREE_BY);
+        end
+        
+        function p = get.type(obj)
+            p = obj.structure.(symphony.analysis.app.Constants.TEMPLATE_TYPE)
         end
         
         function v = getSplitValue(obj, parameter)

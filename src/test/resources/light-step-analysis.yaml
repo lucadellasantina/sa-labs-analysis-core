@@ -1,7 +1,7 @@
 --- 
 # Describes the type of analysis one intend to do
 
-analysis : LightStep
+type : LightStep
 
 copyParameters :
   - ndf

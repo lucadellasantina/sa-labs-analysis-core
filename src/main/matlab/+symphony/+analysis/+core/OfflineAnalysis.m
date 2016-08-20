@@ -1,7 +1,9 @@
 classdef OfflineAnalysis < symphony.analysis.core.Analysis
     
-    properties
+    properties(Access = private)
         cellData
+        level = 0
+        maximumLevels
     end
     
     methods
@@ -18,13 +20,14 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
         function buildTree(obj)
             dataSetMap = obj.cellData.savedDataSets;
             values = dataSetMap.keys;
-            level = 1;
             
-            splitByDataSet = obj.analysisTemplate.splitParameters{1};
-            otherParameters = obj.analysisTemplate.splitParameters(2:end);
+            splitParameters = obj.analysisTemplate.splitParameters;
+            splitByDataSet = splitParameters{1};
+            otherParameters = splitParameters(2:end);
+            obj.maximumLevels = numel(splitParameters);
             
             for i = 1 : numel(values)
-                values = obj.analysisTemplate.validateLevel(level, splitByDataSet, values);
+                values = obj.analysisTemplate.validateLevel(obj.getNextLevel(), splitByDataSet, values);
                 
                 if isempty(values)
                     throw(symphony.analysis.app.Exceptions.NO_DATA_SET_FOUND.create());
@@ -32,15 +35,15 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
                 splitValue = values{i};
                 dataSet = dataSetMap(splitValue);
                 id = obj.nodeManager.addNode(1, splitByDataSet, splitValue, dataSet);
-                obj.buildBranches(id, level + 1, dataSet, otherParameters);
+                obj.buildBranches(id, dataSet, otherParameters);
             end
         end
         
-        function buildBranches(obj, level, parentId, dataSet, params)
+        function buildBranches(obj, parentId, dataSet, params)
             
             splitBy = params{1};
             [epochValueMap, filter] = obj.cellData.getEpochValuesMap(splitBy, dataSet.epochIndices);
-            splitValues = obj.analysisTemplate.validateLevel(level, splitBy, epochValueMap.keys);
+            splitValues = obj.analysisTemplate.validateLevel(obj.getNextLevel(), splitBy, epochValueMap.keys);
             
             for i = 1 : length(splitValues)
                 splitValue = splitValues{i};
@@ -53,7 +56,7 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
                 id = obj.nodeManager.addNode(parentId, splitBy, splitValue, dataSet);
                 
                 if length(params) > 1
-                    obj.buildBranches(id, level + 1, dataSet, params(2 : end));
+                    obj.buildBranches(id, dataSet, params(2 : end));
                 end
             end
         end
@@ -61,6 +64,17 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
         function setEpochIterator(obj)
             obj.extractor.epochIterator = @(index) obj.cellData.epochs(index);
         end
-
+    end
+    
+    methods(Access = private)
+        
+        function level = getNextLevel(obj)
+            obj.level = obj.level + 1;
+            
+            level = mod(obj.level, obj.maximumLevels);
+            if level == 0
+                level = obj.maximumLevels;
+            end
+        end
     end
 end

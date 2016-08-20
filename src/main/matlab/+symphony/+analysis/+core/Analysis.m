@@ -32,7 +32,9 @@ classdef Analysis < handle
         end
         
         function tree = do(obj, analysisTemplate)
+            obj.nodeManager.setRootName(analysisTemplate.type);
             obj.templateCache = analysisTemplate;
+            
             obj.buildTree();
             obj.extractFeatures();
             tree = obj.nodeManager.tree;
