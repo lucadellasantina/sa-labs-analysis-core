@@ -11,9 +11,16 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         end
         
         function fnames = findRawDataFiles(obj, date)
-            date = obj.repository.dateFormat(date);
+            
+            try
+                date = obj.repository.dateFormat(date);
+                
+            catch exception
+                disp(exception.message);
+                date = [];
+            end
             path = [obj.repository.rawDataFolder filesep];
-            info = dir([path date '*c*.h5']);
+            info = dir([path date '*.h5']);
             fnames = arrayfun(@(d) [path d.name], info, 'UniformOutput', false);
         end
         
@@ -33,7 +40,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             result = load(path);
             cellData = result.cellData;
         end
-
+        
         function projectFolder = createProject(obj, project)
             cellNames = project.cellNames;
             today = obj.repository.dateFormat(now);

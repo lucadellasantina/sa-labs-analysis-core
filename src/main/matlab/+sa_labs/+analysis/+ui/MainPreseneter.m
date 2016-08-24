@@ -1,22 +1,21 @@
 classdef MainPreseneter < appbox.Presenter
     
     properties
-        analysisService
+        session
     end
     
     methods
         
-        function obj = MainPreseneter(analysisService, view)
+        function obj = MainPreseneter(session, view)
             if nargin < 2
                 view = sa_labs.analysis.ui.MainView();
             end
             obj = obj@appbox.Presenter(view);
-            
-            obj.analysisService = analysisService;
+            obj.session = session;
         end
         
         function showProjects(obj)
-            presenter = sa_labs.analysis.ui.presenters.ProjectsPresenter(obj.analysisService);
+            presenter = sa_labs.analysis.ui.presenters.ProjectsPresenter(obj.session);
             presenter.goWaitStop();
         end
         
