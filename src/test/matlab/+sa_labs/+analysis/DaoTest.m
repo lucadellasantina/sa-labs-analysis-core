@@ -61,10 +61,10 @@ classdef DaoTest < matlab.unittest.TestCase
             obj.verifyEmpty(files);
         end
         
-        function testSaveCellData(obj)
+        function testSaveCell(obj)
             dao = obj.beanFactory.getBean('analysisDao');
             path = [dao.repository.analysisFolder filesep 'cellData' filesep];
-            arrayfun(@(d) dao.saveCellData(d), obj.testCellDatas);
+            arrayfun(@(d) dao.saveCell(d), obj.testCellDatas);
             
             for i = 1 : obj.NO_OF_FILES
                 name = obj.cellNames{i};
@@ -73,27 +73,31 @@ classdef DaoTest < matlab.unittest.TestCase
         end
         
         function testCreateProject(obj)
+             import sa_labs.analysis.*;
+             project = entity.Project();
+             project.cellNames = obj.cellNames;
+             
              dao = obj.beanFactory.getBean('analysisDao');
-             folder = dao.createProject(obj.cellNames);
+             folder = dao.createProject(project);
              text = importdata([folder filesep 'cellNames.txt'],'\n');
              obj.verifyEqual(obj.cellNames, text);
         end
         
-        function testFindCellDataNames(obj)
+        function testFindCellNames(obj)
             dao = obj.beanFactory.getBean('analysisDao');
-            names = dao.findCellDataNames(date);
+            names = dao.findCellNames(date);
             obj.verifyEmpty(setdiff(obj.cellNames, names));
-            names = dao.findCellDataNames(datestr(busdate(date, 1)));
+            names = dao.findCellNames(datestr(busdate(date, 1)));
             obj.verifyEmpty(names);
         end
         
-        function testLoadCellData(obj)
+        function testFindCell(obj)
             dao = obj.beanFactory.getBean('analysisDao');
             fname = [datestr(now, 'mmddyy') obj.FILE_PREFIX '1'];
-            data = dao.loadCellData(fname);
+            data = dao.findCell(fname);
             obj.verifyEqual(data.savedFileName, fname);
             
-            dataHandle = @()dao.loadCellData('unknown');
+            dataHandle = @()dao.findCell('unknown');
             obj.verifyError(dataHandle, 'MATLAB:load:couldNotReadFile');
         end
     end

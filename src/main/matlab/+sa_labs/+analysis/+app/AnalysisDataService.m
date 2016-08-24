@@ -1,4 +1,4 @@
-classdef AnalysisService < handle & mdepin.Bean
+classdef AnalysisDataService < handle & mdepin.Bean
     
     properties
         analysisDao
@@ -7,7 +7,7 @@ classdef AnalysisService < handle & mdepin.Bean
     
     methods
         
-        function obj = AnalysisService(config)
+        function obj = AnalysisDataService(config)
             obj = obj@mdepin.Bean(config);
         end
         

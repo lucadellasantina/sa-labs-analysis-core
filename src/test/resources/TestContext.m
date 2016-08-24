@@ -1,6 +1,6 @@
 ctx = struct();
 
-ctx.analysisDao.class = 'sa_labs.analysis.dao.AnalysisDao';
+ctx.analysisDao.class = 'sa_labs.analysis.dao.AnalysisFolderDao';
 ctx.analysisDao.repository = 'fileRepository';
 
 ctx.preferenceDao.class = 'sa_labs.analysis.dao.PreferenceDao';
