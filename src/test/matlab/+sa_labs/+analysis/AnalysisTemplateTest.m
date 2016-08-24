@@ -14,20 +14,20 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
     methods(Test)
         
         function getExtractorFunctions(obj)
-            template = symphony.analysis.core.AnalysisTemplate(obj.lightStepStructure);
+            template = sa_labs.analysis.core.AnalysisTemplate(obj.lightStepStructure);
             expected = {'MeanExtractor', 'spikeAmplitudeExtractor'};
             obj.verifyEqual(template.getExtractorFunctions('rstarMean'), expected);
             obj.verifyEmpty(template.getExtractorFunctions('unknown'));
         end
         
         function testProperties(obj)
-            template = symphony.analysis.core.AnalysisTemplate(obj.lightStepStructure);
+            template = sa_labs.analysis.core.AnalysisTemplate(obj.lightStepStructure);
             obj.verifyEqual(template.copyParameters, {'ndf', 'etc'});
             obj.verifyEqual(template.splitParameters, {'dataSet', 'deviceStream', 'grpEpochs', 'rstarMean', 'epochId'});
         end
         
         function testValidateSplitValues(obj)
-            template = symphony.analysis.core.AnalysisTemplate(obj.lightStepStructure);
+            template = sa_labs.analysis.core.AnalysisTemplate(obj.lightStepStructure);
             obj.verifyEmpty(template.getSplitValue('unkown'));
             
             values = template.validateSplitValues('dataSet', 'empty');
@@ -48,7 +48,7 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
             obj.verifyEqual(values, expected);
             
             handle = @() template.validateSplitValues('grpEpochs',  {'unknown'});
-            obj.verifyError(handle, symphony.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.msgId);
+            obj.verifyError(handle, sa_labs.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.msgId);
             
             values = template.validateSplitValues('rstarMean', 1:5);
             obj.verifyEqual(values, 1:5);
@@ -57,7 +57,7 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
             obj.verifyEqual(values, 1:3);
             
             handle = @()template.validateSplitValues('epochId', 6);
-            obj.verifyError(handle, symphony.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.msgId);
+            obj.verifyError(handle, sa_labs.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.msgId);
             
             values = template.validateSplitValues('epochId', 2:3);
             obj.verifyEqual(values, 2:3);

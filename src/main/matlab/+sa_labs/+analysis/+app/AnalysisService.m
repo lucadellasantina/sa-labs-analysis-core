@@ -15,14 +15,14 @@ classdef AnalysisService < handle & mdepin.Bean
             files = obj.analysisDao.findRawDataFiles(date);
             
             for i = 1 : numel(files)
-                parser = symphony.analysis.parser.getInstance(files{i});
+                parser = sa_labs.analysis.parser.getInstance(files{i});
                 cellData = parser.parse().getResult();
                 obj.analysisDao.saveCellData(cellData);
             end
         end
         
         function createProject(obj, date)
-            import symphony.analysis.constants.*;
+            import sa_labs.analysis.constants.*;
             
             dao = obj.analysisDao;
             names = dao.findCellDataNames(date);
@@ -53,7 +53,7 @@ classdef AnalysisService < handle & mdepin.Bean
         
         function result = doAnalysis(obj, request)
             
-            analysis = symphony.analysis.core.OfflineAnalysis(request.cellData, request.extractorClazz);
+            analysis = sa_labs.analysis.core.OfflineAnalysis(request.description, request.cellData);
             templates = request.getTemplates();
             
             for i = 1 : numel(templates)

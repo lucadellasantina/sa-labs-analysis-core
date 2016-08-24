@@ -20,13 +20,13 @@ classdef Analysis < handle
         
         function obj = Analysis(name)
             
-            import symphony.analysis.core.*;
+            import sa_labs.analysis.core.*;
             
             obj.resultManager = NodeManager(tree());
             obj.resultManager.setRootName(name);
             
             obj.nodeManager = NodeManager(tree());
-            obj.extractor = symphony.analysis.core.FeatureExtractor();
+            obj.extractor = sa_labs.analysis.core.FeatureExtractor();
             obj.extractor.nodeManager = obj.nodeManager;
             obj.setEpochIterator();
         end

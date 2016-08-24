@@ -26,7 +26,7 @@ classdef PreferenceDao < handle & mdepin.Bean
         end
         
         function loadPreference(obj)
-            import symphony.analysis.util.*;
+            import sa_labs.analysis.util.*;
             
             folder = obj.repository.preferenceFolder;
             obj.cellTypeNames = importdata([folder filesep obj.FILE_CELL_TYPE_NAMES], '\n');

@@ -1,4 +1,4 @@
-classdef SpikeExtractor < symphony.analysis.core.FeatureExtractor
+classdef SpikeExtractor < sa_labs.analysis.core.FeatureExtractor
     
     properties
         shouldProcessEpoch = true

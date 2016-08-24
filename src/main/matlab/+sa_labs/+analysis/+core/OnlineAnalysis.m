@@ -1,4 +1,4 @@
-classdef OnlineAnalysis < symphony.analysis.core.Analysis
+classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
     
     properties(Transient)
         epochStream

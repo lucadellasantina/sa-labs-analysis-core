@@ -1,6 +1,6 @@
 classdef Node < handle & matlab.mixin.CustomDisplay
     
-    properties(SetAccess = ?symphony.analysis.core.NodeManager)
+    properties(SetAccess = ?sa_labs.analysis.core.NodeManager)
         id                  % Identifier of the node, assigned by NodeManager @see NodeManager.addNode
         dataSet             % Read only dataSet and used as cache
     end
@@ -72,7 +72,7 @@ classdef Node < handle & matlab.mixin.CustomDisplay
                 obj.setParameter(key, value);
                 return
             end
-            new = symphony.analysis.util.collections.addToCell(old, value);
+            new = sa_labs.analysis.util.collections.addToCell(old, value);
             obj.setParameter(key, new);
         end
         
@@ -85,7 +85,7 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             if isKey(obj.featureMap, key)
                 feature = obj.featureMap(key);
             else
-                feature = symphony.analysis.entity.Feature.create(featureDescription);
+                feature = sa_labs.analysis.entity.Feature.create(featureDescription);
                 obj.featureMap(key) = feature;
             end
         end
@@ -130,14 +130,14 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             % case 1 - node.in and obj.out is present has properties
             if isprop(obj, out) && isprop(node, in)
                 old = obj.(out);
-                obj.(out) = symphony.analysis.util.collections.addToCell(old, node.(in));
+                obj.(out) = sa_labs.analysis.util.collections.addToCell(old, node.(in));
                 return
                 
             end
             % case 2 - node.in is struct parameters & obj.out is class property
             if isprop(obj, out)
                 old = obj.(out);
-                obj.(out) = symphony.analysis.util.collections.addToCell(old, node.getParameter(in));
+                obj.(out) = sa_labs.analysis.util.collections.addToCell(old, node.getParameter(in));
                 return
             end
             

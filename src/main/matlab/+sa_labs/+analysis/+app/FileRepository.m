@@ -30,7 +30,7 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
         end
         
         function p = get.searchPath(obj)
-            p = obj.get('searchPath', symphony.analysis.app.App.getResource('examples'));
+            p = obj.get('searchPath', sa_labs.analysis.app.App.getResource('examples'));
         end
         
         function f = get.analysisFolder(obj)

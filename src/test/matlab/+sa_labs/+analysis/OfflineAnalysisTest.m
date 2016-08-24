@@ -3,7 +3,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
     methods(Test)
         
         function testBuildTreeSimple(obj)
-            import symphony.analysis.*;
+            import sa_labs.analysis.*;
             
             levelTwo = containers.Map({'Amplifier_Ch1'}, {1 : 50});
             mockedCellData = Mock(entity.CellData());
@@ -67,7 +67,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             obj.verifyEqual(tree.get(leafs(4)).epochIndices, 51:100);
             
             function tree = testAnalyze()
-                import symphony.analysis.*;
+                import sa_labs.analysis.*;
                 
                 template = core.AnalysisTemplate(structure);
                 offlineAnalysis = core.OfflineAnalysis('test-collective-analysis', mockedCellData);
@@ -78,7 +78,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
         end
         
         function testBuildTreeComplex(obj)
-            import symphony.analysis.*;
+            import sa_labs.analysis.*;
             
             levelTwo = containers.Map({'Amplifier_Ch1', 'Amplifier_Ch2'}, {1 : 50,  1 : 25});
             levelThree = containers.Map({'G1', 'G2'}, {1 : 25,  26 : 50});

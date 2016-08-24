@@ -1,4 +1,4 @@
-classdef MeanExtractor < symphony.analysis.core.FeatureExtractor
+classdef MeanExtractor < sa_labs.analysis.core.FeatureExtractor
     
     properties
         description = FeatureId.MEAN_RESPONSE.description

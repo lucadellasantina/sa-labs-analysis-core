@@ -1,6 +1,6 @@
 function test(package)
     if nargin < 1
-        package = 'symphony';
+        package = 'sa_labs';
     end
     
     rootPath = fileparts(mfilename('fullpath'));

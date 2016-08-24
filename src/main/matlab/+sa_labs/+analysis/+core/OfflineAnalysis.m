@@ -1,4 +1,4 @@
-classdef OfflineAnalysis < symphony.analysis.core.Analysis
+classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
     
     properties(Access = private)
         cellData
@@ -7,7 +7,7 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
     methods
         
         function obj = OfflineAnalysis(name, cellData)
-            obj@symphony.analysis.core.Analysis(name);
+            obj@sa_labs.analysis.core.Analysis(name);
             obj.cellData = cellData;
         end
         
@@ -27,7 +27,7 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
                 values = obj.analysisTemplate.validateSplitValues(splitByDataSet, values);
                 
                 if isempty(values)
-                    throw(symphony.analysis.app.Exceptions.NO_DATA_SET_FOUND.create());
+                    throw(sa_labs.analysis.app.Exceptions.NO_DATA_SET_FOUND.create());
                 end
                 splitValue = values{i};
                 dataSet = dataSetMap(splitValue);
@@ -49,7 +49,7 @@ classdef OfflineAnalysis < symphony.analysis.core.Analysis
                 if isempty(epochIndices)
                     continue
                 end
-                dataSet = symphony.analysis.entity.DataSet(epochIndices, filter, splitValue);
+                dataSet = sa_labs.analysis.entity.DataSet(epochIndices, filter, splitValue);
                 id = obj.nodeManager.addNode(parentId, splitBy, splitValue, dataSet);
                 
                 if length(params) > 1

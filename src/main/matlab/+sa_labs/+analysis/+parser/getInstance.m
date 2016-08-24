@@ -1,5 +1,5 @@
 function obj = getInstance(fname)
-import symphony.analysis.parser.*
+import sa_labs.analysis.parser.*
 
 version = SymphonyParser.getVersion(fname);
 

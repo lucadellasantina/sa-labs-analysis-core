@@ -13,7 +13,7 @@ classdef NodeManager < handle
         
         function setRootName(obj, name)
             
-            import symphony.analysis.*;
+            import sa_labs.analysis.*;
             node = entity.Node([], [], name);
             node.id = 1;
             obj.setnode(node.id, node);
@@ -21,7 +21,7 @@ classdef NodeManager < handle
         
         function id = addNode(obj, id, splitParameter, spiltValue, dataSet)
             
-            import symphony.analysis.*;
+            import sa_labs.analysis.*;
             node = entity.Node(splitParameter, spiltValue);
             node.dataSet = dataSet;
             node.epochIndices = dataSet.epochIndices;
@@ -57,7 +57,7 @@ classdef NodeManager < handle
             end
             indices = find(obj.getStructure().regexpi(['\w*' name '\w*']).treefun(@any));
             
-            nodes = symphony.analysis.entity.Node.empty(0, numel(indices));
+            nodes = sa_labs.analysis.entity.Node.empty(0, numel(indices));
             for i = 1 : numel(indices)
                 nodes(i) = obj.tree.get(indices(i));
             end

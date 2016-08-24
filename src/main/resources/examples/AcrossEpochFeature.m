@@ -1,4 +1,4 @@
-classdef AcrossEpochFeature < symphony.analysis.entity.Feature
+classdef AcrossEpochFeature < sa_labs.analysis.entity.Feature
     
     properties
         count

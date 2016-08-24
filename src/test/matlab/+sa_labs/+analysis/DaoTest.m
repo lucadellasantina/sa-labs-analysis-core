@@ -14,7 +14,7 @@ classdef DaoTest < matlab.unittest.TestCase
     methods (TestClassSetup)
         
         function initContext(obj)
-            import symphony.analysis.*;
+            import sa_labs.analysis.*;
             
             obj.beanFactory = mdepin.getBeanFactory(which('TestContext.m'));
             repository = obj.beanFactory.getBean('fileRepository');
@@ -36,7 +36,7 @@ classdef DaoTest < matlab.unittest.TestCase
                 path = [repository.rawDataFolder filesep  name '.h5'];
                 h5create(path ,'/ds' , [10 20]);
                 h5writeatt(path, '/','version', 1);
-                cellData = symphony.analysis.entity.CellData();
+                cellData = sa_labs.analysis.entity.CellData();
                 cellData.savedFileName = name;
                 
                 obj.testCellDatas(i) = cellData;

@@ -1,4 +1,4 @@
-classdef DefaultSymphonyParser < symphony.analysis.parser.SymphonyParser
+classdef DefaultSymphonyParser < sa_labs.analysis.parser.SymphonyParser
     
     % cell-name.h5
     %   |_ <recorded_by>-<id> (1)
@@ -20,7 +20,7 @@ classdef DefaultSymphonyParser < symphony.analysis.parser.SymphonyParser
     methods
         
         function obj = parse(obj)
-            import symphony.analysis.*;
+            import sa_labs.analysis.*;
             
             data = entity.CellData();
             [~, data.savedFileName, ~] = fileparts(obj.fname);

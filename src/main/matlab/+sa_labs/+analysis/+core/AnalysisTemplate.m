@@ -42,7 +42,7 @@ classdef AnalysisTemplate < handle
             found = ismember(templateValues, values);
             
             if sum(found) == 0
-                throw(symphony.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.create());
+                throw(sa_labs.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.create());
             end
             values = templateValues(found);
         end
@@ -60,15 +60,15 @@ classdef AnalysisTemplate < handle
         end
         
         function p = get.copyParameters(obj)
-            p = obj.structure.(symphony.analysis.app.Constants.TEMPLATE_COPY_PARAMETERS);
+            p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_COPY_PARAMETERS);
         end
         
         function p = get.splitParameters(obj)
-            p = obj.structure.(symphony.analysis.app.Constants.TEMPLATE_BUILD_TREE_BY);
+            p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_BUILD_TREE_BY);
         end
         
         function p = get.type(obj)
-            p = obj.structure.(symphony.analysis.app.Constants.TEMPLATE_TYPE)
+            p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_TYPE)
         end
         
         function v = getSplitValue(obj, parameter)
@@ -85,7 +85,7 @@ classdef AnalysisTemplate < handle
             end
             
             split = obj.structure.(parameter);
-            desc = symphony.analysis.app.Constants.TEMPLATE_SPLIT_VALUE;
+            desc = sa_labs.analysis.app.Constants.TEMPLATE_SPLIT_VALUE;
             
             if ~ isfield(split, desc) || isempty(split.(desc)) || ...
                     (ischar(split.(desc)) && ~ isempty((strfind(split.(desc), '@')) == 1)) % check for function handle
@@ -104,7 +104,7 @@ classdef AnalysisTemplate < handle
         
         function populateFunctionContext(obj)
             parameters = obj.splitParameters;
-            desc = symphony.analysis.app.Constants.TEMPLATE_FEATURE_EXTRACTOR;
+            desc = sa_labs.analysis.app.Constants.TEMPLATE_FEATURE_EXTRACTOR;
             obj.functionContext = containers.Map();
             
             for i = 1 : numel(parameters)

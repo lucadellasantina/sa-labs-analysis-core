@@ -2,7 +2,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
     
     properties
         attributes                          % Map for attributes from data file (h5group root attributes + Nepochs)
-        epochs                              % Array of symphony.analysis.core.entity.EpochData
+        epochs                              % Array of sa_labs.analysis.core.entity.EpochData
         savedDataSets                       % Saved Data Sets
         epochGroups                         % TODO
         tags                                % TODO
@@ -96,7 +96,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
                 epochIndex = epochIndices(i);
                 epoch = obj.epochs(epochIndex);
                 value = functionHandle(epoch);
-                map = symphony.analysis.util.collections.addToMap(map, num2str(value), epochIndex);
+                map = sa_labs.analysis.util.collections.addToMap(map, num2str(value), epochIndex);
             end
             
             keys = map.keys;
@@ -189,7 +189,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             n = length(subSet);
             
             if strcmp(queryString, '?') || isempty(queryString)
-                dataSet = symphony.analysis.entity.DataSet(1 : n, queryString);
+                dataSet = sa_labs.analysis.entity.DataSet(1 : n, queryString);
                 return
             end
             epochIndices = [];
@@ -202,7 +202,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
                     epochIndices = [epochIndices subSet(i)]; %#ok
                 end
             end
-            dataSet = symphony.analysis.entity.DataSet(epochIndices, queryString);
+            dataSet = sa_labs.analysis.entity.DataSet(epochIndices, queryString);
         end
         
         function tf = has(obj, queryString)

@@ -1,4 +1,4 @@
-classdef Symphony2Parser < symphony.analysis.parser.SymphonyParser
+classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
     
     % experiement (1)
     %   |__devices (1)
@@ -23,8 +23,8 @@ classdef Symphony2Parser < symphony.analysis.parser.SymphonyParser
         
         function obj = parse(obj)
             
-            import symphony.analysis.constants.*;
-            import symphony.analysis.*;
+            import sa_labs.analysis.constants.*;
+            import sa_labs.analysis.*;
             
             cell = entity.CellData();
             info = h5info(obj.fname);

@@ -25,7 +25,7 @@ classdef AnalysisDao < handle & mdepin.Bean
         function projectFolder = createProject(obj, cellNames)
             today = obj.repository.dateFormat(now);
             projectFolder = [obj.repository.analysisFolder filesep 'Projects' filesep today '_temp'];
-            symphony.analysis.util.file.overWrite(projectFolder);
+            sa_labs.analysis.util.file.overWrite(projectFolder);
             
             fid = fopen([projectFolder filesep 'cellNames.txt'], 'w');
             for i = 1 : length(cellNames)

@@ -47,16 +47,16 @@ classdef ParserTest < matlab.unittest.TestCase
                 disp(obj.skipMessage('testGetInstance'));
                 return;
             end
-            import symphony.analysis.*;
+            import sa_labs.analysis.*;
             
             ref = parser.getInstance([obj.path obj.SYMPHONY_V1_FILE]);
-            obj.verifyClass(ref, ?symphony.analysis.parser.DefaultSymphonyParser);
+            obj.verifyClass(ref, ?sa_labs.analysis.parser.DefaultSymphonyParser);
             ref = parser.getInstance([obj.path obj.SYMPHONY_V2_FILE]);
-            obj.verifyClass(ref, ?symphony.analysis.parser.Symphony2Parser);
+            obj.verifyClass(ref, ?sa_labs.analysis.parser.Symphony2Parser);
         end
         
         function testMapAttributes(obj)
-            import symphony.analysis.*;
+            import sa_labs.analysis.*;
             
             fname = [obj.path obj.TEST_FILE];
             h5create(fname ,'/test' , [10 20]);
@@ -86,7 +86,7 @@ classdef ParserTest < matlab.unittest.TestCase
                 disp(obj.skipMessage('testParse'));
                 return;
             end
-            import symphony.analysis.*;
+            import sa_labs.analysis.*;
             
             % Parse symphony_v2 file and validate
             fname = [obj.path obj.SYMPHONY_V2_FILE];

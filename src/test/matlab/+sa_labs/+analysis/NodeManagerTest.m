@@ -9,7 +9,7 @@ classdef NodeManagerTest < matlab.unittest.TestCase
         
         function create(obj)
             
-            import symphony.analysis.*;
+            import sa_labs.analysis.*;
             obj.s = struct();
             obj.manager = core.NodeManager(tree());
             

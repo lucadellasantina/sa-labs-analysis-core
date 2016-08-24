@@ -8,7 +8,7 @@ classdef EntityTest < matlab.unittest.TestCase
     methods (TestClassSetup)
         
         function prepareEpochData(obj)
-            import symphony.analysis.entity.*;
+            import sa_labs.analysis.entity.*;
             
             obj.seedGenerator = rng('default');
             noise = randn(100);
@@ -35,7 +35,7 @@ classdef EntityTest < matlab.unittest.TestCase
     methods(Test)
         
         function testEpochData(obj)
-            import symphony.analysis.entity.*;
+            import sa_labs.analysis.entity.*;
             keys = {'double', 'string', 'cell', 'array'};
             values = {20, 'abc', {'abc', 'def', 'ghi'}, [1, 2, 3, 4, 5]};
             
@@ -74,7 +74,7 @@ classdef EntityTest < matlab.unittest.TestCase
     methods(Test)
         
         function testGetEpochValues(obj)
-            import symphony.analysis.entity.*;
+            import sa_labs.analysis.entity.*;
             cellData = CellData();
             cellData.epochs = obj.epochs;
             
@@ -105,7 +105,7 @@ classdef EntityTest < matlab.unittest.TestCase
         
         function testGetEpochValuesMap(obj)
             
-            import symphony.analysis.entity.*;
+            import sa_labs.analysis.entity.*;
             cellData = CellData();
             cellData.epochs = obj.epochs;
             
@@ -125,7 +125,7 @@ classdef EntityTest < matlab.unittest.TestCase
         end
         
         function testGetEpochKeysetUnion(obj)
-            import symphony.analysis.entity.*;
+            import sa_labs.analysis.entity.*;
             cellData = CellData();
             cellData.epochs = obj.epochs;
             
@@ -137,7 +137,7 @@ classdef EntityTest < matlab.unittest.TestCase
         end
         
         function testGetUniqueNonMatchingParamValues(obj)
-            import symphony.analysis.entity.*;
+            import sa_labs.analysis.entity.*;
             cellData = CellData();
             cellData.epochs = obj.epochs;
             
@@ -177,7 +177,7 @@ classdef EntityTest < matlab.unittest.TestCase
         end
         
         function testGet(obj)
-            import symphony.analysis.entity.*;
+            import sa_labs.analysis.entity.*;
             cellData = CellData();
             cellData.attributes = containers.Map({'other', 'string'}, {'bla', 'test'});
             cellData.tags = containers.Map('other', 'tag');
@@ -194,7 +194,7 @@ classdef EntityTest < matlab.unittest.TestCase
     methods(Test)
         
         function testParameters(obj)
-            import symphony.analysis.entity.*;
+            import sa_labs.analysis.entity.*;
             node = Node('root','value');
             params = struct();
             params.preTime = '500ms';
@@ -220,7 +220,7 @@ classdef EntityTest < matlab.unittest.TestCase
         end
         
         function testFeature(obj)
-            import symphony.analysis.entity.*;
+            import sa_labs.analysis.entity.*;
             node = Node('root', 'param');
             description = FeatureId.TEST_FEATURE.description;
             feature = node.getFeature(description);
@@ -243,7 +243,7 @@ classdef EntityTest < matlab.unittest.TestCase
         end
         
         function testUpdate(obj)
-            import symphony.analysis.entity.*;
+            import sa_labs.analysis.entity.*;
             node = Node('Child', 'param');
             description = FeatureId.TEST_FEATURE.description;
             node.appendFeature(description, 1 : 1000);

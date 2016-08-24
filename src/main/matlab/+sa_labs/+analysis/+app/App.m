@@ -23,7 +23,7 @@ classdef App < handle
         end
 
         function u = documentationUrl()
-            u = symphony.analysis.app.App.getResource('docs', 'Home.html');
+            u = sa_labs.analysis.app.App.getResource('docs', 'Home.html');
         end
 
         function p = getResource(varargin)
