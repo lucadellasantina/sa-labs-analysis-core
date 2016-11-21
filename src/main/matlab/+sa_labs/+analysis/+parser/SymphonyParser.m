@@ -19,14 +19,30 @@ classdef SymphonyParser < handle
                 name = attributes(i).Name;
                 root = strfind(name, '/');
                 value = attributes(i).Value;
-
+                
+                % convert column vectors to row vectors
+                if size(value, 1) > 1
+                    value = reshape(value, 1, []);
+                end
+                
                 if ~ isempty(root)
                     name = attributes(i).Name(root(end) + 1 : end);
                 end
-                    map(name) = value;
+                map(name) = value;
             end
         end
         
+        function hrn = convertDisplayName(~, n)
+            hrn = regexprep(n, '([A-Z][a-z]+)', ' $1');
+            hrn = regexprep(hrn, '([A-Z][A-Z]+)', ' $1');
+            hrn = regexprep(hrn, '([^A-Za-z ]+)', ' $1');
+            hrn = strtrim(hrn);
+            
+            % TODO: improve underscore handling, this really only works with lowercase underscored variables
+            hrn = strrep(hrn, '_', '');
+            
+            hrn(1) = upper(hrn(1));
+        end
     end
     
     methods(Abstract)
@@ -37,7 +53,7 @@ classdef SymphonyParser < handle
     methods(Static)
         
         function version = getVersion(fname)
-             version = h5readatt(fname, '/', 'version');
+            version = h5readatt(fname, '/', 'version');
         end
     end
 end

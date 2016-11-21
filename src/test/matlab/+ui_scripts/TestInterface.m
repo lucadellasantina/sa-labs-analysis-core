@@ -1,8 +1,3 @@
-%%
-clc;
-clear all;
-clear classes;
-
 %% Mock object for presenters
 import sa_labs.analysis.*;
 config = Mock(mdepin.StructConfig());

@@ -10,6 +10,7 @@ classdef ParserTest < matlab.unittest.TestCase
         SYMPHONY_V1_FILE = 'symphony_v1.h5'
         SYMPHONY_V2_FILE = 'symphony_v2.h5'   % TODO replace with json or other format
         TEST_FILE = 'test.h5';
+        SYMPHONY_2_EXP_FILE = '100716A.h5';
     end
     
     methods (TestClassSetup)
@@ -92,20 +93,33 @@ classdef ParserTest < matlab.unittest.TestCase
             fname = [obj.path obj.SYMPHONY_V2_FILE];
             ref = parser.getInstance(fname);
             info = h5info(fname);
-            epochs = ref.flattenEpochs(info.Groups(1).Groups(2).Groups);
+            epochValues = ref.getEpochsByCellLabel(info.Groups(1).Groups(2).Groups).values;
+            epochs = epochValues{:};
             obj.verifyEqual(numel(epochs), 17);
             [~, name, ~] = ref.getProtocolId(epochs(1).Name);
             obj.verifyEqual(name, 'fi.helsinki.biosci.ala_laurila.protocols.LedPulse')
             validate('Amp1');
             
-            % Parse symphony_v1 file and validate            
+            % Parsing complex symphony file
+            fname = [obj.path obj.SYMPHONY_2_EXP_FILE];
+            ref = parser.getInstance(fname);
+            info = h5info(fname);
+            epochMap = ref.getEpochsByCellLabel(info.Groups(1).Groups(2).Groups);
+            validate('Amp1');
+            epochs = epochMap('ac6');
+            obj.verifyEqual(numel(epochs), 94);
+            
+            % Parse symphony_v1 file and validate
             fname = [obj.path obj.SYMPHONY_V1_FILE];
             ref = parser.getInstance(fname);
             validate('Amplifier_Ch1');
             
+            
+            
             function validate(amplifier)
                 
-                cellData = ref.parse().getResult() %#ok
+                cellData = ref.parse().getResult();
+                cellData = cellData(1) %#ok
                 epochs = cellData.epochs;
                 previousEpochTime = -1;
                 

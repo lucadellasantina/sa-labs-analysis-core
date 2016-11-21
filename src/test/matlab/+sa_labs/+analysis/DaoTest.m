@@ -74,8 +74,8 @@ classdef DaoTest < matlab.unittest.TestCase
         
         function testCreateProject(obj)
              import sa_labs.analysis.*;
-             project = entity.Project();
-             project.cellNames = obj.cellNames;
+             project = struct();
+             project.experimentFiles = obj.cellNames;
              
              dao = obj.beanFactory.getBean('analysisDao');
              folder = dao.createProject(project);

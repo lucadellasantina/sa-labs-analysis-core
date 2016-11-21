@@ -1,19 +1,15 @@
 classdef Session < handle
     
     properties (SetAccess = private)
-        analysisDataService
+        project
         presets
     end
-    
-    properties (SetObservable)
-        project
-    end
-    
+
     methods
         
-        function obj = Session(presets, analysisDataService)
+        function obj = Session(presets, project)
             obj.presets = presets;
-            obj.analysisDataService = analysisDataService;
+            obj.project = project;
         end
         
     end

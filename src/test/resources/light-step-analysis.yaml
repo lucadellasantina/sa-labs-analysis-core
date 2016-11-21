@@ -27,6 +27,7 @@ grpEpochs :
     - G2
     - G3
 
+
 rstarMean :   
   splitValue : '@(epoch) convertIntensitytoRStar (obj, epoch)'
   featureExtractor : 

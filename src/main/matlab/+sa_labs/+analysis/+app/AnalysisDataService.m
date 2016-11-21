@@ -1,5 +1,8 @@
 classdef AnalysisDataService < handle & mdepin.Bean
     
+    events
+    end
+    
     properties
         analysisDao
         preferenceDao
@@ -19,13 +22,6 @@ classdef AnalysisDataService < handle & mdepin.Bean
                 cellData = parser.parse().getResult();
                 obj.analysisDao.saveCellData(cellData);
             end
-        end
-        
-        function project = createEmptyProject(obj)
-            
-            files = obj.analysisDao.findRawDataFiles([]);
-            project =  sa_labs.analysis.entity.Project();
-            project.createExperimentFilesType(files);
         end
         
         function createProject(obj, date)

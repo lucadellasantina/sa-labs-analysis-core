@@ -68,7 +68,7 @@ classdef AnalysisTemplate < handle
         end
         
         function p = get.type(obj)
-            p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_TYPE)
+            p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_TYPE);
         end
         
         function v = getSplitValue(obj, parameter)
