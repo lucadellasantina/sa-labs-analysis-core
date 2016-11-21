@@ -13,3 +13,6 @@
 [submodule "lib/test/mmockito"]
 	path = lib/test/mmockito
 	url = https://github.com/ragavsathish/mmockito.git
+[submodule "lib/mdepin"]
+	path = lib/mdepin
+	url = https://github.com/ragavsathish/mdepin.git
