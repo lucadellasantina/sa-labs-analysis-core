@@ -6,7 +6,7 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
     
     methods
         function obj = AnalysisTemplateTest()
-            fname = which('light-step-analysis.yaml');
+            fname = which('analysis.yaml');
             obj.lightStepStructure = yaml.ReadYaml(fname);
         end
     end

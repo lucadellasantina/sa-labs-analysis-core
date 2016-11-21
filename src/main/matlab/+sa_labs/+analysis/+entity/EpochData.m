@@ -22,6 +22,7 @@ classdef EpochData < handle & matlab.mixin.CustomDisplay
             
             value = [];
             if obj.attributes.isKey(name)
+               
                 value = obj.attributes(name);
             end
         end

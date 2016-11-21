@@ -53,7 +53,16 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             
             for i = 1 : n
                 value = functionHandle(obj.epochs(epochIndices(i)));
+                if strcmpi(value, 'null')
+                    value = [];
+                end
+                
+                if isnumeric(value)
+                    value = double(value);
+                end
+                
                 values{i} = value;
+                
             end
             if sum(cellfun(@isnumeric, values)) == n
                 values = cell2mat(values);
