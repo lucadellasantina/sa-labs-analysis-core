@@ -102,12 +102,14 @@ classdef ParserTest < matlab.unittest.TestCase
             
             % Parsing complex symphony file
             fname = [obj.path obj.SYMPHONY_2_EXP_FILE];
-            ref = parser.getInstance(fname);
-            info = h5info(fname);
-            epochMap = ref.getEpochsByCellLabel(info.Groups(1).Groups(2).Groups);
-            validate('Amp1');
-            epochs = epochMap('ac6');
-            obj.verifyEqual(numel(epochs), 94);
+            if exist(fname, 'file')
+                ref = parser.getInstance(fname);
+                info = h5info(fname);
+                epochMap = ref.getEpochsByCellLabel(info.Groups(1).Groups(2).Groups);
+                validate('Amp1');
+                epochs = epochMap('ac6');
+                obj.verifyEqual(numel(epochs), 94);
+            end
             
             % Parse symphony_v1 file and validate
             fname = [obj.path obj.SYMPHONY_V1_FILE];

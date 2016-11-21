@@ -4,10 +4,6 @@
 [submodule "lib/matlab-tree"]
 	path = lib/matlab-tree
 	url = https://github.com/raacampbell/matlab-tree.git
-
-[submodule "lib/mdepin"]
-	path = lib/mdepin
-	url = https://github.com/mattmcd/mdepin.git
 [submodule "lib/yamlmatlab"]
 	path = lib/yamlmatlab
 	url = https://github.com/ewiger/yamlmatlab.git
