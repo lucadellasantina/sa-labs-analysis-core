@@ -202,7 +202,6 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
                 return
             end
             epochIndices = [];
-            log4m.getLogger().info(class(obj), [ 'QueryString for epoch filter', queryString]);
             functionHandle = str2func(queryString);
             
             for i = 1 : n

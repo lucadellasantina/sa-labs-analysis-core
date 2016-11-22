@@ -2,12 +2,15 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
     
     properties
         lightStepStructure
+        standardAnalysis
     end
     
     methods
         function obj = AnalysisTemplateTest()
             fname = which('analysis.yaml');
             obj.lightStepStructure = yaml.ReadYaml(fname);
+            fname = which('standard-analysis.yaml');
+            obj.standardAnalysis = yaml.ReadYaml(fname);
         end
     end
     
@@ -23,7 +26,7 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
         function testProperties(obj)
             template = sa_labs.analysis.core.AnalysisTemplate(obj.lightStepStructure);
             obj.verifyEqual(template.copyParameters, {'ndf', 'etc'});
-            obj.verifyEqual(template.splitParameters, {'dataSet', 'deviceStream', 'grpEpochs', 'rstarMean', 'epochId'});
+            obj.verifyEqual(template.getSplitParameters(), {'dataSet', 'deviceStream', 'grpEpochs', 'rstarMean', 'epochId'});
         end
         
         function testValidateSplitValues(obj)
@@ -61,6 +64,10 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
             
             values = template.validateSplitValues('epochId', 2:3);
             obj.verifyEqual(values, 2:3);
+        end
+        
+        function validateStandardAnalysis(obj)
+            template = sa_labs.analysis.core.AnalysisTemplate(obj.standardAnalysis);
         end
         
     end

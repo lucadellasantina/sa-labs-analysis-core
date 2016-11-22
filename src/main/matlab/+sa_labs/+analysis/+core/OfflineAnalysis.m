@@ -19,7 +19,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             dataSetMap = obj.cellData.savedDataSets;
             values = dataSetMap.keys;
             
-            splitParameters = obj.analysisTemplate.splitParameters;
+            splitParameters = obj.analysisTemplate.getSplitParameters();
             splitByDataSet = splitParameters{1};
             otherParameters = splitParameters(2:end);
             

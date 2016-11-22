@@ -55,7 +55,7 @@ classdef Analysis < handle
     methods(Access = private)
         
         function extractFeatures(obj)
-            parameters = obj.analysisTemplate.splitParameters;
+            parameters = obj.analysisTemplate.getSplitParameters();
             
             for i = numel(parameters) : -1 : 1
                 parameter = parameters{i};

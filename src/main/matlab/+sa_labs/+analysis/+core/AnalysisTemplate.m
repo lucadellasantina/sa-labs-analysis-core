@@ -10,7 +10,6 @@ classdef AnalysisTemplate < handle
     
     properties(Dependent)
         copyParameters      % List of unique-paramters to copied from epoch to node
-        splitParameters     % Defines the level in analysis tree
         type                % Type of analysis
     end
     
@@ -63,9 +62,18 @@ classdef AnalysisTemplate < handle
             p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_COPY_PARAMETERS);
         end
         
-        function p = get.splitParameters(obj)
-            p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_BUILD_TREE_BY);
+        function [parameters, levels] = getSplitParameters(obj)
+            buildBy = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_BUILD_TREE_BY);
+            parameters = {};
+            levels = [];
+            
+            for i = 1 : numel(buildBy)
+                branches = strtrim(strsplit(buildBy{i}, ','));
+                parameters = {parameters{:}, branches{:}}; %#ok
+                levels = [levels, i * ones(1, numel(branches))]; %#ok
+            end
         end
+ 
         
         function p = get.type(obj)
             p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_TYPE);
@@ -103,7 +111,7 @@ classdef AnalysisTemplate < handle
     methods(Access = private)
         
         function populateFunctionContext(obj)
-            parameters = obj.splitParameters;
+            parameters = obj.getSplitParameters();
             desc = sa_labs.analysis.app.Constants.TEMPLATE_FEATURE_EXTRACTOR;
             obj.functionContext = containers.Map();
             
