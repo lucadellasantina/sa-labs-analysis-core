@@ -26,7 +26,12 @@ classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
             
             info = h5info(obj.fname);
             epochsByCellMap = obj.getEpochsByCellLabel(info.Groups(1).Groups(2).Groups);
-            sourceTree = obj.buildSourceTree(info.Groups(1).Groups(5).Links.Value{:});
+            sourceLinks = info.Groups(1).Groups(5).Links;
+            sourceTree = tree();
+            
+            for i = 1 : numel(sourceLinks)
+                sourceTree = sourceTree.graft(1, obj.buildSourceTree(sourceLinks(i).Value{:}));
+            end
             
             numberOfCells = numel(epochsByCellMap.keys);
             cells = entity.CellData.empty(numberOfCells, 0);
@@ -208,16 +213,21 @@ classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
         
         function map = getSourceAttributes(~, sourceTree, label, map)
             import sa_labs.analysis.util.collections.*;
-            id = find(sourceTree.treefun(@(node) strcmp(node('label'), label)));
+             id = find(sourceTree.treefun(@(node) ~isempty(node) && strcmp(node('label'), label)));
             
             while id > 0
                 currentMap = sourceTree.get(id);
+                id = sourceTree.getparent(id);
+                
+                if isempty(currentMap)
+                   continue;
+                end
+                
                 keys = currentMap.keys;
                 for i = 1 : numel(keys)
                     k = keys{i};
                     map = addToMap(map, k, currentMap(k));
                 end
-                id = sourceTree.getparent(id);
             end
         end
         

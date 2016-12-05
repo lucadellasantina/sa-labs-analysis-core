@@ -10,7 +10,7 @@ classdef ParserTest < matlab.unittest.TestCase
         SYMPHONY_V1_FILE = 'symphony_v1.h5'
         SYMPHONY_V2_FILE = 'symphony_v2.h5'   % TODO replace with json or other format
         TEST_FILE = 'test.h5';
-        SYMPHONY_2_EXP_FILE = '100716A.h5';
+        SYMPHONY_2_EXP_FILE = '112216A.h5';
     end
     
     methods (TestClassSetup)
@@ -104,11 +104,7 @@ classdef ParserTest < matlab.unittest.TestCase
             fname = [obj.path obj.SYMPHONY_2_EXP_FILE];
             if exist(fname, 'file')
                 ref = parser.getInstance(fname);
-                info = h5info(fname);
-                epochMap = ref.getEpochsByCellLabel(info.Groups(1).Groups(2).Groups);
                 validate('Amp1');
-                epochs = epochMap('ac6');
-                obj.verifyEqual(numel(epochs), 94);
             end
             
             % Parse symphony_v1 file and validate

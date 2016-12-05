@@ -1,6 +1,6 @@
 function test(package)
     if nargin < 1
-        package = 'sa_labs';
+        package = 'sa_labs.analysis';
     end
     
     rootPath = fileparts(mfilename('fullpath'));
