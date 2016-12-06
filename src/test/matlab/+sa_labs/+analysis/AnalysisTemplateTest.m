@@ -68,9 +68,16 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
         
         function validateStandardAnalysis(obj)
             template = sa_labs.analysis.core.AnalysisTemplate(obj.standardAnalysis);
+            
             [p, v] = template.getSplitParameters();
             obj.verifyEqual(p, {'displayName', 'textureAngle', 'RstarMean', 'barAngle', 'curSpotSize'});
             obj.verifyEqual(v, [1, 2, 2, 2, 2]);
+            
+            obj.verifyEqual(4,  template.numberOfPaths());
+
+            v = template.getSplitParametersByPath(4);
+            obj.verifyEqual(v, {'displayName', 'curSpotSize'});
+            
         end
         
     end

@@ -6,6 +6,7 @@ classdef AnalysisTemplate < handle
     properties(Access = private)
         structure           % Structure from user interface or yaml
         functionContext     % Map containing key as split parameter and value as extractor functions
+        templateTree
     end
     
     properties(Dependent)
@@ -18,6 +19,7 @@ classdef AnalysisTemplate < handle
         function obj = AnalysisTemplate(structure)
             obj.structure = structure;
             obj.populateFunctionContext();
+            obj.makeTree();
         end
         
         function values = validateSplitValues(obj, parameter, values)
@@ -73,7 +75,7 @@ classdef AnalysisTemplate < handle
                 levels = [levels, i * ones(1, numel(branches))]; %#ok
             end
         end
- 
+        
         
         function p = get.type(obj)
             p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_TYPE);
@@ -104,7 +106,17 @@ classdef AnalysisTemplate < handle
             if ischar(v)
                 v = {v};
             end
-            
+        end
+        
+        function parameters = getSplitParametersByPath(obj, index)
+            leafs = obj.templateTree.findleaves();
+            path =  sort(obj.templateTree.pathtoroot(leafs(index)));
+            parameters = arrayfun(@(id) obj.templateTree.get(id), path, 'UniformOutput', false);
+            parameters = parameters(2 : end);
+        end
+        
+        function p = numberOfPaths(obj)
+            p = numel(obj.templateTree.findleaves());
         end
     end
     
@@ -123,6 +135,23 @@ classdef AnalysisTemplate < handle
             end
         end
         
+        
+        function makeTree(obj)
+            t = tree();
+            t = t.addnode(0, obj.type);
+            [parameters, levels] = obj.getSplitParameters();
+            uniqueLevels = sort(unique(levels));
+            
+            for i = 1 : numel(uniqueLevels)
+                level = uniqueLevels(i);
+                p = parameters(levels == level);
+                
+                for j = 1 : numel(p)
+                    t = t.addnode(level, p{j});
+                end
+            end
+            obj.templateTree = t;
+        end
     end
     
 end
