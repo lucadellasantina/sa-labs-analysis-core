@@ -4,6 +4,10 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         cellData
     end
     
+    properties(Constant)
+        DEFAULT_ROOT_ID = 1;
+    end
+    
     methods
         
         function obj = OfflineAnalysis(name, cellData)
@@ -16,23 +20,14 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
     methods(Access = protected)
         
         function buildTree(obj)
-            dataSetMap = obj.cellData.savedDataSets;
-            values = dataSetMap.keys;
             
-            splitParameters = obj.analysisTemplate.getSplitParameters();
-            splitByDataSet = splitParameters{1};
-            otherParameters = splitParameters(2:end);
-            
-            for i = 1 : numel(values)
-                values = obj.analysisTemplate.validateSplitValues(splitByDataSet, values);
+            % loop throug the parameters list of individual path
+            % and construct analysis tree
+            for pathIndex = 1 : obj.analysisTemplate.numberOfPaths()
                 
-                if isempty(values)
-                    throw(sa_labs.analysis.app.Exceptions.NO_DATA_SET_FOUND.create());
-                end
-                splitValue = values{i};
-                dataSet = dataSetMap(splitValue);
-                id = obj.nodeManager.addNode(1, splitByDataSet, splitValue, dataSet);
-                obj.buildBranches(id, dataSet, otherParameters);
+                dataSet = sa_labs.analysis.entity.DataSet(1 : numel(obj.cellData.epochs), 'root');
+                parameters = obj.analysisTemplate.getSplitParametersByPath(pathIndex);
+                obj.buildBranches(obj.DEFAULT_ROOT_ID, dataSet, parameters);
             end
         end
         
@@ -50,7 +45,10 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                     continue
                 end
                 dataSet = sa_labs.analysis.entity.DataSet(epochIndices, filter, splitValue);
-                id = obj.nodeManager.addNode(parentId, splitBy, splitValue, dataSet);
+                
+                if ~ isempty(dataSet)
+                    id = obj.nodeManager.addNode(parentId, splitBy, splitValue, dataSet);
+                end
                 
                 if length(params) > 1
                     obj.buildBranches(id, dataSet, params(2 : end));
@@ -61,5 +59,5 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         function setEpochIterator(obj)
             obj.extractor.epochIterator = @(index) obj.cellData.epochs(index);
         end
-    end  
+    end
 end

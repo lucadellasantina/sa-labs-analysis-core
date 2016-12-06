@@ -5,10 +5,11 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
         function testBuildTreeSimple(obj)
             import sa_labs.analysis.*;
             
+            levelOne = containers.Map({'LightStep_20'}, {1 : 50});
             levelTwo = containers.Map({'Amplifier_Ch1'}, {1 : 50});
             mockedCellData = Mock(entity.CellData());
-            mockedCellData.savedDataSets('LightStep_20') = entity.DataSet(1 : 50, 'none');
-            mockedCellData.when.getEpochValuesMap(AnyArgs()).thenReturn(levelTwo, 'deviceStream');
+            mockedCellData.when.getEpochValuesMap(AnyArgs()).thenReturn(levelOne, 'dataSet')...
+                .thenReturn(levelTwo, 'deviceStream');
             
             % Tree with two level - analysis
             structure = struct();
@@ -23,12 +24,16 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             obj.verifyEqual(tree.get(leafs).epochIndices, 1:50);
             
             % Tree with two level and one branch - analysis
+            % Tree with two level - analysis
+            structure = struct();
+            structure.type = 'test-analysis';
+            structure.buildTreeBy = {'dataSet', 'deviceStream'};
+            levelOne = containers.Map({'LightStep_20', 'LightStep_500'}, {1 : 50, 51 : 100});
             levelTwoOtherBranch = containers.Map({'Amplifier_Ch1'}, {51 : 100});
             
             mockedCellData = Mock(entity.CellData());
-            mockedCellData.savedDataSets('LightStep_20') = entity.DataSet(1 : 50, 'none');
-            mockedCellData.savedDataSets('LightStep_500') = entity.DataSet(51 : 100, 'none');
             mockedCellData.when.getEpochValuesMap(AnyArgs())...
+                .thenReturn(levelOne, 'dataSet')...
                 .thenReturn(levelTwo, 'deviceStream')...
                 .thenReturn(levelTwoOtherBranch, 'deviceStream');
             
@@ -47,9 +52,8 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             levelTwoOtherBranch = containers.Map({'Amplifier_Ch1', 'Amplifier_Ch2'}, {51 : 100, 51 : 100});
             
             mockedCellData = Mock(entity.CellData());
-            mockedCellData.savedDataSets('LightStep_20') = entity.DataSet(1 : 50, 'none');
-            mockedCellData.savedDataSets('LightStep_500') = entity.DataSet(51 : 100, 'none');
             mockedCellData.when.getEpochValuesMap(AnyArgs())...
+                .thenReturn(levelOne, 'dataSet')...
                 .thenReturn(levelTwo, 'deviceStream')...
                 .thenReturn(levelTwoOtherBranch, 'deviceStream');
             
@@ -80,6 +84,8 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
         function testBuildTreeComplex(obj)
             import sa_labs.analysis.*;
             
+            levelOne = containers.Map({'LightStep_20', 'LightStep_500'}, {1 : 50, 51 : 100});
+            
             levelTwo = containers.Map({'Amplifier_Ch1', 'Amplifier_Ch2'}, {1 : 50,  1 : 25});
             levelThree = containers.Map({'G1', 'G2'}, {1 : 25,  26 : 50});
             levelThreeOtherBranch = containers.Map({'G1', 'G2', 'G3'}, {1 : 11,  12 : 22, 23: 25});
@@ -92,8 +98,8 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             leafGroupFive = containers.Map({0.01, 0.02}, {[23, 24], 25});
             
             mockedCellData = Mock(entity.CellData());
-            mockedCellData.savedDataSets('LightStep_20') = entity.DataSet(1 : 50, 'none');
             mockedCellData.when.getEpochValuesMap(AnyArgs())...
+                .thenReturn(levelOne, 'dataSet')...
                 .thenReturn(levelTwo, 'deviceStream')...
                 .thenReturn(levelThree, 'groups')...
                 .thenReturn(leafGroupOne, 'rstar')...
@@ -106,7 +112,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             s = struct();
             s.type = 'complex-analysis';
             s.buildTreeBy = {'dataSet', 'deviceStream', 'epochgroups', 'rstar'};
-            s.dataSet = 'LightStep_20';
+            s.dataSet.splitValue = 'LightStep_20';
             s.deviceStream = {'Amplifier_Ch1', 'Amplifier_Ch2'};
             s.epochgroups = {'G1', 'G2', 'G3'};
             s.rstar = {0.01, 0.02};
@@ -116,7 +122,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             tree = offlineAnalysis.do(template);
             disp('analysis tree')
             tree.treefun(@(node) node.name).tostring()
-                       
+            
             leafs = tree.findleaves();
             obj.verifyEqual(tree.get(leafs(1)).epochIndices, leafGroupOne(0.01));
             obj.verifyEqual(tree.get(leafs(2)).epochIndices, leafGroupOne(0.02));
