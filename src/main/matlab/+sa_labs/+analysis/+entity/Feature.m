@@ -7,6 +7,7 @@ classdef Feature < handle & matlab.mixin.Heterogeneous
         data
         description
         features
+        appendingIndex
     end
     
     methods(Static)

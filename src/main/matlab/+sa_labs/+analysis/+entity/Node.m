@@ -94,15 +94,19 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             
             % appendFeature - appends the sclar or vector of values to
             % feature.data
-            % feature.data has support for arrays and not cell arrays
+            % feature.data has support for arrays and not cell arrays (to be tested)
             
             feature = obj.getFeature(featureDescription);
-
+            feature.appendingIndex(end + 1) = numel(feature.data) + 1;
+            
             if isscalar(value)
                 feature.data(end + 1) = value;
+            elseif iscell(value)
+                feature.data = addToCell(feature.data, value);
             else
                 feature.data = [feature.data, value];
             end
+            
         end
         
         function update(obj, node, in, out)
