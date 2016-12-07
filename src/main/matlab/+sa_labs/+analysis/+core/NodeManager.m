@@ -29,6 +29,10 @@ classdef NodeManager < handle
             node.id = id;
         end
         
+        function removeNode(obj, id)
+            obj.tree = obj.tree.removenode(id);
+        end
+        
         function percolateUp(obj, nodeIds, varargin)
             
             if length(varargin) == 2 && iscell(varargin{1}) && iscell(varargin{2})
