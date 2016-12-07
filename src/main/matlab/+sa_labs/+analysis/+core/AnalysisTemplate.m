@@ -145,9 +145,12 @@ classdef AnalysisTemplate < handle
             for i = 1 : numel(uniqueLevels)
                 level = uniqueLevels(i);
                 p = parameters(levels == level);
+                siblings = t.getsiblings(level);
                 
-                for j = 1 : numel(p)
-                    t = t.addnode(level, p{j});
+                for sibling = siblings
+                    for j = 1 : numel(p)
+                        t = t.addnode(sibling, p{j});
+                    end
                 end
             end
             obj.templateTree = t;
