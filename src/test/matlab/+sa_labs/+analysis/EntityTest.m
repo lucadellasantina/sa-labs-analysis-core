@@ -225,30 +225,42 @@ classdef EntityTest < matlab.unittest.TestCase
             description = FeatureId.TEST_FEATURE.description;
             feature = node.getFeature(description);
             obj.verifyEmpty(feature.data);
-            
-            feature = node.appendFeature(description, 1 : 1000);
+           
+            % test append data
+            feature.appendData(1 : 1000);
             obj.verifyEqual(node.getFeature(description).data, 1 : 1000);
+            
             % check feature as reference object
             feature.data = feature.data + ones(1,1000);
             obj.verifyEqual(node.getFeature(description).data, 2 : 1001);
+            
             % scalar check
-            node.appendFeature(description, 1002);
+            feature.appendData(1002);
             obj.verifyEqual(node.getFeature(description).data, 2 : 1002);
+            
             % vector check
-            node.appendFeature(description, 1003 : 1010);
+            feature.appendData(1003 : 1010);
             obj.verifyEqual(node.getFeature(description).data, 2 : 1010);
             
-            feature = node.appendFeature(description, []);
-            obj.verifyEqual(feature.data, 2 : 1010);
+            % adding same feature again
+            node.appendFeature(feature);
+            obj.verifyEqual(node.getFeature(description).data, 2 : 1010);
         end
         
         function testUpdate(obj)
             import sa_labs.analysis.entity.*;
             node = Node('Child', 'param');
             description = FeatureId.TEST_FEATURE.description;
-            node.appendFeature(description, 1 : 1000);
+            
+            f = sa_labs.analysis.entity.Feature.create(description);
+            f.data = 1 : 1000;
+            node.appendFeature(f);
+            
             descriptionTwo = FeatureId.TEST_SECOND_FEATURE.description;
-            node.appendFeature(descriptionTwo, ones(1,1000));
+            f2 = sa_labs.analysis.entity.Feature.create(descriptionTwo);
+            f2.data = ones(1,1000);
+            node.appendFeature(f2);
+            
             node.appendParameter('string', 'Foo bar');
             node.appendParameter('int', 8);
             node.appendParameter('cell', {'one', 'two'});
@@ -275,7 +287,7 @@ classdef EntityTest < matlab.unittest.TestCase
             % case 3 feature map check
             obj.verifyEqual(newNode.featureMap.keys, { char(param) });
             feature = newNode.featureMap.values;
-            obj.verifyEqual(feature{:}.data, ones(1,1000));
+            obj.verifyEqual([feature{:}.data], ones(1,1000));
             
             obj.verifyError(@()newNode.update(node, param, FeatureId.TEST_FEATURE), 'in:out:mismatch')
             

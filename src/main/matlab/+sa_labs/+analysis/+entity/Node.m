@@ -76,37 +76,35 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             obj.setParameter(key, new);
         end
         
+        function appendFeature(obj, feature)
+            
+            f = obj.getFeature([feature.description]);
+            
+            if isequal(f, feature)
+                return;
+            end
+            key = char(f.description.type);
+            obj.featureMap = sa_labs.analysis.util.collections.addToMap(obj.featureMap, key, feature);
+        end
+        
         function feature = getFeature(obj, featureDescription)
             
             % getFeature - returns the feature based on FeatureDescription
             % reference
-            key = char(featureDescription.type);
-
+            type = unique([featureDescription.type]);
+            
+            if numel(type) > 1
+                error('cannot retrive multiple features ! Check the featureDescription.type')
+            end
+            
+            key = char(type);
+            
             if isKey(obj.featureMap, key)
                 feature = obj.featureMap(key);
             else
-                feature = sa_labs.analysis.entity.Feature.create(featureDescription);
+                feature = sa_labs.analysis.entity.Feature.create(featureDescription(1));
                 obj.featureMap(key) = feature;
             end
-        end
-        
-        function feature = appendFeature(obj, featureDescription, value)
-            
-            % appendFeature - appends the sclar or vector of values to
-            % feature.data
-            % feature.data has support for arrays and not cell arrays (to be tested)
-            
-            feature = obj.getFeature(featureDescription);
-            feature.appendingIndex(end + 1) = numel(feature.data) + 1;
-            
-            if isscalar(value)
-                feature.data(end + 1) = value;
-            elseif iscell(value)
-                feature.data = addToCell(feature.data, value);
-            else
-                feature.data = [feature.data, value];
-            end
-            
         end
         
         function update(obj, node, in, out)
@@ -123,7 +121,13 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             % in  - It may be one of source node property, parameter and feature
             % out - It may be one of destination obj(node) property, parameter and feature
             
+            import sa_labs.analysis.util.collections.*;
             % safe casting
+            
+            if nargin < 4
+                out = in;
+            end
+            
             in = char(in);
             out = char(out);
             
@@ -134,14 +138,14 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             % case 1 - node.in and obj.out is present has properties
             if isprop(obj, out) && isprop(node, in)
                 old = obj.(out);
-                obj.(out) = sa_labs.analysis.util.collections.addToCell(old, node.(in));
+                obj.(out) = addToCell(old, node.(in));
                 return
                 
             end
             % case 2 - node.in is struct parameters & obj.out is class property
             if isprop(obj, out)
                 old = obj.(out);
-                obj.(out) = sa_labs.analysis.util.collections.addToCell(old, node.getParameter(in));
+                obj.(out) = addToCell(old, node.getParameter(in));
                 return
             end
             
@@ -159,9 +163,7 @@ classdef Node < handle & matlab.mixin.CustomDisplay
                 if ~ strcmp(in, out)
                     error('in:out:mismatch', 'In and out should be same for appending feature map')
                 end
-                
-                feature = node.featureMap(in);
-                obj.appendFeature(feature.description, feature.data);
+                obj.appendFeature(node.featureMap(in))
                 return
             end
             
