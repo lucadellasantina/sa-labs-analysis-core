@@ -31,11 +31,21 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             end
         end
         
+        function setEpochIterator(obj)
+            obj.extractor.epochIterator = @(index) obj.cellData.epochs(index);
+        end
+    end
+    
+    methods(Access = private)
+        
         function buildBranches(obj, parentId, dataSet, params)
-            
             splitBy = params{1};
             [epochValueMap, filter] = obj.cellData.getEpochValuesMap(splitBy, dataSet.epochIndices);
             splitValues = obj.analysisTemplate.validateSplitValues(splitBy, epochValueMap.keys);
+            
+            if isempty(splitValues) && length(params) > 1
+                obj.nodeManager.removeNode(parentId);
+            end
             
             for i = 1 : length(splitValues)
                 splitValue = splitValues{i};
@@ -44,8 +54,8 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 if isempty(epochIndices)
                     continue
                 end
-                dataSet = sa_labs.analysis.entity.DataSet(epochIndices, filter, splitValue);
                 
+                dataSet = sa_labs.analysis.entity.DataSet(epochIndices, filter, splitValue);
                 if ~ isempty(dataSet)
                     id = obj.nodeManager.addNode(parentId, splitBy, splitValue, dataSet);
                 end
@@ -54,10 +64,6 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                     obj.buildBranches(id, dataSet, params(2 : end));
                 end
             end
-        end
-        
-        function setEpochIterator(obj)
-            obj.extractor.epochIterator = @(index) obj.cellData.epochs(index);
         end
     end
 end
