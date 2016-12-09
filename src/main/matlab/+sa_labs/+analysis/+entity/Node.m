@@ -171,6 +171,15 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             % for unknown in parameters, it creates empty out paramters
             obj.appendParameter(out, node.getParameter(in));
         end
+        
+        function keySet = getFeatureKey(obj)
+            if numel(obj) > 1
+                result = arrayfun(@(ref) ref.featureMap.keys, obj, 'UniformOutput', false);
+                keySet = unique([result{:}]);
+                return
+            end
+            keySet = obj.featureMap.keys;
+        end
     end
     
     methods(Access = private)
