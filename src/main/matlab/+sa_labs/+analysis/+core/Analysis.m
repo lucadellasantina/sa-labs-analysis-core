@@ -24,16 +24,17 @@ classdef Analysis < handle
             
             obj.resultManager = NodeManager(tree());
             obj.resultManager.setRootName(name);
-            
             obj.nodeManager = NodeManager(tree());
-            obj.extractor = sa_labs.analysis.core.FeatureExtractor();
-            obj.extractor.nodeManager = obj.nodeManager;
-            obj.setEpochIterator();
+            
         end
         
         function tree = do(obj, analysisTemplate)
             obj.nodeManager.setRootName(analysisTemplate.type);
             obj.templateCache = analysisTemplate;
+            
+            obj.extractor = sa_labs.analysis.core.FeatureExtractor.create(analysisTemplate);
+            obj.setEpochIterator();
+            obj.extractor.nodeManager = obj.nodeManager;
             
             obj.buildTree();
             obj.extractFeatures();

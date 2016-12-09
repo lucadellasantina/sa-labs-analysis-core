@@ -12,6 +12,7 @@ classdef AnalysisTemplate < handle
     properties(Dependent)
         copyParameters      % List of unique-paramters to copied from epoch to node
         type                % Type of analysis
+        extractorClazz      % Feature extractor class name
     end
     
     methods
@@ -117,6 +118,10 @@ classdef AnalysisTemplate < handle
         
         function p = numberOfPaths(obj)
             p = numel(obj.templateTree.findleaves());
+        end
+        
+        function e = get.extractorClazz(obj)
+            e = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_EXTRACTOR_CLASS);
         end
     end
     

@@ -2,7 +2,7 @@
 # Describes the type of analysis one intend to do
 
 type : LightStep
-
+extractorClass : SimpleFeatureExtractor
 copyParameters :
   - ndf
   - etc

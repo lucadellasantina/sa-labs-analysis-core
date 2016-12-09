@@ -43,4 +43,21 @@ classdef FeatureExtractor < handle
             epochs = obj.epochIterator(node.epochIndices);
         end
     end
+    
+    
+    methods (Static)
+        
+        function featureExtractor = create(template)
+            PARENT = 'sa_labs.analysis.core.FeatureExtractor';
+            
+            class = template.extractorClazz;
+            constructor = str2func(class);
+            featureExtractor = constructor();
+            parentClasses = superclasses(featureExtractor);
+            
+            if ~ (isa(featureExtractor, PARENT) || numel(parentClasses) > 1 && strcmp(PARENT, parentClasses{end - 1}))
+                error(['instance is not of type' PARENT]);
+            end
+        end
+    end
 end

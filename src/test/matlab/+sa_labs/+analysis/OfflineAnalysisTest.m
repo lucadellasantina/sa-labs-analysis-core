@@ -15,6 +15,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             structure = struct();
             structure.type = 'test-analysis';
             structure.buildTreeBy = {'dataSet', 'deviceStream'};
+            structure.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
             tree = testAnalyze();
             actual = tree.treefun(@(node) node.name);
             
@@ -28,6 +29,8 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             structure = struct();
             structure.type = 'test-analysis';
             structure.buildTreeBy = {'dataSet', 'deviceStream'};
+            structure.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
+            
             levelOne = containers.Map({'LightStep_20', 'LightStep_500'}, {1 : 50, 51 : 100});
             levelTwoOtherBranch = containers.Map({'Amplifier_Ch1'}, {51 : 100});
             
@@ -111,6 +114,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             
             s = struct();
             s.type = 'complex-analysis';
+            s.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
             s.buildTreeBy = {'dataSet', 'deviceStream', 'epochgroups', 'rstar'};
             s.dataSet.splitValue = 'LightStep_20';
             s.deviceStream = {'Amplifier_Ch1', 'Amplifier_Ch2'};
@@ -146,6 +150,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             % analysis template structure
             s = struct();
             s.type = 'complex-analysis';
+            s.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
             s.buildTreeBy = {'protocol', 'textureAngle, barAngle, curSpotSize', 'RstarMean'};
             
             % mocked cell data

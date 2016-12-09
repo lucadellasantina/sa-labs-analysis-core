@@ -7,6 +7,7 @@ classdef Constants < handle
         TEMPLATE_SPLIT_VALUE = 'splitValue'
         TEMPLATE_FEATURE_EXTRACTOR = 'featureExtractor'
         TEMPLATE_TYPE = 'type'
+        TEMPLATE_EXTRACTOR_CLASS = 'extractorClass'
         
         CELL_NAME = 'cellName';
         AMP_MODE_PARAM = 'ampModeParam'
