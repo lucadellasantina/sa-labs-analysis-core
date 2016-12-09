@@ -84,6 +84,23 @@ classdef FeatureExtractorTest < matlab.unittest.TestCase
             
             obj.verifyEqual(simpleExtractor.callstack, 3);
         end
-    end   
+        
+        function testCreate(obj)
+            import sa_labs.analysis.*;
+            
+            t = struct();
+            t.extractorClazz = 'sa_labs.test_extractor.SimpleExtractor';
+            instance = core.FeatureExtractor.create(t);
+            obj.verifyClass(instance, ?sa_labs.test_extractor.SimpleExtractor);
+            
+            t.extractorClazz = 'sa_labs.analysis.core.FeatureExtractor';
+            instance = core.FeatureExtractor.create(t);
+            obj.verifyClass(instance, ?sa_labs.analysis.core.FeatureExtractor);
+            
+            t.extractorClazz = 'struct';
+            handle = @()sa_labs.analysis.core.FeatureExtractor.create(t);
+            obj.verifyError(handle, app.Exceptions.MISMATCHED_EXTRACTOR_TYPE.msgId);
+        end
+    end
 end
 

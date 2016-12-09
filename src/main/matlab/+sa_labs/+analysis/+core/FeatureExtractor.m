@@ -5,6 +5,10 @@ classdef FeatureExtractor < handle
         epochIterator
     end
     
+    properties(Constant)
+         CLASS = 'sa_labs.analysis.core.FeatureExtractor';
+    end
+    
     methods
         
         function delegate(obj, extractorFunctions, parameter)
@@ -48,15 +52,16 @@ classdef FeatureExtractor < handle
     methods (Static)
         
         function featureExtractor = create(template)
-            PARENT = 'sa_labs.analysis.core.FeatureExtractor';
-            
+           
+            import sa_labs.analysis.*; 
+            parentClass =  core.FeatureExtractor.CLASS;
             class = template.extractorClazz;
             constructor = str2func(class);
             featureExtractor = constructor();
             parentClasses = superclasses(featureExtractor);
             
-            if ~ (isa(featureExtractor, PARENT) || numel(parentClasses) > 1 && strcmp(PARENT, parentClasses{end - 1}))
-                error(['instance is not of type' PARENT]);
+            if ~ (isa(featureExtractor, parentClass) || numel(parentClasses) > 1 && strcmp(parentClass, parentClasses{end - 1}))
+                throw(app.Exceptions.MISMATCHED_EXTRACTOR_TYPE.create());
             end
         end
     end
