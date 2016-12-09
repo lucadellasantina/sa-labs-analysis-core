@@ -32,7 +32,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         end
         
         function setEpochIterator(obj)
-            obj.extractor.epochIterator = @(index) obj.cellData.epochs(index);
+            obj.extractor.epochIterator = @(indices) obj.cellData.epochs(indices);
         end
     end
     
