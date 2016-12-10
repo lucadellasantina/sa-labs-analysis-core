@@ -11,11 +11,17 @@ classdef FeatureExtractor < handle
     
     methods
         
-        function delegate(obj, extractorFunctions, parameter)
-            
+        function delegate(obj, extractorFunctions, parameter, ids)
+
+            if nargin < 4
+                [nodes, ids] = obj.nodeManager.findNodesByName(parameter);
+            else
+                nodes = obj.nodeManager.getNodes(ids);
+            end
+
             for i = 1 : numel(extractorFunctions)
                 func = str2func(extractorFunctions{i});
-                [nodes, ids] = obj.nodeManager.findNodesByName(parameter);
+                
                 arrayfun(@(node) func(obj, node), nodes)
                 featureKeySet = nodes.getFeatureKey();
                 obj.nodeManager.percolateUp(ids, featureKeySet, featureKeySet);

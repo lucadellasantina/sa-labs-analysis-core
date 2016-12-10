@@ -1,14 +1,21 @@
 classdef NodeManager < handle
     
-    properties(SetAccess = protected)
+    properties(Access = protected)
         tree
+    end
+
+    properties(Dependent)
+        dataStore
     end
     
     
     methods
         
-        function obj = NodeManager(tree)
-            obj.tree = tree;
+        function obj = NodeManager(dataStore)
+            if nargin < 1
+                dataStore = tree();
+            end
+            obj.tree = dataStore;
         end
         
         function setRootName(obj, name)
@@ -30,6 +37,8 @@ classdef NodeManager < handle
         end
         
         function removeNode(obj, id)
+            % TODO check if it has any childrens if so donot remove the
+            % node
             obj.tree = obj.tree.removenode(id);
         end
         
@@ -53,18 +62,14 @@ classdef NodeManager < handle
         end
         
         % TODO move all find functions to visitor
-        function nodes = findNodesByName(obj, name)
+        function [nodes, indices] = findNodesByName(obj, name)
             nodes = [];
             
             if isempty(name)
                 return
             end
             indices = find(obj.getStructure().regexpi(['\w*' name '\w*']).treefun(@any));
-            
-            nodes = sa_labs.analysis.entity.Node.empty(0, numel(indices));
-            for i = 1 : numel(indices)
-                nodes(i) = obj.tree.get(indices(i));
-            end
+            nodes = obj.getNodes(indices);
         end
         
         function nodes = getAllChildrensByName(obj, regexp)
@@ -86,19 +91,27 @@ classdef NodeManager < handle
             for i = 1 : numel(nodesByName)
                 node = nodesByName(i);
                 childrens = obj.tree.getchildren(node.id);
-                childNodes = arrayfun(@(index) obj.tree.get(index), childrens, 'UniformOutput', false);
-                nodes = [nodes, childNodes{:}]; %#ok
+                childNodes = obj.getNodes(childrens);
+                nodes = [nodes, childNodes]; %#ok
             end
         end
         
-        function appendToRoot(obj, tree2)
-            obj.tree = obj.tree.graft(1, tree2);
+        function append(obj, dataStore)
+            obj.tree = obj.tree.graft(1, dataStore);
         end
         
         function tree = getStructure(obj)
             tree = obj.tree.treefun(@(node) node.name);
         end
+
+        function ds = get.dataStore(obj)
+            ds = obj.tree;
+        end
         
+        function nodes = getNodes(obj, ids)
+            nodes = arrayfun(@(index) obj.tree.get(index), ids, 'UniformOutput', false);
+            nodes = [nodes{:}];
+        end
     end
     
     methods(Access = private)

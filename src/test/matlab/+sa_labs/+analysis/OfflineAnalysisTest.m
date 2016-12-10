@@ -78,7 +78,8 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 
                 template = core.AnalysisTemplate(structure);
                 offlineAnalysis = core.OfflineAnalysis('test-collective-analysis', mockedCellData);
-                tree = offlineAnalysis.do(template);
+                offlineAnalysis.init(template)
+                tree = offlineAnalysis.service();
                 disp('analysis tree')
                 tree.treefun(@(node) node.name).tostring()
             end
@@ -123,7 +124,8 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             
             template = core.AnalysisTemplate(s);
             offlineAnalysis = core.OfflineAnalysis('test-collective-analysis', mockedCellData);
-            tree = offlineAnalysis.do(template);
+            offlineAnalysis.init(template);
+            tree = offlineAnalysis.service();
             disp('analysis tree')
             tree.treefun(@(node) node.name).tostring()
             
@@ -200,7 +202,8 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             
             template = core.AnalysisTemplate(s);
             offlineAnalysis = core.OfflineAnalysis('test-collective-analysis', mockedCellData);
-            tree = offlineAnalysis.do(template);
+            offlineAnalysis.init(template);
+            tree = offlineAnalysis.service();
             disp('analysis tree')
             tree.treefun(@(node) node.name).tostring()
             

@@ -11,6 +11,9 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
         
         function setEpochIterator(obj)
         end
+        
+        function extractFeatures(obj)
+        end
     end
 end
 

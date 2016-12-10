@@ -22,30 +22,45 @@ classdef Analysis < handle
             
             import sa_labs.analysis.core.*;
             
-            obj.resultManager = NodeManager(tree());
+            obj.resultManager = NodeManager();
             obj.resultManager.setRootName(name);
-            obj.nodeManager = NodeManager(tree());
+            obj.nodeManager = NodeManager();
             
         end
         
-        function tree = do(obj, analysisTemplate)
+        function init(obj, analysisTemplate)
             obj.nodeManager.setRootName(analysisTemplate.type);
             obj.templateCache = analysisTemplate;
             
             obj.extractor = sa_labs.analysis.core.FeatureExtractor.create(analysisTemplate);
             obj.setEpochIterator();
             obj.extractor.nodeManager = obj.nodeManager;
+        end
+
+        function ds = service(obj)
             
+            if isempty(obj.templateCache)
+                error('analysisTemplate is not initiliazed');
+            end
+
             obj.buildTree();
             obj.extractFeatures();
-            tree = obj.nodeManager.tree;
-            obj.resultManager.appendToRoot(tree);
-            
-            obj.templateCache = [];
+            ds = obj.nodeManager.dataStore;
         end
         
-        function t = get.result(obj)
-            t = obj.resultManager.tree;
+        function collect(obj, dataStores)
+            if nargin < 2
+                dataStores = obj.nodeManager.dataStore;
+            end
+            arrayfun(@(ds) obj.resultManager.append(ds), dataStores);
+        end
+        
+        function destroy(obj)
+            obj.templateCache = [];
+        end
+
+        function r = get.result(obj)
+            r = obj.resultManager.dataStore;
         end
         
         function template = get.analysisTemplate(obj)
@@ -53,7 +68,7 @@ classdef Analysis < handle
         end
     end
     
-    methods(Access = private)
+    methods(Access = protected)
         
         function extractFeatures(obj)
             parameters = obj.analysisTemplate.getSplitParameters();

@@ -60,16 +60,17 @@ classdef AnalysisDataService < handle & mdepin.Bean
         end
         
         
-        function result = doAnalysis(obj, request)
+        function result = doOfflineAnalysis(obj, request)
             
             analysis = sa_labs.analysis.core.OfflineAnalysis(request.description, request.cellData);
             templates = request.getTemplates();
             
             for i = 1 : numel(templates)
                 template = templates(i);
-                tree = analysis.do(template);
-                obj.analysisDao.saveTree(tree, template);
-                analysis.appendResults(tree);
+                analysis.init(template);
+                t = analysis.service();
+                obj.analysisDao.saveTree(t, template);
+                analysis.collect();
             end
             result = analysis.getResult();
         end
