@@ -104,6 +104,46 @@ classdef NodeManagerTest < matlab.unittest.TestCase
             handle = @()obj.manager.percolateUp([childNodes(:).id], 'splitValue', 'splitValue');
             obj.verifyError(handle,'MATLAB:class:SetProhibited');
         end
+        
+        function testGetNodes(obj)
+            % check for null indices
+            n = obj.manager.getNodes([]);
+            obj.verifyEmpty(n);
+            
+            % single node check
+            n = obj.manager.getNodes(obj.s.ds4_rstar_0_1);
+            obj.verifyEqual(n.id, obj.s.ds4_rstar_0_1);
+        end
+        
+        function validateNodeIdAfterTreeMerge(obj)
+            import sa_labs.analysis.*;
+            
+            expectedFirstLeaf = obj.manager.getNodes(obj.s.ds1_rstar_0_01);
+            expecteLastLeaf = obj.manager.getNodes(obj.s.ds4_rstar_0_1);
+            n = obj.manager.dataStore.nnodes;
+            
+            m = core.NodeManager(tree());
+            m.setRootName('Light-step-extended-analysis');
+            m.addNode(1, 'Amp', 'Amplifier_ch3', entity.DataSet(1:500, 'none'));
+            m.addNode(1, 'Amp', 'Amplifier_ch4', entity.DataSet(1:500, 'none'));
+            % validate leaf
+            disp(' Merging tree ');
+            obj.manager.append(m.dataStore);
+            actual = obj.manager.getNodes(obj.s.ds1_rstar_0_01);
+            obj.verifyEqual(actual.name, expectedFirstLeaf.name);
+            
+            actual = obj.manager.getNodes(obj.s.ds4_rstar_0_1);
+            obj.verifyEqual(actual.name, expecteLastLeaf.name);
+            
+            % non leaf nodes
+            actual = obj.manager.findNodesByName('Amp==Amplifier_ch3');
+            obj.verifyEqual(actual.id, n + 2);
+            actual = obj.manager.findNodesByName('Amp==Amplifier_ch4');
+            obj.verifyEqual(actual.id, n + 3);
+            
+            obj.manager.getStructure().tostring() % print tree
+        end
+
     end
 end
 

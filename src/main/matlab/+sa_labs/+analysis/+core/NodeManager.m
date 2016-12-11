@@ -7,8 +7,7 @@ classdef NodeManager < handle
     properties(Dependent)
         dataStore
     end
-    
-    
+        
     methods
         
         function obj = NodeManager(dataStore)
@@ -40,9 +39,11 @@ classdef NodeManager < handle
         end
         
         function removeNode(obj, id)
-            % TODO check if it has any childrens if so donot remove the
-            % node
+            if ~ isempty(obj.tree.getchildren(id))
+                error('cannot remove ! node has children');
+            end
             obj.tree = obj.tree.removenode(id);
+            obj.updateDataStoreNodeId();
         end
         
         function percolateUp(obj, nodeIds, varargin)
@@ -113,6 +114,7 @@ classdef NodeManager < handle
         
         function append(obj, dataStore)
             obj.tree = obj.tree.graft(1, dataStore);
+            obj.updateDataStoreNodeId();
         end
         
         function tree = getStructure(obj)
@@ -148,6 +150,15 @@ classdef NodeManager < handle
         
         function id = addnode(obj, id, node)
             [obj.tree, id] = obj.tree.addnode(id, node);
+        end
+        
+        function updateDataStoreNodeId(obj)
+            for i = obj.tree.breadthfirstiterator
+                if obj.tree.get(i).id ~= i
+                    disp(['[INFO] updating datastore index ' num2str(i)]);
+                    obj.tree.get(i).id = i;
+                end
+            end
         end
         
     end
