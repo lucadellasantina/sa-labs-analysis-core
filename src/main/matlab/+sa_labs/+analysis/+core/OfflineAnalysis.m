@@ -31,8 +31,16 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             end
         end
         
-        function setEpochIterator(obj)
-            obj.extractor.epochIterator = @(indices) obj.cellData.epochs(indices);
+        function setEpochStream(obj)
+            obj.extractor.epochStream = @(indices) obj.cellData.epochs(indices);
+        end
+
+        function p = getSplitParameters(obj)
+            p = obj.analysisTemplate.getSplitParameters();
+        end
+
+        function nodes = getNodes(obj, parameter)
+            nodes = obj.nodeManager.findNodesByName(parameter);
         end
     end
     

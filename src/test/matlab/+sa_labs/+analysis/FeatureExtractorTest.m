@@ -26,7 +26,7 @@ classdef FeatureExtractorTest < matlab.unittest.TestCase
             end
             cellData.epochs = epochs;
             
-            obj.extractor.epochIterator = @(indices) cellData.epochs(indices);
+            obj.extractor.epochStream = @(indices) cellData.epochs(indices);
             node = entity.Node('test', 1);
             node.epochIndices = [1, 5, 8];
             
@@ -54,7 +54,7 @@ classdef FeatureExtractorTest < matlab.unittest.TestCase
             node = entity.Node('test', 1);
             node.epochIndices = [1, 5, 7];
             
-            obj.extractor.epochIterator = @(indices) epochs(node.epochIndices);
+            obj.extractor.epochStream = @(indices) epochs(node.epochIndices);
             
             actualResponse = obj.extractor.getResponse(node, 'Amp1');
             obj.verifyEqual(actualResponse, [obj.noise + 1; obj.noise + 5; obj.noise + 7]);
@@ -70,6 +70,7 @@ classdef FeatureExtractorTest < matlab.unittest.TestCase
             for i = 1 : 3
                 nodes(i) = entity.Node(splitParameter, i);
                 nodes(i).epochIndices = i * [1, 2, 3];
+                nodes(i).id = i; 
             end
             
             simpleExtractor = sa_labs.test_extractor.SimpleExtractor();
@@ -79,7 +80,7 @@ classdef FeatureExtractorTest < matlab.unittest.TestCase
             simpleExtractor.nodeManager.when.findNodesByName(AnyArgs()).thenReturn(nodes, [1,2,3]);
             simpleExtractor.nodeManager.when.percolateUp(AnyArgs()).thenReturn([]);
             
-            simpleExtractor.delegate(f, splitParameter);
+            simpleExtractor.delegate(f, nodes);
             % Look up on test_extractor.SimpleExtractor.extractor for validation logic
             
             obj.verifyEqual(simpleExtractor.callstack, 3);

@@ -2,7 +2,7 @@ classdef FeatureExtractor < handle
     
     properties
         nodeManager
-        epochIterator
+        epochStream
     end
     
     properties(Constant)
@@ -11,20 +11,14 @@ classdef FeatureExtractor < handle
     
     methods
         
-        function delegate(obj, extractorFunctions, parameter, ids)
-
-            if nargin < 4
-                [nodes, ids] = obj.nodeManager.findNodesByName(parameter);
-            else
-                nodes = obj.nodeManager.getNodes(ids);
-            end
+        function delegate(obj, extractorFunctions, nodes)
 
             for i = 1 : numel(extractorFunctions)
                 func = str2func(extractorFunctions{i});
                 
                 arrayfun(@(node) func(obj, node), nodes)
                 featureKeySet = nodes.getFeatureKey();
-                obj.nodeManager.percolateUp(ids, featureKeySet, featureKeySet);
+                obj.nodeManager.percolateUp([nodes.id], featureKeySet, featureKeySet);
             end
         end
         
@@ -45,12 +39,12 @@ classdef FeatureExtractor < handle
         function epochs = getEpochs(obj, node)
             
             if isempty(node.epochIndices)
-                epochs = obj.epochIterator();
+                epochs = obj.epochStream();
                 return
             end
             % If the epoch Indices are not present in the dataset it will
             % throw an error
-            epochs = obj.epochIterator(node.epochIndices);
+            epochs = obj.epochStream(node.epochIndices);
         end
     end
     

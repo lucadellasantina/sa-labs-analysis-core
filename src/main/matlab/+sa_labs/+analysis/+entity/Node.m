@@ -1,6 +1,6 @@
 classdef Node < handle & matlab.mixin.CustomDisplay
     
-    properties(SetAccess = ?sa_labs.analysis.core.NodeManager)
+    properties
         id                  % Identifier of the node, assigned by NodeManager @see NodeManager.addNode
         dataSet             % Read only dataSet and used as cache
     end

@@ -30,8 +30,11 @@ classdef NodeManager < handle
             
             import sa_labs.analysis.*;
             node = entity.Node(splitParameter, spiltValue);
-            node.dataSet = dataSet;
-            node.epochIndices = dataSet.epochIndices;
+            
+            if ~ isempty(dataSet)
+                node.dataSet = dataSet;
+                node.epochIndices = dataSet.epochIndices;
+            end
             id = obj.addnode(id, node);
             node.id = id;
         end
@@ -62,7 +65,7 @@ classdef NodeManager < handle
         end
         
         % TODO move all find functions to visitor
-        function [nodes, indices] = findNodesByName(obj, name)
+        function nodes = findNodesByName(obj, name)
             nodes = [];
             
             if isempty(name)

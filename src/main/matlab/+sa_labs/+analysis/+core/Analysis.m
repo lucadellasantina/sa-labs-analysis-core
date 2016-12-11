@@ -33,7 +33,7 @@ classdef Analysis < handle
             obj.templateCache = analysisTemplate;
             
             obj.extractor = sa_labs.analysis.core.FeatureExtractor.create(analysisTemplate);
-            obj.setEpochIterator();
+            obj.setEpochStream();
             obj.extractor.nodeManager = obj.nodeManager;
         end
 
@@ -71,14 +71,14 @@ classdef Analysis < handle
     methods(Access = protected)
         
         function extractFeatures(obj)
-            parameters = obj.analysisTemplate.getSplitParameters();
+            parameters = obj.getSplitParameters();
             
             for i = numel(parameters) : -1 : 1
                 parameter = parameters{i};
                 functions = obj.analysisTemplate.getExtractorFunctions(parameter);
                 
                 if ~ isempty(functions)
-                    obj.extractor.delegate(functions, parameter);
+                    obj.extractor.delegate(functions, obj.getNodes(parameter));
                 end
             end
         end
@@ -86,7 +86,9 @@ classdef Analysis < handle
     
     methods(Access = protected, Abstract)
         buildTree(obj)
-        setEpochIterator(obj)
+        setEpochStream(obj)
+        getSplitParameters(obj)
+        getNodes(obj, parameter)
     end
     
 end
