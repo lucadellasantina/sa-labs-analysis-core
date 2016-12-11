@@ -130,6 +130,12 @@ classdef NodeManager < handle
             nodes = arrayfun(@(index) obj.tree.get(index), ids, 'UniformOutput', false);
             nodes = [nodes{:}];
         end
+        
+        function tf = isAnalysisOnline(obj)
+            ROOT_ID = 1;
+            node = obj.tree.getChildern(ROOT_ID);
+            tf = isempty(node.dataSet);
+        end
     end
     
     methods(Access = private)

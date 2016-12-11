@@ -38,8 +38,8 @@ classdef FeatureExtractor < handle
         
         function epochs = getEpochs(obj, node)
             
-            if isempty(node.epochIndices)
-                epochs = obj.epochStream();
+            if obj.nodeManager.isAnalysisOnline()
+                epochs = obj.epochStream;
                 return
             end
             % If the epoch Indices are not present in the dataset it will
