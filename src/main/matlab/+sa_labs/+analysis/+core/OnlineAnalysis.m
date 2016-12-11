@@ -18,7 +18,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
                 splitValue = epochParameters(splitParameter);
                 name = [splitParameter '==' num2str(splitValue)];
                 
-                id = obj.nodeManager.findChild(name, obj.nodeId);
+                id = obj.nodeManager.findNodeId(name, obj.nodeId);
                 if isempty(id)
                     break;
                 end

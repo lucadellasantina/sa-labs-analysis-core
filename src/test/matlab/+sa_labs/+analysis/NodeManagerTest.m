@@ -115,6 +115,19 @@ classdef NodeManagerTest < matlab.unittest.TestCase
             obj.verifyEqual(n.id, obj.s.ds4_rstar_0_1);
         end
         
+        function testFindNode(obj)
+            id = obj.manager.findNodeId('Amp==Amplifier_ch1');
+            obj.verifyEqual(id, obj.s.amp1);
+            
+            % search on ds4 subtree
+            id = obj.manager.findNodeId('rstar==0.01', obj.s.ds4);
+            obj.verifyEqual(id, obj.s.ds4_rstar_0_01);
+            
+            % valid subtree but invalid search expression
+            id = obj.manager.findNodeId('Light_Step_500', obj.s.amp2);
+            obj.verifyEmpty(id);            
+        end
+        
         function validateNodeIdAfterTreeMerge(obj)
             import sa_labs.analysis.*;
             
@@ -143,7 +156,7 @@ classdef NodeManagerTest < matlab.unittest.TestCase
             
             obj.manager.getStructure().tostring() % print tree
         end
-
+        
     end
 end
 

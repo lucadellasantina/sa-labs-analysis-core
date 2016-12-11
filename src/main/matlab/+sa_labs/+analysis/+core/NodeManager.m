@@ -73,19 +73,20 @@ classdef NodeManager < handle
                 return
             end
             indices = find(obj.getStructure().regexpi(['\w*' name '\w*']).treefun(@any));
-            nodes = obj.getNodes(indices);
+            nodes = obj.getNodes(indices); %#ok
         end
         
-        function id = findChild(name, nodeId)
-      
-            if isempty(nodeId)
+        function id = findNodeId(obj, name, nodeId)
+
+            if nargin < 3 || isempty(nodeId)
                 id = find(obj.getStructure().regexpi(['\w*' name '\w*']).treefun(@any));
                 return;
             end
-            structure = obj.tree.subtree(nodeId).treefun(@(node) node.name);
+            subTree = obj.tree.subtree(nodeId);
+            structure = subTree.treefun(@(node) node.name);
             indices = find(structure.regexpi(['\w*' name '\w*']).treefun(@any));
-            nodes = obj.getNodes(indices);
-            id = [nodes.id];
+            
+            id = arrayfun(@(index) subTree.get(index).id, indices);
         end
         
         function nodes = getAllChildrensByName(obj, regexp)
