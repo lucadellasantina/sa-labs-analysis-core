@@ -16,7 +16,7 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
     
     methods(Test)
         
-        function getExtractorFunctions(obj)
+        function testGetExtractorFunctions(obj)
             template = sa_labs.analysis.core.AnalysisTemplate(obj.lightStepStructure);
             expected = {'MeanExtractor', 'spikeAmplitudeExtractor'};
             obj.verifyEqual(template.getExtractorFunctions('rstarMean'), expected);
@@ -29,13 +29,29 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
             obj.verifyEqual(template.getSplitParameters(), {'dataSet', 'deviceStream', 'grpEpochs', 'rstarMean', 'epochId'});
         end
         
+        function testTemplateTree(obj)
+            template = struct();
+            template.type = 'test-analysis';
+            template.buildTreeBy = {'a', 'b, c, d', 'e, f', 'g, h, i'};
+            template.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
+            
+            t = sa_labs.analysis.core.AnalysisTemplate(template);
+            disp('Template tree for visual validation');
+            t.displayTemplate();
+            obj.verifyEqual(t.numberOfPaths(), 18);
+            v = t.getSplitParametersByPath(1);
+            obj.verifyEqual(v, {'a', 'b', 'e', 'g'});
+            v = t.getSplitParametersByPath(18);
+            obj.verifyEqual(v, {'a', 'd', 'f', 'i'});
+        end
+        
         function testValidateSplitValues(obj)
             template = sa_labs.analysis.core.AnalysisTemplate(obj.lightStepStructure);
             obj.verifyEmpty(template.getSplitValue('unkown'));
             
             values = template.validateSplitValues('dataSet', 'empty');
             obj.verifyEqual(values, {'empty'});
-                        
+            
             values = template.validateSplitValues('deviceStream', 'Amplifier_ch1');
             obj.verifyEqual(values, {'Amplifier_ch1'});
             
@@ -74,10 +90,9 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
             obj.verifyEqual(v, [1, 2, 2, 2, 2]);
             
             obj.verifyEqual(4,  template.numberOfPaths());
-
+            
             v = template.getSplitParametersByPath(4);
             obj.verifyEqual(v, {'displayName', 'curSpotSize'});
-            
         end
         
     end

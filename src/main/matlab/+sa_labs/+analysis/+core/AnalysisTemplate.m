@@ -123,6 +123,10 @@ classdef AnalysisTemplate < handle
         function e = get.extractorClazz(obj)
             e = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_EXTRACTOR_CLASS);
         end
+        
+        function displayTemplate(obj)
+            disp(obj.templateTree.tostring());
+        end
     end
     
     methods(Access = private)
@@ -150,7 +154,7 @@ classdef AnalysisTemplate < handle
             for i = 1 : numel(uniqueLevels)
                 level = uniqueLevels(i);
                 p = parameters(levels == level);
-                siblings = t.getsiblings(level);
+                siblings = t.findleaves();
                 
                 for sibling = siblings
                     for j = 1 : numel(p)
