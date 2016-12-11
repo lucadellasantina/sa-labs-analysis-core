@@ -223,7 +223,8 @@ classdef EntityTest < matlab.unittest.TestCase
             import sa_labs.analysis.entity.*;
             node = Node('root', 'param');
             description = FeatureId.TEST_FEATURE.description;
-            feature = node.getFeature(description);
+            feature = Feature.create(description);
+            node.appendFeature(feature);
             obj.verifyEmpty(feature.data);
            
             % test append data

@@ -1,5 +1,9 @@
 classdef SimpleFeatureExtractor < sa_labs.analysis.core.FeatureExtractor
     
+    properties
+        spikeUtil
+    end
+    
     methods (Access = protected)
         
         function stream = getDefaultStream(obj, node)

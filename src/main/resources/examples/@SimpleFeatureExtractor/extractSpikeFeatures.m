@@ -9,11 +9,13 @@ function extractSpikeFeatures(obj, node, varargin)
 
     mode = ip.Results.spikeDetectorMode;
     stream = ip.Results.stream;
-
-    spikeUtil = sa_labs.common.SpikeUtil(mode);
+    
+    if isempty(obj.spikeUtil)
+        obj.spikeUtil = sa_labs.common.SpikeUtil(mode);
+    end
 
     response = obj.getResponse(node, stream);
-    features = spikeUtil.extractSpikes(response);
+    features = obj.spikeUtil.extractSpikes(response);
     node.appendFeature(features);
 
 end

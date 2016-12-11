@@ -76,34 +76,27 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             obj.setParameter(key, new);
         end
         
-        function appendFeature(obj, feature)
+        function appendFeature(obj, newFeatures)
             
-            f = obj.getFeature([feature.description]);
-            
-            if isequal(f, feature)
-                return;
+            for i = 1 : numel(newFeatures)
+                key = char(newFeatures(i).description.type);
+                obj.featureMap = sa_labs.analysis.util.collections.addToMap(obj.featureMap, key, newFeatures(i));
             end
-            key = char(f.description.type);
-            obj.featureMap = sa_labs.analysis.util.collections.addToMap(obj.featureMap, key, feature);
         end
         
-        function feature = getFeature(obj, featureDescription)
+        function features = getFeature(obj, featureDescription)
             
             % getFeature - returns the feature based on FeatureDescription
             % reference
-            type = unique([featureDescription.type]);
-            
-            if numel(type) > 1
-                error('cannot retrive multiple features ! Check the featureDescription.type')
-            end
-            
-            key = char(type);
-            
-            if isKey(obj.featureMap, key)
-                feature = obj.featureMap(key);
-            else
-                feature = sa_labs.analysis.entity.Feature.create(featureDescription(1));
-                obj.featureMap(key) = feature;
+            features = [];
+            types = unique([featureDescription.type]);
+            for i = 1 : numel(types)
+                key = char(types(i));
+
+                if isKey(obj.featureMap, key)
+                    feature = obj.featureMap(key);
+                    features = [features, feature]; %#ok
+                end
             end
         end
         
