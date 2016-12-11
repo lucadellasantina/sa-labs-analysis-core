@@ -3,7 +3,6 @@ classdef Analysis < handle
     properties(SetAccess = protected)
         functionContext
         nodeManager
-        resultManager
         extractor
     end
     
@@ -12,20 +11,13 @@ classdef Analysis < handle
     end
     
     properties(Dependent)
-        result
         analysisTemplate
     end
     
     methods
         
-        function obj = Analysis(name)
-            
-            import sa_labs.analysis.core.*;
-            
-            obj.resultManager = NodeManager();
-            obj.resultManager.setRootName(name);
-            obj.nodeManager = NodeManager();
-            
+        function obj = Analysis()
+            obj.nodeManager = sa_labs.analysis.core.NodeManager();
         end
         
         function init(obj, analysisTemplate)
@@ -36,31 +28,24 @@ classdef Analysis < handle
             obj.setEpochStream();
             obj.extractor.nodeManager = obj.nodeManager;
         end
-
+        
         function ds = service(obj)
             
             if isempty(obj.templateCache)
                 error('analysisTemplate is not initiliazed');
             end
-
+            
             obj.buildTree();
             obj.extractFeatures();
             ds = obj.nodeManager.dataStore;
         end
         
-        function collect(obj, dataStores)
-            if nargin < 2
-                dataStores = obj.nodeManager.dataStore;
-            end
-            arrayfun(@(ds) obj.resultManager.append(ds), dataStores);
-        end
-        
         function destroy(obj)
             obj.templateCache = [];
         end
-
-        function r = get.result(obj)
-            r = obj.resultManager.dataStore;
+        
+        function r = getResult(obj)
+            r = obj.nodeManager.dataStore;
         end
         
         function template = get.analysisTemplate(obj)
@@ -86,9 +71,12 @@ classdef Analysis < handle
     
     methods(Access = protected, Abstract)
         buildTree(obj)
-        setEpochStream(obj)
         getSplitParameters(obj)
         getNodes(obj, parameter)
+    end
+    
+    methods(Abstract)
+        setEpochStream(obj)
     end
     
 end

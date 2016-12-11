@@ -156,7 +156,7 @@ classdef NodeManager < handle
         function updateDataStoreNodeId(obj)
             for i = obj.tree.breadthfirstiterator
                 if obj.tree.get(i).id ~= i
-                    disp(['[INFO] updating datastore index ' num2str(i)]);
+                    % disp(['[INFO] updating datastore index ' num2str(i)]);
                     obj.tree.get(i).id = i;
                 end
             end

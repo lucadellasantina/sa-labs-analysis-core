@@ -203,7 +203,9 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             template = core.AnalysisTemplate(s);
             offlineAnalysis = core.OfflineAnalysis('test-collective-analysis', mockedCellData);
             offlineAnalysis.init(template);
-            tree = offlineAnalysis.service();
+            offlineAnalysis.service();
+            offlineAnalysis.collect();
+            tree = offlineAnalysis.getResult();
             disp('analysis tree')
             tree.treefun(@(node) node.name).tostring()
             

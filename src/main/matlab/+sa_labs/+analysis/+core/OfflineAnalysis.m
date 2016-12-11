@@ -2,6 +2,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
     
     properties(Access = private)
         cellData
+        resultManager
     end
     
     properties(Constant)
@@ -11,10 +12,27 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
     methods
         
         function obj = OfflineAnalysis(name, cellData)
-            obj@sa_labs.analysis.core.Analysis(name);
+            
+            obj@sa_labs.analysis.core.Analysis();
             obj.cellData = cellData;
+            obj.resultManager = sa_labs.analysis.core.NodeManager();
+            obj.resultManager.setRootName(name);
         end
         
+        function setEpochStream(obj)
+            obj.extractor.epochStream = @(indices) obj.cellData.epochs(indices);
+        end
+        
+        function collect(obj, dataStores)
+            if nargin < 2
+                dataStores = obj.nodeManager.dataStore;
+            end
+            arrayfun(@(ds) obj.resultManager.append(ds), dataStores);
+        end
+        
+        function r = getResult(obj)
+            r = obj.resultManager.dataStore;
+        end
     end
     
     methods(Access = protected)
@@ -31,14 +49,10 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             end
         end
         
-        function setEpochStream(obj)
-            obj.extractor.epochStream = @(indices) obj.cellData.epochs(indices);
-        end
-
         function p = getSplitParameters(obj)
             p = obj.analysisTemplate.getSplitParameters();
         end
-
+        
         function nodes = getNodes(obj, parameter)
             nodes = obj.nodeManager.findNodesByName(parameter);
         end
