@@ -6,12 +6,30 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
         nodeId
     end
     
-    methods(Access = protected)
+    methods
+        
+        function obj = OnlineAnalysis()
+            obj@sa_labs.analysis.core.Analysis();
+        end
+        
+        function setEpochStream(obj, epoch)
+            if nargin < 2
+                return
+            end
+            obj.epochStream = epoch;
+            obj.extractor.epochStream = epoch;
+        end
+    end
+    
+    methods (Access = protected)
         
         function buildTree(obj)
             epochParameters = obj.epochStream.parameters;
             obj.splitParameters = obj.getSplitParametersByEpoch();
+            obj.nodeId = 1;
             
+            present = true;
+
             for depth = 1 : numel(obj.splitParameters)
                 
                 splitParameter = obj.splitParameters{depth};
@@ -20,22 +38,15 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
                 
                 id = obj.nodeManager.findNodeId(name, obj.nodeId);
                 if isempty(id)
+                    present = false;
                     break;
                 end
                 obj.nodeId = id;
             end
             
-            if depth < numel(obj.splitParameters)
-                obj.buildBranches(obj.splitParameters{depth : end});
+            if ~ present
+                obj.buildBranches(obj.splitParameters(depth : end));
             end
-        end
-        
-        function setEpochStream(obj, epoch)
-            if nargin < 1
-                return
-            end
-            obj.epochStream = epoch;
-            obj.extractor.epochStream = epoch;
         end
         
         function p = getSplitParameters(obj)
@@ -47,7 +58,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
         end
     end
     
-    methods(Access = private)
+    methods (Access = private)
         
         function p = getSplitParametersByEpoch(obj)
             p = [];
@@ -55,7 +66,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
             
             for pathIndex = 1 : obj.analysisTemplate.numberOfPaths()
                 parameters = obj.analysisTemplate.getSplitParametersByPath(pathIndex);
-                if all(isKey(epochParameters, parameters))
+                if all(ismember(parameters, epochParameters.keys))
                     p = parameters;
                     break;
                 end
