@@ -7,7 +7,7 @@
 
 ## Clone
 
-`git clone https://github.com/Schwartz-AlaLaurila-Labs/sa-labs-analysis-core.git--recursive`
+`git clone https://github.com/Schwartz-AlaLaurila-Labs/sa-labs-analysis-core.git --recursive`
 
 **Note:** You must use the `--recursive` option to recursively clone all submodules.
 

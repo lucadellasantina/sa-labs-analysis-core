@@ -36,6 +36,8 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
                 splitValue = epochParameters(splitParameter);
                 name = [splitParameter '==' num2str(splitValue)];
                 
+                % possible bottle neck if nodes are > 100,000 on first
+                % pause
                 id = obj.nodeManager.findNodeId(name, obj.nodeId);
                 if isempty(id)
                     present = false;
