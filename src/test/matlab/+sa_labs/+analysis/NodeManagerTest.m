@@ -157,6 +157,27 @@ classdef NodeManagerTest < matlab.unittest.TestCase
             obj.manager.getStructure().tostring() % print tree
         end
         
+        function testFindLeaf(obj)
+            import sa_labs.analysis.*;
+            m = core.NodeManager(tree());
+            % empty check
+            obj.verifyFalse(m.isLeaf([]));
+            
+            m.setRootName('Light-step-extended-analysis');
+            id = m.addNode(1, 'Amp', 'Amplifier_ch3', entity.DataSet(1:500, 'none'));
+            
+            obj.verifyTrue(m.isLeaf(m.getNodes(id)));
+            id = m.addNode(id, 'rstar', '0.01', entity.DataSet(1:500, 'none'));
+            
+            obj.verifyFalse(m.isLeaf(m.getNodes(1)));
+            obj.verifyTrue(m.isLeaf(m.getNodes(id)));
+            
+            m = obj.manager;
+            % array of nodes
+            obj.verifyTrue(m.isLeaf(m.getNodes([obj.s.ds1_rstar_0_01, obj.s.ds4_rstar_0_1])));
+            obj.verifyFalse(m.isLeaf(m.getNodes([obj.s.ds1_rstar_0_01, obj.s.ds4_rstar_0_1, obj.s.ds4])));
+        end
+
     end
 end
 

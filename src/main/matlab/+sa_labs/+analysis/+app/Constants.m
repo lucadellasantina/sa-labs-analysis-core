@@ -9,7 +9,9 @@ classdef Constants < handle
         TEMPLATE_FEATURE_EXTRACTOR = 'featureExtractor'
         TEMPLATE_TYPE = 'type'
         TEMPLATE_EXTRACTOR_CLASS = 'extractorClass'
+        TEMPLATE_FEATURE_DESC_FILE = 'feature-description-file'
         
+        FEATURE_DESC_FILE_NAME = 'feature-description.csv'
     end
 end
 

@@ -136,6 +136,10 @@ classdef NodeManager < handle
             node = obj.tree.getChildern(ROOT_ID);
             tf = isempty(node.dataSet);
         end
+
+        function tf = isLeaf(obj, nodes)
+            tf = ~ isempty(nodes) && all(ismember([nodes.id], obj.tree.findleaves)) == 1;
+        end
     end
     
     methods(Access = private)
