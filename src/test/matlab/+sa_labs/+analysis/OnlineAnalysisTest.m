@@ -82,7 +82,6 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             analysis = core.OnlineAnalysis();
             analysis.init(template)
             
-            
             parameterKey1 = {'protocol', 'textureAngle', 'RstarMean'};
             parameterKey2 = {'protocol', 'textureAngle', 'RstarMean'};
             parameterKey3 = {'protocol', 'barAngle', 'RstarMean'};
@@ -102,7 +101,7 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             t = validate(parameterKey2, @(i) {'driftingGrating', i * 30, 10}, t.nnodes + 2);
             t = validate(parameterKey3, @(i) {'movingBar', i * 90, 10}, t.nnodes + 2);
             t = validate(parameterKey4, @(i) {'spotMultiSize', i * 100, 10}, t.nnodes + 5);
-    
+            
             logTree();
             
             function t = validate(k, valueSetHandle, expected)

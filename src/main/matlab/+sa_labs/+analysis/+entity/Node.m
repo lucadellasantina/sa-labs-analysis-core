@@ -79,6 +79,11 @@ classdef Node < handle & matlab.mixin.CustomDisplay
         function appendFeature(obj, newFeatures)
             
             for i = 1 : numel(newFeatures)
+                f = obj.getFeature(newFeatures(i).description);
+                
+                if f == newFeatures(i)
+                    continue;
+                end
                 key = char(newFeatures(i).description.type);
                 obj.featureMap = sa_labs.analysis.util.collections.addToMap(obj.featureMap, key, newFeatures(i));
             end
