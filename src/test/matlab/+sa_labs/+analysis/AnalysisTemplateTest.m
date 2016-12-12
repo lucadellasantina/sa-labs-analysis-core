@@ -83,7 +83,9 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
         end
         
         function validateStandardAnalysis(obj)
-            template = sa_labs.analysis.core.AnalysisTemplate(obj.standardAnalysis);
+            import sa_labs.analysis.*;
+            
+            template = core.AnalysisTemplate(obj.standardAnalysis);
             
             [p, v] = template.getSplitParameters();
             obj.verifyEqual(p, {'displayName', 'textureAngle', 'RstarMean', 'barAngle', 'curSpotSize'});
@@ -93,6 +95,10 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
             
             v = template.getSplitParametersByPath(4);
             obj.verifyEqual(v, {'displayName', 'curSpotSize'});
+            
+            fname = app.App.getResource(app.Constants.FEATURE_DESC_FILE_NAME);
+            obj.verifyNotEmpty(template.featureDescriptionFile);
+            obj.verifyEqual(template.featureDescriptionFile, fname);
         end
         
     end

@@ -10,9 +10,10 @@ classdef AnalysisTemplate < handle
     end
     
     properties(Dependent)
-        copyParameters      % List of unique-paramters to copied from epoch to node
-        type                % Type of analysis
-        extractorClazz      % Feature extractor class name
+        copyParameters          % List of unique-paramters to copied from epoch to node
+        type                    % Type of analysis
+        extractorClazz          % Feature extractor class name
+        featureDescriptionFile  % Feature description CSV file location
     end
     
     methods
@@ -80,6 +81,17 @@ classdef AnalysisTemplate < handle
         
         function p = get.type(obj)
             p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_TYPE);
+        end
+        
+        function f = get.featureDescriptionFile(obj)
+            import sa_labs.analysis.*;
+            
+            f = app.App.getResource(app.Constants.FEATURE_DESC_FILE_NAME);
+            descriptionFile = app.Constants.TEMPLATE_FEATURE_DESC_FILE;   
+            
+            if isfield(obj.structure, descriptionFile)
+                f = obj.structure.(descriptionFile);
+            end
         end
         
         function v = getSplitValue(obj, parameter)
