@@ -41,10 +41,19 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             if isempty(parameters)
                 return
             end
-            names = fieldnames(parameters);
             
-            for i = 1 : length(names)
-                obj.setParameter(names{i}, parameters.(names{i}));
+            if isstruct(parameters)
+                names = fieldnames(parameters);
+                for i = 1 : length(names)
+                    obj.addParameter(names{i}, parameters.(names{i}));
+                end
+            end
+
+            if isa(parameters,'containers.Map')
+                names = parameters.keys;
+                for i = 1 : length(names)
+                    obj.addParameter(names{i}, parameters(names{i}));
+                end
             end
         end
         
@@ -69,35 +78,48 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             old = obj.getParameter(key);
             
             if isempty(old)
-                obj.setParameter(key, value);
+                obj.addParameter(key, value);
                 return
             end
+            
             new = sa_labs.analysis.util.collections.addToCell(old, value);
-            obj.setParameter(key, new);
+            if all(cellfun(@isnumeric, new))
+               new = cell2mat(new);
+            end    
+            
+            try
+                new = unique(new);
+            catch e
+                warning('mixedType:parameters', e.message);
+            end
+            obj.addParameter(key, new);
         end
         
         function appendFeature(obj, newFeatures)
             
             for i = 1 : numel(newFeatures)
-                f = obj.getFeature(newFeatures(i).description);
+                key = newFeatures(i).description.id;
                 
+                f = obj.getFeature(key);
                 if f == newFeatures(i)
                     continue;
                 end
-                key = char(newFeatures(i).description.type);
                 obj.featureMap = sa_labs.analysis.util.collections.addToMap(obj.featureMap, key, newFeatures(i));
             end
         end
         
-        function features = getFeature(obj, featureDescription)
+        function features = getFeature(obj, keys)
             
             % getFeature - returns the feature based on FeatureDescription
             % reference
             features = [];
-            types = unique([featureDescription.type]);
-            for i = 1 : numel(types)
-                key = char(types(i));
-
+            if ischar(keys)
+                keys = {keys};
+            end
+            
+            keys = unique(keys);
+            for i = 1 : numel(keys)
+                key = keys{i};
                 if isKey(obj.featureMap, key)
                     feature = obj.featureMap(key);
                     features = [features, feature]; %#ok
@@ -182,7 +204,7 @@ classdef Node < handle & matlab.mixin.CustomDisplay
     
     methods(Access = private)
         
-        function setParameter(obj, property, value)
+        function addParameter(obj, property, value)
             % setParameters - set property, value pair to parameters
             obj.parameters.(property) = value;
         end

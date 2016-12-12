@@ -206,59 +206,76 @@ classdef EntityTest < matlab.unittest.TestCase
             node.setParameters(params);
             obj.verifyEqual(node.parameters, params);
             
+            % combination of map and struct in setParameters
+            node.setParameters(containers.Map({'stimTime', 'tailTime'}, {'500ms', '500ms'}));
+            params.stimTime = '500ms';
+            params.tailTime = '500ms';
+            obj.verifyEqual(node.parameters, params);
+            
             node.appendParameter('preTime', '20ms');
             node.appendParameter('epochId', 3);
+            
             node.appendParameter('new', {'param1', 'param2'});
             
-            obj.verifyEqual(node.getParameter('epochId'), {1, 2, 3});
-            obj.verifyEqual(node.getParameter('preTime'), {'500ms', '20ms'});
+            obj.verifyEqual(node.getParameter('epochId'), [1, 2, 3]);
+            obj.verifyEqual(node.getParameter('preTime'), {'20ms', '500ms'});
             obj.verifyEqual(node.getParameter('new'), {'param1', 'param2'});
             obj.verifyEmpty(node.getParameter('unknow'));
             
             node.appendParameter('new', {'param3', 'param4'});
             obj.verifyEqual(node.getParameter('new'), {'param1', 'param2', 'param3', 'param4'});
+            
+            % append mixed data type with out error
+            handle = @()node.appendParameter('epochId', '5');
+            obj.verifyWarning(handle, 'mixedType:parameters');
+            obj.verifyEqual(node.getParameter('epochId'), {[1, 2, 3], '5'});
         end
         
         function testFeature(obj)
             import sa_labs.analysis.entity.*;
             node = Node('root', 'param');
-            description = FeatureId.TEST_FEATURE.description;
-            feature = Feature.create(description);
+            property = containers.Map({'id', 'properties'}, {'TEST_FIRST', []});
+            
+            desc = FeatureDescription(property);
+            feature = Feature(desc);
             node.appendFeature(feature);
+            
             obj.verifyEmpty(feature.data);
-           
+            
             % test append data
             feature.appendData(1 : 1000);
-            obj.verifyEqual(node.getFeature(description).data, 1 : 1000);
+            obj.verifyEqual(node.getFeature('TEST_FIRST').data, 1 : 1000);
             
             % check feature as reference object
             feature.data = feature.data + ones(1,1000);
-            obj.verifyEqual(node.getFeature(description).data, 2 : 1001);
+            obj.verifyEqual(node.getFeature('TEST_FIRST').data, 2 : 1001);
             
             % scalar check
             feature.appendData(1002);
-            obj.verifyEqual(node.getFeature(description).data, 2 : 1002);
+            obj.verifyEqual(node.getFeature('TEST_FIRST').data, 2 : 1002);
             
             % vector check
             feature.appendData(1003 : 1010);
-            obj.verifyEqual(node.getFeature(description).data, 2 : 1010);
+            obj.verifyEqual(node.getFeature('TEST_FIRST').data, 2 : 1010);
             
-            % adding same feature again
+            % adding same feature again shouldnot append to the feature map
             node.appendFeature(feature);
-            obj.verifyEqual(node.getFeature(description).data, 2 : 1010);
+            obj.verifyEqual(node.getFeature('TEST_FIRST').data, 2 : 1010);
         end
         
         function testUpdate(obj)
             import sa_labs.analysis.entity.*;
             node = Node('Child', 'param');
-            description = FeatureId.TEST_FEATURE.description;
+            property = containers.Map({'id', 'properties'}, {'TEST_FIRST', []});
             
-            f = sa_labs.analysis.entity.Feature.create(description);
+            desc = FeatureDescription(property);
+            f = Feature(desc);
             f.data = 1 : 1000;
             node.appendFeature(f);
             
-            descriptionTwo = FeatureId.TEST_SECOND_FEATURE.description;
-            f2 = sa_labs.analysis.entity.Feature.create(descriptionTwo);
+            property('id') = 'TEST_SECOND';
+            desc2 = FeatureDescription(property);
+            f2 = Feature(desc2);
             f2.data = ones(1,1000);
             node.appendFeature(f2);
             
@@ -272,8 +289,7 @@ classdef EntityTest < matlab.unittest.TestCase
             newNode.appendParameter('string', 'Foo bar');
             newNode.appendParameter('cell', {'three', 'four'});
             
-            param = FeatureId.TEST_SECOND_FEATURE;
-            newNode.update(node, param, param)
+            newNode.update(node, 'TEST_SECOND', 'TEST_SECOND');
             
             % case 1 property check
             node.epochIndices = [1,2,3];
@@ -286,25 +302,25 @@ classdef EntityTest < matlab.unittest.TestCase
             obj.verifyEqual([newNode.epochIndices{:}], 1:7);
             
             % case 3 feature map check
-            obj.verifyEqual(newNode.featureMap.keys, { char(param) });
+            obj.verifyEqual(newNode.featureMap.keys, { property('id') });
             feature = newNode.featureMap.values;
             obj.verifyEqual([feature{:}.data], ones(1,1000));
             
-            obj.verifyError(@()newNode.update(node, param, FeatureId.TEST_FEATURE), 'in:out:mismatch')
+            obj.verifyError(@()newNode.update(node, 'TEST_FIRST', 'TEST_SECOND'), 'in:out:mismatch')
             
             % case 4 name(in) and parameter(out) check
             newNode.update(node, 'name', 'cell');
-            obj.verifyEqual(newNode.getParameter('cell'), {'three', 'four', 'Child==param'});
+            obj.verifyEqual(sort(newNode.getParameter('cell')), {'Child==param', 'four', 'three'});
             
             % case 5 parameter check
             newNode.update(node, 'int', 'int');
-            obj.verifyEqual(newNode.parameters.int, {1, 8});
+            obj.verifyEqual(newNode.parameters.int, [1, 8]);
             newNode.update(node, 'unknown', 'unknown');
             obj.verifyEmpty(newNode.parameters.unknown);
             
             
             % consistency check for old node
-            obj.verifyEqual(node.featureMap.keys, {char(FeatureId.TEST_FEATURE), char(param)});
+            obj.verifyEqual(node.featureMap.keys, {'TEST_FIRST', 'TEST_SECOND'});
             features = node.featureMap.values;
             features = [features{:}];
             obj.verifyEqual([features(:).data], [(1 : 1000), ones(1,1000)]);
@@ -312,7 +328,30 @@ classdef EntityTest < matlab.unittest.TestCase
             obj.verifyError(@()newNode.update(node, 'name', 'name'),'MATLAB:class:SetProhibited');
             obj.verifyError(@()newNode.update(node, 'splitParameter', 'splitParameter'),'MATLAB:class:SetProhibited');
             obj.verifyError(@()newNode.update(node, 'splitValue', 'splitValue'),'MATLAB:class:SetProhibited');
-            obj.verifyError(@()newNode.update(node, 'id', 'id'), 'id:update:prohibited');
+        end
+        
+        function testGetFeature(obj)
+            
+            import sa_labs.analysis.entity.*;
+            node = Node('test', 'param');
+            property = containers.Map({'id', 'properties'}, {'TEST_FIRST', []});
+            
+            desc = FeatureDescription(property);
+            f = Feature(desc);
+            f.data = 1 : 1000;
+            node.appendFeature(f);
+
+            property('id') = 'TEST_SECOND';
+            desc2 = FeatureDescription(property);
+            f = Feature(desc2);
+            f.data = 1001 : 2000;
+            node.appendFeature(f);
+            
+            features = node.getFeature({'TEST_FIRST', 'TEST_FIRST'});
+            obj.verifyEqual([features(:).data], 1 : 1000);
+            
+            features = node.getFeature({'TEST_FIRST', 'TEST_SECOND'});
+            obj.verifyEqual([features(:).data], [1 : 1000, 1001 : 2000]);
         end
     end
     
