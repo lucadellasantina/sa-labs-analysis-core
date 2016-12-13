@@ -273,7 +273,7 @@ classdef EntityTest < matlab.unittest.TestCase
             f.data = 1 : 1000;
             node.appendFeature(f);
             
-            property('id') = 'TEST_SECOND';
+            property = containers.Map({'id', 'properties'}, {'TEST_SECOND', []});
             desc2 = FeatureDescription(property);
             f2 = Feature(desc2);
             f2.data = ones(1,1000);
@@ -341,7 +341,7 @@ classdef EntityTest < matlab.unittest.TestCase
             f.data = 1 : 1000;
             node.appendFeature(f);
 
-            property('id') = 'TEST_SECOND';
+            property = containers.Map({'id', 'properties'}, {'TEST_SECOND', []});
             desc2 = FeatureDescription(property);
             f = Feature(desc2);
             f.data = 1001 : 2000;

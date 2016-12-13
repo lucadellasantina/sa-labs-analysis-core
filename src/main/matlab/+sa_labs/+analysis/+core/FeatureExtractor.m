@@ -3,16 +3,55 @@ classdef FeatureExtractor < handle
     properties
         nodeManager
         epochStream
+        descriptionMap
     end
     
-    properties(Constant)
-         CLASS = 'sa_labs.analysis.core.FeatureExtractor';
+    properties (Constant)
+        CLASS = 'sa_labs.analysis.core.FeatureExtractor';
+        FORMAT_SPECIFIER = '%s%s%s%s%s%s%s%[^\n\r]';
     end
     
     methods
         
+        function loadFeatureDescription(obj, descriptionFile)
+            import sa_labs.analysis.*;
+            
+            if ~ isempty(obj.descriptionMap)
+                warning(['reloading descriptionMap from file ' descriptionFile])
+            end
+            text = obj.readCSV(descriptionFile);
+            
+            % get the first column and use it as key for descriptionMap
+            vars = text(:, 1);
+            header = text(1, :);
+            obj.descriptionMap = containers.Map();
+            
+            % skip the header rows
+            for i = 2 : numel(vars)
+                key = strtrim(vars{i});
+                desc = entity.FeatureDescription(containers.Map(header, text(i, :)));
+                obj.descriptionMap(key) = desc;
+            end
+        end
+        
+        function text = readCSV(obj, fname)
+            
+            % Format specifier description
+            % ----------------------------------------------------------------------------
+            % 'id', 'description', 'strategy', 'unit', 'chartType', 'xAxis', 'properties'    
+            % ----------------------------------------------------------------------------  
+            
+            fid = fopen(fname, 'r');
+            text = textscan(fid, obj.FORMAT_SPECIFIER, 'Delimiter', ',');
+            % unwrap cell array to array
+            text =  [text{1, :}];
+            columns = find(~ cellfun(@isempty, text(1, :)));
+            text = text(:, columns); 
+            fclose(fid);
+        end
+        
         function delegate(obj, extractorFunctions, nodes)
-
+            
             for i = 1 : numel(extractorFunctions)
                 func = str2func(extractorFunctions{i});
                 
@@ -48,12 +87,11 @@ classdef FeatureExtractor < handle
         end
     end
     
-    
     methods (Static)
         
         function featureExtractor = create(template)
-           
-            import sa_labs.analysis.*; 
+            
+            import sa_labs.analysis.*;
             parentClass =  core.FeatureExtractor.CLASS;
             class = template.extractorClazz;
             constructor = str2func(class);

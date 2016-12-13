@@ -1,0 +1,3 @@
+id,description,strategy,unit,chartType,xAxis,properties
+TEST_FIRST,List of epoch paramters from the protocol,Epoch,,,, binWidth = 100,
+TEST_SECOND,Spike time for give epoch,Epoch,seconds,,,

@@ -3,13 +3,13 @@ classdef AnalysisTemplate < handle
     % AnalysisTemplate contains information about split parameters, split
     % values and extractor functions at the specified tree level
     
-    properties(Access = private)
+    properties (Access = private)
         structure           % Structure from user interface or yaml
         functionContext     % Map containing key as split parameter and value as extractor functions
         templateTree
     end
     
-    properties(Dependent)
+    properties (Dependent)
         copyParameters          % List of unique-paramters to copied from epoch to node
         type                    % Type of analysis
         extractorClazz          % Feature extractor class name
@@ -23,7 +23,30 @@ classdef AnalysisTemplate < handle
             obj.populateFunctionContext();
             obj.makeTree();
         end
-        
+
+        function parameters = getSplitParametersByPath(obj, index)
+            leafs = obj.templateTree.findleaves();
+            path =  sort(obj.templateTree.pathtoroot(leafs(index)));
+            parameters = arrayfun(@(id) obj.templateTree.get(id), path, 'UniformOutput', false);
+            parameters = parameters(2 : end);
+        end
+
+        function [parameters, levels] = getSplitParameters(obj)
+            buildBy = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_BUILD_TREE_BY);
+            parameters = {};
+            levels = [];
+            
+            for i = 1 : numel(buildBy)
+                branches = strtrim(strsplit(buildBy{i}, ','));
+                parameters = {parameters{:}, branches{:}}; %#ok
+                levels = [levels, i * ones(1, numel(branches))]; %#ok
+            end
+        end
+
+        function n = numberOfPaths(obj)
+            n = numel(obj.templateTree.findleaves());
+        end
+
         function values = validateSplitValues(obj, parameter, values)
             
             % Description - Takes the tree level, split parameter and split
@@ -49,51 +72,7 @@ classdef AnalysisTemplate < handle
             end
             values = templateValues(found);
         end
-        
-        function f = getExtractorFunctions(obj, parameter)
-            
-            % returns - extractor function for given parameter if parameter
-            % not found returns empty
-            
-            f = [];
-            
-            if isKey(obj.functionContext, parameter)
-                f = obj.functionContext(parameter);
-            end
-        end
-        
-        function p = get.copyParameters(obj)
-            p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_COPY_PARAMETERS);
-        end
-        
-        function [parameters, levels] = getSplitParameters(obj)
-            buildBy = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_BUILD_TREE_BY);
-            parameters = {};
-            levels = [];
-            
-            for i = 1 : numel(buildBy)
-                branches = strtrim(strsplit(buildBy{i}, ','));
-                parameters = {parameters{:}, branches{:}}; %#ok
-                levels = [levels, i * ones(1, numel(branches))]; %#ok
-            end
-        end
-        
-        
-        function p = get.type(obj)
-            p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_TYPE);
-        end
-        
-        function f = get.featureDescriptionFile(obj)
-            import sa_labs.analysis.*;
-            
-            f = app.App.getResource(app.Constants.FEATURE_DESC_FILE_NAME);
-            descriptionFile = app.Constants.TEMPLATE_FEATURE_DESC_FILE;   
-            
-            if isfield(obj.structure, descriptionFile)
-                f = obj.structure.(descriptionFile);
-            end
-        end
-        
+
         function v = getSplitValue(obj, parameter)
             
             % returns - array / cell array of split values for given split parameter
@@ -121,17 +100,36 @@ classdef AnalysisTemplate < handle
             end
         end
         
-        function parameters = getSplitParametersByPath(obj, index)
-            leafs = obj.templateTree.findleaves();
-            path =  sort(obj.templateTree.pathtoroot(leafs(index)));
-            parameters = arrayfun(@(id) obj.templateTree.get(id), path, 'UniformOutput', false);
-            parameters = parameters(2 : end);
+        function f = getExtractorFunctions(obj, parameter)
+
+            % returns - extractor function for given parameter if parameter
+            % not found returns empty
+            
+            f = [];
+            if isKey(obj.functionContext, parameter)
+                f = obj.functionContext(parameter);
+            end
         end
         
-        function p = numberOfPaths(obj)
-            p = numel(obj.templateTree.findleaves());
+        function p = get.copyParameters(obj)
+            p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_COPY_PARAMETERS);
         end
         
+        function p = get.type(obj)
+            p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_TYPE);
+        end
+        
+        function f = get.featureDescriptionFile(obj)
+            import sa_labs.analysis.*;
+            
+            f = app.App.getResource(app.Constants.FEATURE_DESC_FILE_NAME);
+            descriptionFile = app.Constants.TEMPLATE_FEATURE_DESC_FILE;   
+            
+            if isfield(obj.structure, descriptionFile)
+                f = obj.structure.(descriptionFile);
+            end
+        end
+
         function e = get.extractorClazz(obj)
             e = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_EXTRACTOR_CLASS);
         end
@@ -141,7 +139,7 @@ classdef AnalysisTemplate < handle
         end
     end
     
-    methods(Access = private)
+    methods (Access = private)
         
         function populateFunctionContext(obj)
             parameters = obj.getSplitParameters();
@@ -155,7 +153,6 @@ classdef AnalysisTemplate < handle
                 end
             end
         end
-        
         
         function makeTree(obj)
             t = tree();
@@ -177,6 +174,5 @@ classdef AnalysisTemplate < handle
             obj.templateTree = t;
         end
     end
-    
 end
 

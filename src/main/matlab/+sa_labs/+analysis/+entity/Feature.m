@@ -1,16 +1,22 @@
 classdef Feature < handle & matlab.mixin.Heterogeneous
     
-    properties
-        name
-        type
-        units
-        data
+    properties(SetAccess = protected)
         description
-        features
-        appendingIndex
+    end
+    
+    properties
+        data
     end
     
     methods
+        
+        function obj = Feature(desc, data)
+            if nargin < 2
+                data = [];
+            end            
+            obj.description = desc;
+            obj.data = data;
+        end
         
         function appendData(obj, value)
             
@@ -23,18 +29,5 @@ classdef Feature < handle & matlab.mixin.Heterogeneous
             end
         end
     end
-    
-    methods(Static)
-        
-        function obj = create(featureDescription)
-            constructor = str2func(featureDescription.clazz);
-            obj = constructor();
-            obj.name = char(featureDescription.type);
-            obj.type = featureDescription.clazz;
-            obj.units = featureDescription.units;
-            obj.description = featureDescription;
-        end
-    end
-    
 end
 
