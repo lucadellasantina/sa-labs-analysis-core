@@ -13,7 +13,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
             obj@sa_labs.analysis.core.Analysis();
         end
         
-        function setEpochStream(obj, epoch)
+        function setEpochSource(obj, epoch)
             if nargin < 2
                 return
             end

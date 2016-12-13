@@ -1,16 +1,16 @@
 classdef Analysis < handle
     
-    properties(SetAccess = protected)
+    properties (SetAccess = protected)
         functionContext
         nodeManager
         extractor
     end
     
-    properties(Access = private)
+    properties (Access = private)
         templateCache
     end
     
-    properties(Dependent)
+    properties (Dependent)
         analysisTemplate
     end
     
@@ -27,8 +27,6 @@ classdef Analysis < handle
             obj.extractor = sa_labs.analysis.core.FeatureExtractor.create(analysisTemplate);
             obj.extractor.loadFeatureDescription(analysisTemplate.featureDescriptionFile);
             obj.extractor.nodeManager = obj.nodeManager;
-            
-            obj.setEpochStream();
         end
         
         function ds = service(obj)
@@ -36,7 +34,6 @@ classdef Analysis < handle
             if isempty(obj.templateCache)
                 error('analysisTemplate is not initiliazed');
             end
-            
             obj.buildTree();
             obj.extractFeatures();
             ds = obj.nodeManager.dataStore;
@@ -55,7 +52,7 @@ classdef Analysis < handle
         end
     end
     
-    methods(Access = protected)
+    methods (Access = protected)
         
         function extractFeatures(obj)
             parameters = obj.getSplitParameters();
@@ -73,15 +70,15 @@ classdef Analysis < handle
         end
     end
     
-    methods(Access = protected, Abstract)
+    methods (Access = protected, Abstract)
         buildTree(obj)
         getSplitParameters(obj)
         getNodes(obj, parameter)
         updateEpochParameters(obj, nodes)
     end
     
-    methods(Abstract)
-        setEpochStream(obj)
+    methods (Abstract)
+        setEpochSource(obj)
     end
     
 end

@@ -73,6 +73,7 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             
             % append key, value pair to obj.parameters. On empty field it
             % creates the new field,value else it appends to existing value
+            % if it NOT exist
             % @see setParameter
             
             old = obj.getParameter(key);
@@ -88,7 +89,7 @@ classdef Node < handle & matlab.mixin.CustomDisplay
             end    
             
             try
-                new = unique(new);
+                new = unique(new, 'stable');
             catch e
                 warning('mixedType:parameters', e.message);
             end

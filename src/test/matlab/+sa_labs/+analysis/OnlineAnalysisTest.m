@@ -22,7 +22,7 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             
             for i = 1 : 10
                 epoch.parameters = containers.Map(parameterKey, {300, 20, 500, 'Amp1', i * 100});
-                analysis.setEpochStream(epoch)
+                analysis.setEpochSource(epoch)
                 tree = analysis.service();
                 obj.verifyEqual(tree.nnodes, 2 + i);
             end
@@ -39,7 +39,7 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
                     stimTime = 500;
                 end
                 epoch.parameters = containers.Map(parameterKey, {300, stimTime, 500, 'Amp1', i * 100});
-                analysis.setEpochStream(epoch)
+                analysis.setEpochSource(epoch)
                 analysis.service();
             end
             tree = analysis.getResult();
@@ -57,14 +57,14 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             % alternate case - 1 if all the epoch parameter is not present
             % in analysis template
             epoch.parameters = containers.Map({'param1', 'param2'}, {300, 500});
-            analysis.setEpochStream(epoch)
+            analysis.setEpochSource(epoch)
             t = analysis.service();
             obj.verifyEqual(t.nnodes, expectedNumberOfNodes);
             
             % alternate case - 2 if any of the epoch parameter is present
             % in analysis template
             epoch.parameters = containers.Map({'stimTime', 'param2'}, {300, 500});
-            analysis.setEpochStream(epoch)
+            analysis.setEpochSource(epoch)
             t = analysis.service();
             obj.verifyEqual(t.nnodes, expectedNumberOfNodes);
         end
@@ -105,13 +105,13 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             logTree();
             
             function t = validate(k, valueSetHandle, expected)
-                % disp(' [INFO] Awesome Breadth expansion ! ...')
+                 disp(' [INFO] Awesome Breadth expansion ! ...')
                 for i = 1 : numberOfEpochs
                     epoch.parameters = containers.Map(k, valueSetHandle(i));
-                    analysis.setEpochStream(epoch)
+                    analysis.setEpochSource(epoch)
                     t = analysis.service();
-                    % logTree()
-                    % pause(1);
+                     %logTree()
+                     %pause(1);
                 end
                 obj.verifyEqual(t.nnodes, expected)
             end

@@ -218,7 +218,7 @@ classdef EntityTest < matlab.unittest.TestCase
             node.appendParameter('new', {'param1', 'param2'});
             
             obj.verifyEqual(node.getParameter('epochId'), [1, 2, 3]);
-            obj.verifyEqual(node.getParameter('preTime'), {'20ms', '500ms'});
+            obj.verifyEqual(node.getParameter('preTime'), {'500ms', '20ms'});
             obj.verifyEqual(node.getParameter('new'), {'param1', 'param2'});
             obj.verifyEmpty(node.getParameter('unknow'));
             

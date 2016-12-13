@@ -1,8 +1,23 @@
 classdef OfflineAnalysisTest < matlab.unittest.TestCase
+
+    properties
+        simpleAnalysisTemplate
+    end
+
+    methods (TestClassSetup)
+        
+        function init(obj)
+            structure = struct();
+            structure.type = 'test-analysis';
+            structure.buildTreeBy = {'dataSet', 'deviceStream'};
+            structure.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
+            obj.simpleAnalysisTemplate = structure;
+        end
+    end
     
     methods(Test)
         
-        function testBuildTreeSimple(obj)
+        function testBuildTreeSimpleTwoLevel(obj)
             import sa_labs.analysis.*;
             
             levelOne = containers.Map({'LightStep_20'}, {1 : 50});
@@ -11,27 +26,30 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             mockedCellData.when.getEpochValuesMap(AnyArgs()).thenReturn(levelOne, 'dataSet')...
                 .thenReturn(levelTwo, 'deviceStream');
             
+            mockedCellData.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}, {'Amplifier_Ch1', 20});
+            mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'});
+
             % Tree with two level - analysis
-            structure = struct();
-            structure.type = 'test-analysis';
-            structure.buildTreeBy = {'dataSet', 'deviceStream'};
-            structure.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
-            tree = testAnalyze();
+            tree = obj.testAnalyze(obj.simpleAnalysisTemplate, mockedCellData);
             actual = tree.treefun(@(node) node.name);
             
             expected = {'test-analysis'; 'dataSet==LightStep_20'; 'deviceStream==Amplifier_Ch1'};
             obj.verifyEqual(actual.Node, expected);
-            leafs = tree.findleaves();
-            obj.verifyEqual(tree.get(leafs).epochIndices, 1:50);
-            
+            leaf = tree.findleaves();
+            obj.verifyEqual(tree.get(leaf).epochIndices, 1:50);
+
+            expectedParameters = struct('deviceStream', 'Amplifier_Ch1', 'stimTime', 20);
+            obj.verifyEqual(tree.get(leaf).parameters, expectedParameters);
+            obj.verifyEqual(tree.get(tree.getparent(leaf)).parameters, expectedParameters);
+        end
+
+        function testBuildTreeSimpleMultipleBranches(obj)
+            import sa_labs.analysis.*;
+
             % Tree with two level and one branch - analysis
             % Tree with two level - analysis
-            structure = struct();
-            structure.type = 'test-analysis';
-            structure.buildTreeBy = {'dataSet', 'deviceStream'};
-            structure.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
-            
             levelOne = containers.Map({'LightStep_20', 'LightStep_500'}, {1 : 50, 51 : 100});
+            levelTwo = containers.Map({'Amplifier_Ch1'}, {1 : 50});
             levelTwoOtherBranch = containers.Map({'Amplifier_Ch1'}, {51 : 100});
             
             mockedCellData = Mock(entity.CellData());
@@ -39,18 +57,34 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 .thenReturn(levelOne, 'dataSet')...
                 .thenReturn(levelTwo, 'deviceStream')...
                 .thenReturn(levelTwoOtherBranch, 'deviceStream');
-            
-            tree = testAnalyze();
+
+            mockedCellData.when.getUniqueParamValues(AnyArgs())...
+                .thenReturn({'deviceStream', 'stimTime'}, {'Amplifier_Ch1', 20})...
+                .thenReturn({'deviceStream', 'stimTime', 'tailTime'}, {'Amplifier_Ch1', 500, []});
+
+            mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'});
+
+            tree = obj.testAnalyze(obj.simpleAnalysisTemplate, mockedCellData);
             actual = tree.treefun(@(node) node.name);
             
             expected = {'test-analysis'; 'dataSet==LightStep_20'; 'deviceStream==Amplifier_Ch1'; 'dataSet==LightStep_500'; 'deviceStream==Amplifier_Ch1'};
             obj.verifyEqual(actual.Node, expected);
             leafs = tree.findleaves();
-            obj.verifyEqual(tree.get(leafs(1)).epochIndices, 1:50);
-            obj.verifyEqual(tree.get(leafs(2)).epochIndices, 51:100);
-            
+
+            node1 = tree.get(leafs(1));
+            obj.verifyEqual(node1.epochIndices, 1:50);
+            obj.verifyEqual(node1.parameters, struct('deviceStream', 'Amplifier_Ch1', 'stimTime', 20));
+
+            node2 = tree.get(leafs(2));
+            obj.verifyEqual(node2.epochIndices, 51:100);
+            obj.verifyEqual(node2.parameters, struct('deviceStream', 'Amplifier_Ch1', 'stimTime', 500, 'tailTime', []));
+        end
+
+        function  testBuildTreeMutlipleLevelMultipleBranches(obj)           
+            import sa_labs.analysis.*;
+
             % Tree with two level and two branch - analysis
-            
+            levelOne = containers.Map({'LightStep_20', 'LightStep_500'}, {1 : 50, 51 : 100});
             levelTwo = containers.Map({'Amplifier_Ch1', 'Amplifier_Ch2'}, {1 : 50, 1 : 50});
             levelTwoOtherBranch = containers.Map({'Amplifier_Ch1', 'Amplifier_Ch2'}, {51 : 100, 51 : 100});
             
@@ -60,7 +94,18 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 .thenReturn(levelTwo, 'deviceStream')...
                 .thenReturn(levelTwoOtherBranch, 'deviceStream');
             
-            tree = testAnalyze();
+            paramterNames = {'deviceStream', 'stimTime', 'rstars', 'ndfs'};
+            mockedCellData.when.getUniqueParamValues(AnyArgs())...
+                .thenReturn(paramterNames, {'Amplifier_Ch1', 20, [0.01, 0.1, 1], {'A1A', 'A2A', 'A3A'}})...
+                .thenReturn(paramterNames, {'Amplifier_Ch2', 20, [0.01, 0.1, 1], {'B1A', 'A2A', 'A3A'}})...
+                .thenReturn(paramterNames, {'Amplifier_Ch1', 500, [10, 5, 100], {'Empty', 'A2A', 'A3A'}})...
+                .thenReturn(paramterNames, {'Amplifier_Ch2', 500, [10, 5, 100], {'A1A', 'A2A', 'A3A'}});
+
+            mockedCellData.when.getEpochKeysetUnion(AnyArgs())...
+                .thenReturn(paramterNames)...
+                .thenReturn(paramterNames);
+
+            tree = obj.testAnalyze(obj.simpleAnalysisTemplate, mockedCellData);
             actual = tree.treefun(@(node) node.name);
             
             expected = {'test-analysis'; 'dataSet==LightStep_20'; 'deviceStream==Amplifier_Ch1';'deviceStream==Amplifier_Ch2';...
@@ -73,16 +118,20 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             obj.verifyEqual(tree.get(leafs(3)).epochIndices, 51:100);
             obj.verifyEqual(tree.get(leafs(4)).epochIndices, 51:100);
             
-            function tree = testAnalyze()
-                import sa_labs.analysis.*;
-                
-                template = core.AnalysisTemplate(structure);
-                offlineAnalysis = core.OfflineAnalysis('test-collective-analysis', mockedCellData);
-                offlineAnalysis.init(template)
-                tree = offlineAnalysis.service();
-                disp('analysis tree')
-                tree.treefun(@(node) node.name).tostring()
-            end
+            expected = struct('stimTime', 20, 'rstars', [0.01, 0.1, 1]);
+            expected.deviceStream = {'Amplifier_Ch1', 'Amplifier_Ch2'};
+            expected.ndfs = {'A1A', 'A2A', 'A3A', 'B1A'};
+
+            actualParameters = tree.get(tree.getparent(leafs(1))).parameters;
+            obj.verifyEqual(actualParameters, expected);
+            actualParameters = tree.get(tree.getparent(leafs(2))).parameters;
+            obj.verifyEqual(actualParameters, expected);
+            
+            expected.stimTime = 500;
+            expected.rstars = [10, 5, 100];
+            expected.ndfs = {'Empty', 'A2A', 'A3A', 'A1A'};
+            actualParameters = tree.get(tree.getparent(leafs(4))).parameters;
+            obj.verifyEqual(actualParameters, expected);
         end
         
         function testBuildTreeComplex(obj)
@@ -113,6 +162,9 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 .thenReturn(leafGroupFour, 'rstar')...
                 .thenReturn(leafGroupFive, 'rstar');
             
+            mockedCellData.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
+            mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
+
             s = struct();
             s.type = 'complex-analysis';
             s.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
@@ -121,14 +173,9 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             s.deviceStream = {'Amplifier_Ch1', 'Amplifier_Ch2'};
             s.epochgroups = {'G1', 'G2', 'G3'};
             s.rstar = {0.01, 0.02};
-            
-            template = core.AnalysisTemplate(s);
-            offlineAnalysis = core.OfflineAnalysis('test-collective-analysis', mockedCellData);
-            offlineAnalysis.init(template);
-            tree = offlineAnalysis.service();
-            disp('analysis tree')
-            tree.treefun(@(node) node.name).tostring()
-            
+
+            tree = obj.testAnalyze(s, mockedCellData);
+
             leafs = tree.findleaves();
             obj.verifyEqual(tree.get(leafs(1)).epochIndices, leafGroupOne(0.01));
             obj.verifyEqual(tree.get(leafs(2)).epochIndices, leafGroupOne(0.02));
@@ -146,7 +193,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             obj.verifyEqual(tree.get(leafs(10)).epochIndices, leafGroupFive(0.02));
         end
         
-        function testBuildTreeWithMultipleBranches(obj)
+        function testBuildTreeWithGroupedBranches(obj)
             import sa_labs.analysis.*;
             
             % analysis template structure
@@ -200,9 +247,12 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 .thenReturn(containers.Map(), 'curSpotSize')... % Drifting Grating
                 .thenReturn(containers.Map(), 'curSpotSize');   % MovingBar
             
+            mockedCellData.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
+            mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
+            
             template = core.AnalysisTemplate(s);
-            offlineAnalysis = core.OfflineAnalysis('test-collective-analysis', mockedCellData);
-            offlineAnalysis.init(template);
+            offlineAnalysis = core.OfflineAnalysis();
+            offlineAnalysis.init(template, mockedCellData);
             offlineAnalysis.service();
             offlineAnalysis.collect();
             tree = offlineAnalysis.getResult();
@@ -241,4 +291,17 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
         end
     end
     
+    methods
+
+        function tree = testAnalyze(obj, structure, mockedCellData)
+                import sa_labs.analysis.*;
+                
+                template = core.AnalysisTemplate(structure);
+                offlineAnalysis = core.OfflineAnalysis();
+                offlineAnalysis.init(template, mockedCellData)
+                tree = offlineAnalysis.service();
+                disp('analysis tree')
+                tree.treefun(@(node) node.name).tostring()
+            end
+    end
 end

@@ -1,25 +1,29 @@
 classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
     
-    properties(Access = private)
+    properties (Access = private)
         cellData
         resultManager
     end
     
-    properties(Constant)
+    properties (Constant)
         DEFAULT_ROOT_ID = 1;
     end
     
     methods
         
-        function obj = OfflineAnalysis(name, cellData)
-            
+        function obj = OfflineAnalysis()
             obj@sa_labs.analysis.core.Analysis();
-            obj.cellData = cellData;
             obj.resultManager = sa_labs.analysis.core.NodeManager();
-            obj.resultManager.setRootName(name);
+            obj.resultManager.setRootName('result');
+        end
+
+        function init(obj, analysisTemplate, cellData)
+            obj.cellData = cellData;
+            init@sa_labs.analysis.core.Analysis(obj, analysisTemplate);
+            obj.setEpochSource();
         end
         
-        function setEpochStream(obj)
+        function setEpochSource(obj, ~)
             obj.extractor.epochStream = @(indices) obj.cellData.epochs(indices);
         end
         
@@ -61,7 +65,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 obj.setEpochParameters(nodes);
             end
             keySet = obj.cellData.getEpochKeysetUnion([nodes.epochIndices]);
-            
+
             if isempty(keySet)
                 disp('[WARN] keyset is empty, cannot percolate up epoch parameters');
                 return
