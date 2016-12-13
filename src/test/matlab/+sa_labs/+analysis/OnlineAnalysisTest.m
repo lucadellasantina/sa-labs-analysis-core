@@ -8,6 +8,15 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
         function testBuildTreeSimple(obj)
             import sa_labs.analysis.*;
             
+            % Expected tree for below test case :
+            %                                                      test-analysis
+            %                                                            |
+            %                                                            |
+            %                                                      stimTime==20
+            %     +-----------+-----------+-----------+-----------+-----+-----+-----------+-----------+-----------+------------+
+            %     |           |           |           |           |           |           |           |           |            |
+            % rstar==100  rstar==200  rstar==300  rstar==400  rstar==500  rstar==600  rstar==700  rstar==800  rstar==900   rstar==1000
+            
             structure = struct();
             structure.type = 'test-analysis';
             structure.buildTreeBy = {'stimTime', 'rstar'};
@@ -24,12 +33,25 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
                 epoch.parameters = containers.Map(parameterKey, {300, 20, 500, 'Amp1', i * 100});
                 analysis.setEpochSource(epoch)
                 tree = analysis.service();
+                
+                obj.verifyEqual(analysis.nodeIdMap('stimTime'), 2);
+                obj.verifyEqual(analysis.nodeIdMap('rstar'), 2 + i);
                 obj.verifyEqual(tree.nnodes, 2 + i);
             end
             
             tree = analysis.getResult();
             disp('analysis tree')
             tree.treefun(@(node) node.name).tostring()
+            
+            % Expected tree for below test case :
+            %
+            %                                                                  test-analysis
+            %                                                            +-----------+------------------------------------------------------------+
+            %                                                            |                                                                        |
+            %                                                      stimTime==20                                                             stimTime==500
+            %     +-----------+-----------+-----------+-----------+-----+-----+-----------+-----------+-----------+------------+           +-----+------+
+            %     |           |           |           |           |           |           |           |           |            |           |            |
+            % rstar==100  rstar==200  rstar==300  rstar==400  rstar==500  rstar==600  rstar==700  rstar==800  rstar==900   rstar==1000 rstar==500   rstar==1000
             
             % interleaved epochs with stim time of 500
             for i = 1 : 10
@@ -39,8 +61,11 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
                     stimTime = 500;
                 end
                 epoch.parameters = containers.Map(parameterKey, {300, stimTime, 500, 'Amp1', i * 100});
+                
                 analysis.setEpochSource(epoch)
-                analysis.service();
+                t = analysis.service();
+                node = core.NodeManager(t).findNodesByName(['stimTime==' num2str(stimTime)]);
+                obj.verifyEqual(analysis.nodeIdMap('stimTime'), node.id);
             end
             tree = analysis.getResult();
             expectedNumberOfNodes = tree.nnodes;
@@ -72,6 +97,19 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
         function testBuildTreeComplex(obj)
             import sa_labs.analysis.*;
             
+            % Expected tree :
+            %
+            %                                                           complex-analysis
+            %                      +-------------------------------------------++--------------------------------------------+
+            %                      |                                            |                                            |
+            %          protocol==driftingTexture                    protocol==driftingGrating                       protocol==movingBar
+            %                      |                                            |                                            |
+            %                      |                                            |                                            |
+            %              textureAngle==10                             textureAngle==30                               barAngle==90
+            %       +-------------++--------------+              +-------------++--------------+              +-------------++--------------+
+            %       |              |              |              |              |              |              |              |              |
+            % RstarMean==10  RstarMean==20  RstarMean==30  RstarMean==10  RstarMean==20  RstarMean==30  RstarMean==10  RstarMean==20  RstarMean==30
+            
             % analysis template structure
             s = struct();
             s.type = 'complex-analysis';
@@ -87,7 +125,7 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             parameterKey3 = {'protocol', 'barAngle', 'RstarMean'};
             parameterKey4 = {'protocol', 'curSpotSize', 'RstarMean'};
             
-            numberOfEpochs = 3;
+            epochsInEachProtocol = 3;
             % validate for different RstarMean
             t = validate(parameterKey1, @(i) {'driftingTexture', 10, i * 10}, 1 + 5);
             t = validate(parameterKey2, @(i) {'driftingGrating', 30, i * 10}, t.nnodes + 5);
@@ -95,7 +133,20 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             
             logTree();
             
-            numberOfEpochs = 2;
+            % Expected tree :
+            %                                                                                                                  complex-analysis
+            %                               +--------------------------------------------------------------+---------------+--------------------------------------------+-----------------------------------------------+
+            %                               |                                                              |                                                            |                                               |
+            %                   protocol==driftingTexture                                      protocol==driftingGrating                                       protocol==movingBar                           protocol==spotMultiSize
+            %                      +-------+----------------------+                               +-------+----------------------+                               +------+----------------------+               +--------+--------+
+            %                      |                              |                               |                              |                               |                             |               |                 |
+            %              textureAngle==10               textureAngle==20                textureAngle==30               textureAngle==60                  barAngle==90                  barAngle==180 curSpotSize==100  curSpotSize==200
+            %       +-------------++--------------+                                +-------------++--------------+                                +-------------++--------------+              |
+            %       |              |              |               |                |              |              |               |                |              |              |              |               |                 |
+            % RstarMean==10  RstarMean==20  RstarMean==30   RstarMean==10    RstarMean==10  RstarMean==20  RstarMean==30   RstarMean==10    RstarMean==10  RstarMean==20  RstarMean==30  RstarMean==10   RstarMean==10     RstarMean==10
+            
+            epochsInEachProtocol = 2;
+            
             % validate for different angle and size
             t = validate(parameterKey1, @(i) {'driftingTexture', i * 10, 10}, t.nnodes + 2);
             t = validate(parameterKey2, @(i) {'driftingGrating', i * 30, 10}, t.nnodes + 2);
@@ -105,13 +156,13 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             logTree();
             
             function t = validate(k, valueSetHandle, expected)
-                 disp(' [INFO] Awesome Breadth expansion ! ...')
-                for i = 1 : numberOfEpochs
+                %disp(' [INFO] Awesome Breadth expansion ! ...')
+                for i = 1 : epochsInEachProtocol
                     epoch.parameters = containers.Map(k, valueSetHandle(i));
                     analysis.setEpochSource(epoch)
                     t = analysis.service();
-                     %logTree()
-                     %pause(1);
+                    %logTree()
+                    %pause(1);
                 end
                 obj.verifyEqual(t.nnodes, expected)
             end
@@ -119,7 +170,7 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             function logTree()
                 tree = analysis.getResult();
                 disp('analysis tree')
-                tree.treefun(@(node) node.name).tostring()
+                tree.treefun(@(node) strcat(node.name, [' ( ' num2str(node.id), ' ) '])).tostring()
             end
         end
     end

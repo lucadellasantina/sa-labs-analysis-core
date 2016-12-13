@@ -1,9 +1,12 @@
 classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
     
-    properties(Access = protected, Transient)
+    properties (Access = protected, Transient)
         epochStream
         splitParameters
         nodeId
+    end
+    
+    properties (SetAccess = private)
         nodeIdMap
     end
     
@@ -62,6 +65,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
         function node = getNodes(obj, parameter)
             id = obj.nodeIdMap(parameter);
             node = obj.nodeManager.getNodes(id);
+            % disp([' [INFO] id ' num2str(id) ' parameter ' parameter]);
         end
 
         function updateEpochParameters(obj, nodes)
