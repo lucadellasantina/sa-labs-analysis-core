@@ -4,6 +4,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
         epochStream
         splitParameters
         nodeId
+        nodeIdMap
     end
     
     methods
@@ -24,10 +25,12 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
     methods (Access = protected)
         
         function buildTree(obj)
+            obj.nodeIdMap = containers.Map();
+
             epochParameters = obj.epochStream.parameters;
             obj.splitParameters = obj.getSplitParametersByEpoch();
+
             obj.nodeId = 1;
-            
             present = true;
 
             for depth = 1 : numel(obj.splitParameters)
@@ -44,6 +47,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
                     break;
                 end
                 obj.nodeId = id;
+                obj.nodeIdMap(splitParameter) = id;
             end
             
             if ~ present
@@ -55,8 +59,24 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
             p = obj.splitParameters;
         end
         
-        function node = getNodes(obj, ~)
-            node = obj.nodeManager.getNodes(obj.nodeId);
+        function node = getNodes(obj, parameter)
+            id = obj.nodeIdMap(parameter);
+            node = obj.nodeManager.getNodes(id);
+        end
+
+        function updateEpochParameters(obj, nodes)
+            keySet = obj.epochStream.parameters.keys;
+            
+            if ~ obj.nodeManager.isLeaf(nodes)
+                obj.nodeManager.percolateUp([nodes.id], keySet, keySet);
+                return
+            end
+
+            if isempty(nodes(1).parameters)
+                nodes(1).setParameters(obj.epochStream.parameters);
+                return
+            end 
+            cellfun(@(key) nodes(1).appendParameter(key, obj.epochStream.parameters(key)), keySet);
         end
     end
     
@@ -83,6 +103,9 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
                 splitBy = parameters{i};
                 splitValue = epochParameters(splitBy);
                 obj.nodeId = obj.nodeManager.addNode(obj.nodeId, splitBy, splitValue, EMPTY_DATASET);
+                
+                % update node map
+                obj.nodeIdMap(splitBy) = obj.nodeId;
             end
         end
     end

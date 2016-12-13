@@ -35,12 +35,10 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         end
     end
     
-    methods(Access = protected)
+    methods (Access = protected)
         
         function buildTree(obj)
             
-            % loop throug the parameters list of individual path
-            % and construct analysis tree
             for pathIndex = 1 : obj.analysisTemplate.numberOfPaths()
                 
                 dataSet = sa_labs.analysis.entity.DataSet(1 : numel(obj.cellData.epochs), 'root');
@@ -56,9 +54,23 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         function nodes = getNodes(obj, parameter)
             nodes = obj.nodeManager.findNodesByName(parameter);
         end
+        
+        function updateEpochParameters(obj, nodes)
+            
+            if obj.nodeManager.isLeaf(nodes)
+                obj.setEpochParameters(nodes);
+            end
+            keySet = obj.cellData.getEpochKeysetUnion([nodes.epochIndices]);
+            
+            if isempty(keySet)
+                disp('[WARN] keyset is empty, cannot percolate up epoch parameters');
+                return
+            end
+            obj.nodeManager.percolateUp([nodes.id], keySet, keySet);
+        end
     end
     
-    methods(Access = private)
+    methods (Access = private)
         
         function buildBranches(obj, parentId, dataSet, params)
             splitBy = params{1};
@@ -85,6 +97,18 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 if length(params) > 1
                     obj.buildBranches(id, dataSet, params(2 : end));
                 end
+            end
+        end
+        
+        function setEpochParameters(obj, nodes)
+            for i = 1 : numel(nodes)
+                [p, v] = obj.cellData.getUniqueParamValues(nodes(i).epochIndices);
+                
+                if isempty(p)
+                    disp(['[WARN] no epoch parameter found for given node ' num2str(nodes(i).id)]);
+                    continue;
+                end
+                nodes(i).setParameters(containers.Map(p, v));
             end
         end
     end
