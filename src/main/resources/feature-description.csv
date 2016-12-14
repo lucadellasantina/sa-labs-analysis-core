@@ -1,4 +1,3 @@
 id,description,strategy,unit,chartType,xAxis,properties
-EPOCH_PARAMETERS,List of epoch paramters from the protocol,Epoch,,,, binWidth = 100
-SPIKE_TIMES,Spike time for give epoch,Epoch,seconds,,,
+SPIKE_TIMES,Spike time for give epoch,Epoch,seconds,,,'endOffset = 0, baseLineEnd = 0'
 SPIKE_AMPS,Spike amplitude for the given epoch,Epoch,voltage,,,
