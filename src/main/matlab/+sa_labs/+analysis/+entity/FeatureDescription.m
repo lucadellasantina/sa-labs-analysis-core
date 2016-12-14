@@ -23,7 +23,7 @@ classdef FeatureDescription < dynamicprops
             props = strsplit(props, ',');
             
             for i = 1 : numel(props)
-                props = strrep(props, '''', '');
+                props = strrep(props, '"', '');
                 prop = strsplit(props{i}, '=');
                 obj.set(prop{1}, prop{2});
             end
