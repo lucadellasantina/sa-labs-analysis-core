@@ -1,8 +1,8 @@
-classdef Node < handle & matlab.mixin.CustomDisplay
+classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
     
     properties
-        id                  % Identifier of the node, assigned by NodeManager @see NodeManager.addNode
-        dataSet             % Read only dataSet and used as cache
+        id                  % Identifier of the node, assigned by NodeManager @see NodeManager.addFeatureGroup
+        epochGroup          % Read only dataSet and used as cache
     end
     
     properties(SetAccess = immutable)
@@ -22,7 +22,7 @@ classdef Node < handle & matlab.mixin.CustomDisplay
     
     methods
         
-        function obj = Node(splitParameter, splitValue, name)
+        function obj = FeatureGroup(splitParameter, splitValue, name)
             if nargin < 3
                 name = [splitParameter '==' num2str(splitValue)];
             end

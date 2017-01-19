@@ -1,4 +1,4 @@
-classdef DataSet < handle & matlab.mixin.CustomDisplay
+classdef EpochGroup < handle & matlab.mixin.CustomDisplay
     
     properties
         name
@@ -9,7 +9,7 @@ classdef DataSet < handle & matlab.mixin.CustomDisplay
     
     methods
         
-        function obj = DataSet(epochIndices, filter, name)
+        function obj = EpochGroup(epochIndices, filter, name)
             if nargin < 3
                 name = 'anonymous';
             end

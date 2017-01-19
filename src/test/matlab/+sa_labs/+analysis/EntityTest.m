@@ -189,168 +189,168 @@ classdef EntityTest < matlab.unittest.TestCase
         end
     end
     
-    % Test methods for Node
+    % Test methods for FeatureGroup
     
     methods(Test)
         
         function testParameters(obj)
             import sa_labs.analysis.entity.*;
-            node = Node('root','value');
+            featureGroup = FeatureGroup('root','value');
             params = struct();
             params.preTime = '500ms';
             params.epochId = {1,2};
             
-            node.setParameters([]);
-            obj.verifyEmpty(node.parameters);
+            featureGroup.setParameters([]);
+            obj.verifyEmpty(featureGroup.parameters);
             
-            node.setParameters(params);
-            obj.verifyEqual(node.parameters, params);
+            featureGroup.setParameters(params);
+            obj.verifyEqual(featureGroup.parameters, params);
             
             % combination of map and struct in setParameters
-            node.setParameters(containers.Map({'stimTime', 'tailTime'}, {'500ms', '500ms'}));
+            featureGroup.setParameters(containers.Map({'stimTime', 'tailTime'}, {'500ms', '500ms'}));
             params.stimTime = '500ms';
             params.tailTime = '500ms';
-            obj.verifyEqual(node.parameters, params);
+            obj.verifyEqual(featureGroup.parameters, params);
             
-            node.appendParameter('preTime', '20ms');
-            node.appendParameter('epochId', 3);
+            featureGroup.appendParameter('preTime', '20ms');
+            featureGroup.appendParameter('epochId', 3);
             
-            node.appendParameter('new', {'param1', 'param2'});
+            featureGroup.appendParameter('new', {'param1', 'param2'});
             
-            obj.verifyEqual(node.getParameter('epochId'), [1, 2, 3]);
-            obj.verifyEqual(node.getParameter('preTime'), {'500ms', '20ms'});
-            obj.verifyEqual(node.getParameter('new'), {'param1', 'param2'});
-            obj.verifyEmpty(node.getParameter('unknow'));
+            obj.verifyEqual(featureGroup.getParameter('epochId'), [1, 2, 3]);
+            obj.verifyEqual(featureGroup.getParameter('preTime'), {'500ms', '20ms'});
+            obj.verifyEqual(featureGroup.getParameter('new'), {'param1', 'param2'});
+            obj.verifyEmpty(featureGroup.getParameter('unknow'));
             
-            node.appendParameter('new', {'param3', 'param4'});
-            obj.verifyEqual(node.getParameter('new'), {'param1', 'param2', 'param3', 'param4'});
+            featureGroup.appendParameter('new', {'param3', 'param4'});
+            obj.verifyEqual(featureGroup.getParameter('new'), {'param1', 'param2', 'param3', 'param4'});
             
             % append mixed data type with out error
-            handle = @()node.appendParameter('epochId', '5');
+            handle = @()featureGroup.appendParameter('epochId', '5');
             obj.verifyWarning(handle, 'mixedType:parameters');
-            obj.verifyEqual(node.getParameter('epochId'), {[1, 2, 3], '5'});
+            obj.verifyEqual(featureGroup.getParameter('epochId'), {[1, 2, 3], '5'});
         end
         
         function testFeature(obj)
             import sa_labs.analysis.entity.*;
-            node = Node('root', 'param');
+            featureGroup = FeatureGroup('root', 'param');
             property = containers.Map({'id', 'properties'}, {'TEST_FIRST', []});
             
             desc = FeatureDescription(property);
             feature = Feature(desc);
-            node.appendFeature(feature);
+            featureGroup.appendFeature(feature);
             
             obj.verifyEmpty(feature.data);
             
             % test append data
             feature.appendData(1 : 1000);
-            obj.verifyEqual(node.getFeature('TEST_FIRST').data, 1 : 1000);
+            obj.verifyEqual(featureGroup.getFeature('TEST_FIRST').data, 1 : 1000);
             
             % check feature as reference object
             feature.data = feature.data + ones(1,1000);
-            obj.verifyEqual(node.getFeature('TEST_FIRST').data, 2 : 1001);
+            obj.verifyEqual(featureGroup.getFeature('TEST_FIRST').data, 2 : 1001);
             
             % scalar check
             feature.appendData(1002);
-            obj.verifyEqual(node.getFeature('TEST_FIRST').data, 2 : 1002);
+            obj.verifyEqual(featureGroup.getFeature('TEST_FIRST').data, 2 : 1002);
             
             % vector check
             feature.appendData(1003 : 1010);
-            obj.verifyEqual(node.getFeature('TEST_FIRST').data, 2 : 1010);
+            obj.verifyEqual(featureGroup.getFeature('TEST_FIRST').data, 2 : 1010);
             
             % adding same feature again shouldnot append to the feature map
-            node.appendFeature(feature);
-            obj.verifyEqual(node.getFeature('TEST_FIRST').data, 2 : 1010);
+            featureGroup.appendFeature(feature);
+            obj.verifyEqual(featureGroup.getFeature('TEST_FIRST').data, 2 : 1010);
         end
         
         function testUpdate(obj)
             import sa_labs.analysis.entity.*;
-            node = Node('Child', 'param');
+            featureGroup = FeatureGroup('Child', 'param');
             property = containers.Map({'id', 'properties'}, {'TEST_FIRST', []});
             
             desc = FeatureDescription(property);
             f = Feature(desc);
             f.data = 1 : 1000;
-            node.appendFeature(f);
+            featureGroup.appendFeature(f);
             
             property = containers.Map({'id', 'properties'}, {'TEST_SECOND', []});
             desc2 = FeatureDescription(property);
             f2 = Feature(desc2);
             f2.data = ones(1,1000);
-            node.appendFeature(f2);
+            featureGroup.appendFeature(f2);
             
-            node.appendParameter('string', 'Foo bar');
-            node.appendParameter('int', 8);
-            node.appendParameter('cell', {'one', 'two'});
+            featureGroup.appendParameter('string', 'Foo bar');
+            featureGroup.appendParameter('int', 8);
+            featureGroup.appendParameter('cell', {'one', 'two'});
             
-            newNode = Node('Parent', 'param');
+            newFeatureGroup = FeatureGroup('Parent', 'param');
             
-            newNode.appendParameter('int', 1);
-            newNode.appendParameter('string', 'Foo bar');
-            newNode.appendParameter('cell', {'three', 'four'});
+            newFeatureGroup.appendParameter('int', 1);
+            newFeatureGroup.appendParameter('string', 'Foo bar');
+            newFeatureGroup.appendParameter('cell', {'three', 'four'});
             
-            newNode.update(node, 'TEST_SECOND', 'TEST_SECOND');
+            newFeatureGroup.update(featureGroup, 'TEST_SECOND', 'TEST_SECOND');
             
             % case 1 property check
-            node.epochIndices = [1,2,3];
-            newNode.update(node, 'epochIndices', 'epochIndices');
-            obj.verifyEqual([newNode.epochIndices{:}], [1, 2, 3]);
+            featureGroup.epochIndices = [1,2,3];
+            newFeatureGroup.update(featureGroup, 'epochIndices', 'epochIndices');
+            obj.verifyEqual([newFeatureGroup.epochIndices{:}], [1, 2, 3]);
             
             % case 2 epochIndices(out) and parameter(in) check
-            node.appendParameter('discardedEpoch', [4, 5, 6, 7]);
-            newNode.update(node, 'discardedEpoch', 'epochIndices');
-            obj.verifyEqual([newNode.epochIndices{:}], 1:7);
+            featureGroup.appendParameter('discardedEpoch', [4, 5, 6, 7]);
+            newFeatureGroup.update(featureGroup, 'discardedEpoch', 'epochIndices');
+            obj.verifyEqual([newFeatureGroup.epochIndices{:}], 1:7);
             
             % case 3 feature map check
-            obj.verifyEqual(newNode.featureMap.keys, { property('id') });
-            feature = newNode.featureMap.values;
+            obj.verifyEqual(newFeatureGroup.featureMap.keys, { property('id') });
+            feature = newFeatureGroup.featureMap.values;
             obj.verifyEqual([feature{:}.data], ones(1,1000));
             
-            obj.verifyError(@()newNode.update(node, 'TEST_FIRST', 'TEST_SECOND'), 'in:out:mismatch')
+            obj.verifyError(@()newFeatureGroup.update(featureGroup, 'TEST_FIRST', 'TEST_SECOND'), 'in:out:mismatch')
             
             % case 4 name(in) and parameter(out) check
-            newNode.update(node, 'name', 'cell');
-            obj.verifyEqual(sort(newNode.getParameter('cell')), {'Child==param', 'four', 'three'});
+            newFeatureGroup.update(featureGroup, 'name', 'cell');
+            obj.verifyEqual(sort(newFeatureGroup.getParameter('cell')), {'Child==param', 'four', 'three'});
             
             % case 5 parameter check
-            newNode.update(node, 'int', 'int');
-            obj.verifyEqual(newNode.parameters.int, [1, 8]);
-            newNode.update(node, 'unknown', 'unknown');
-            obj.verifyEmpty(newNode.parameters.unknown);
+            newFeatureGroup.update(featureGroup, 'int', 'int');
+            obj.verifyEqual(newFeatureGroup.parameters.int, [1, 8]);
+            newFeatureGroup.update(featureGroup, 'unknown', 'unknown');
+            obj.verifyEmpty(newFeatureGroup.parameters.unknown);
             
             
-            % consistency check for old node
-            obj.verifyEqual(node.featureMap.keys, {'TEST_FIRST', 'TEST_SECOND'});
-            features = node.featureMap.values;
+            % consistency check for old featureGroup
+            obj.verifyEqual(featureGroup.featureMap.keys, {'TEST_FIRST', 'TEST_SECOND'});
+            features = featureGroup.featureMap.values;
             features = [features{:}];
             obj.verifyEqual([features(:).data], [(1 : 1000), ones(1,1000)]);
             
-            obj.verifyError(@()newNode.update(node, 'name', 'name'),'MATLAB:class:SetProhibited');
-            obj.verifyError(@()newNode.update(node, 'splitParameter', 'splitParameter'),'MATLAB:class:SetProhibited');
-            obj.verifyError(@()newNode.update(node, 'splitValue', 'splitValue'),'MATLAB:class:SetProhibited');
+            obj.verifyError(@()newFeatureGroup.update(featureGroup, 'name', 'name'),'MATLAB:class:SetProhibited');
+            obj.verifyError(@()newFeatureGroup.update(featureGroup, 'splitParameter', 'splitParameter'),'MATLAB:class:SetProhibited');
+            obj.verifyError(@()newFeatureGroup.update(featureGroup, 'splitValue', 'splitValue'),'MATLAB:class:SetProhibited');
         end
         
         function testGetFeature(obj)
             
             import sa_labs.analysis.entity.*;
-            node = Node('test', 'param');
+            featureGroup = FeatureGroup('test', 'param');
             property = containers.Map({'id', 'properties'}, {'TEST_FIRST', []});
             
             desc = FeatureDescription(property);
             f = Feature(desc);
             f.data = 1 : 1000;
-            node.appendFeature(f);
+            featureGroup.appendFeature(f);
 
             property = containers.Map({'id', 'properties'}, {'TEST_SECOND', []});
             desc2 = FeatureDescription(property);
             f = Feature(desc2);
             f.data = 1001 : 2000;
-            node.appendFeature(f);
+            featureGroup.appendFeature(f);
             
-            features = node.getFeature({'TEST_FIRST', 'TEST_FIRST'});
+            features = featureGroup.getFeature({'TEST_FIRST', 'TEST_FIRST'});
             obj.verifyEqual([features(:).data], 1 : 1000);
             
-            features = node.getFeature({'TEST_FIRST', 'TEST_SECOND'});
+            features = featureGroup.getFeature({'TEST_FIRST', 'TEST_SECOND'});
             obj.verifyEqual([features(:).data], [1 : 1000, 1001 : 2000]);
         end
     end

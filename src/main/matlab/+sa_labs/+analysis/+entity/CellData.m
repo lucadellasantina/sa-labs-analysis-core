@@ -3,7 +3,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
     properties
         attributes                          % Map for attributes from data file (h5group root attributes + Nepochs)
         epochs                              % Array of sa_labs.analysis.core.entity.EpochData
-        savedDataSets                       % Saved Data Sets
+        savedEpochGroups                       % Saved Data Sets
         epochGroups                         % TODO
         tags                                % TODO
         savedFileName = ''                  % Current H5 file name without extension
@@ -18,7 +18,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
         
         function obj = CellData()
             obj.attributes = containers.Map();
-            obj.savedDataSets = containers.Map();
+            obj.savedEpochGroups = containers.Map();
             obj.tags = containers.Map();
         end
         
@@ -189,7 +189,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             end
         end
         
-        function dataSet = filterEpochs(obj, queryString, subSet)
+        function EpochGroup = filterEpochs(obj, queryString, subSet)
             
             if nargin < 3
                 subSet = 1 : obj.get('Nepochs');
@@ -198,7 +198,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             n = length(subSet);
             
             if strcmp(queryString, '?') || isempty(queryString)
-                dataSet = sa_labs.analysis.entity.DataSet(1 : n, queryString);
+                EpochGroup = sa_labs.analysis.entity.EpochGroup(1 : n, queryString);
                 return
             end
             epochIndices = [];
@@ -210,7 +210,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
                     epochIndices = [epochIndices subSet(i)]; %#ok
                 end
             end
-            dataSet = sa_labs.analysis.entity.DataSet(epochIndices, queryString);
+            EpochGroup = sa_labs.analysis.entity.EpochGroup(epochIndices, queryString);
         end
         
         function tf = has(obj, queryString)
@@ -245,7 +245,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
         function groups = getPropertyGroups(obj)
             try
                 attrKeys = obj.attributes.keys;
-                dataSetKeys = obj.savedDataSets.keys;
+                EpochGroupKeys = obj.savedEpochGroups.keys;
                 groups = matlab.mixin.util.PropertyGroup.empty(0, 2);
                 
                 display = struct();
@@ -254,7 +254,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
                 end
                 
                 groups(1) = display;
-                groups(2) = dataSetKeys;
+                groups(2) = EpochGroupKeys;
             catch
                 groups = getPropertyGroups@matlab.mixin.CustomDisplay(obj);
             end
