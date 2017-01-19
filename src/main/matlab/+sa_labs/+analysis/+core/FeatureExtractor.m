@@ -1,9 +1,10 @@
 classdef FeatureExtractor < handle
     
     properties
-        nodeManager
+        featureManager
         epochStream
         descriptionMap
+        analysisMode
     end
     
     properties (Constant)
@@ -57,7 +58,7 @@ classdef FeatureExtractor < handle
                 
                 arrayfun(@(node) func(obj, node), nodes)
                 featureKeySet = nodes.getFeatureKey();
-                obj.nodeManager.percolateUp([nodes.id], featureKeySet, featureKeySet);
+                obj.featureManager.copyFeaturesToGroup([nodes.id], featureKeySet, featureKeySet);
             end
         end
         
@@ -77,16 +78,16 @@ classdef FeatureExtractor < handle
         
         function epochs = getEpochs(obj, node)
             
-            if obj.nodeManager.isAnalysisOnline()
+            if obj.analysisMode.isOnline()
                 epochs = obj.epochStream;
                 return
             end
-            % If the epoch Indices are not present in the dataset it will
+            % If the epoch Indices are not present in the EpochGroup it will
             % throw an error
             epochs = obj.epochStream(node.epochIndices);
         end
     end
-    
+        
     methods (Static)
         
         function featureExtractor = create(template)

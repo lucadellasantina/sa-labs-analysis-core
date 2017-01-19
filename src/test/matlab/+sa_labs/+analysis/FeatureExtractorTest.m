@@ -67,9 +67,9 @@ classdef FeatureExtractorTest < matlab.unittest.TestCase
             f = {'@(obj, node) extractor(obj, node, ''param1'', ''value1'', ''param2'', ''value2'')'};
             
             splitParameter = 'testNode';
-            nodes = entity.Node.empty(0, 3);
+            nodes = entity.FeatureGroup.empty(0, 3);
             for i = 1 : 3
-                nodes(i) = entity.Node(splitParameter, i);
+                nodes(i) = entity.FeatureGroup(splitParameter, i);
                 nodes(i).epochIndices = i * [1, 2, 3];
                 nodes(i).id = i;
             end
@@ -77,10 +77,10 @@ classdef FeatureExtractorTest < matlab.unittest.TestCase
             simpleExtractor = sa_labs.test_extractor.SimpleExtractor();
             simpleExtractor.testInstance = obj;
             
-            simpleExtractor.nodeManager = Mock(sa_labs.analysis.core.NodeManager(tree()));
-            simpleExtractor.nodeManager.when.findNodesByName(AnyArgs()).thenReturn(nodes, [1,2,3]);
-            simpleExtractor.nodeManager.when.percolateUp(AnyArgs()).thenReturn([]);
-            simpleExtractor.nodeManager.when.isAnalysisOnline(AnyArgs()).thenReturn(false);
+            simpleExtractor.featureManager = Mock(sa_labs.analysis.core.FeatureTreeManager(tree()));
+            simpleExtractor.featureManager.when.findNodesByName(AnyArgs()).thenReturn(nodes, [1,2,3]);
+            simpleExtractor.featureManager.when.percolateUp(AnyArgs()).thenReturn([]);
+            simpleExtractor.featureManager.when.isAnalysisOnline(AnyArgs()).thenReturn(false);
             
             simpleExtractor.delegate(f, nodes);
             % Look up on test_extractor.SimpleExtractor.extractor for validation logic
@@ -102,12 +102,13 @@ classdef FeatureExtractorTest < matlab.unittest.TestCase
                 epochs(i).responseHandle =  @(a) obj.noise + i;
             end
             
-            node = entity.Node('test', 1);
+            node = entity.FeatureGroup('test', 1);
             node.epochIndices = [1, 5, 7];
             
             obj.extractor.epochStream = @(indices) epochs(node.epochIndices);
-            obj.extractor.nodeManager = Mock(core.NodeManager());
-            obj.extractor.nodeManager.when.isAnalysisOnline(AnyArgs()).thenReturn(false);
+            obj.extractor.analysisMode = core.AnalysisMode.OFFLINE_ANALYSIS;
+            obj.extractor.featureManager = Mock(core.FeatureTreeManager());
+            obj.extractor.featureManager.when.isAnalysisOnline(AnyArgs()).thenReturn(false);
             
             actualResponse = obj.extractor.getBasicFeature(node, 'Amp1');
             obj.verifyEqual(actualResponse, [obj.noise + 1; obj.noise + 5; obj.noise + 7]);
@@ -125,10 +126,11 @@ classdef FeatureExtractorTest < matlab.unittest.TestCase
             cellData.epochs = epochs;
             
             obj.extractor.epochStream = @(indices) cellData.epochs(indices);
-            obj.extractor.nodeManager = Mock(core.NodeManager());
-            obj.extractor.nodeManager.when.isAnalysisOnline(AnyArgs()).thenReturn(false);
+            obj.extractor.featureManager = Mock(core.FeatureTreeManager());
+            obj.extractor.featureManager.when.isAnalysisOnline(AnyArgs()).thenReturn(false);
+            obj.extractor.analysisMode = core.AnalysisMode.OFFLINE_ANALYSIS;
             
-            node = entity.Node('test', 1);
+            node = entity.FeatureGroup('test', 1);
             node.epochIndices = [1, 5, 8];
             
             actualEpochs = obj.extractor.getEpochs(node);
