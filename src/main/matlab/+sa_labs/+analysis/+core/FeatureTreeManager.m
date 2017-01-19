@@ -1,16 +1,16 @@
-classdef NodeManager < handle
+classdef FeatureTreeManager < handle
     
     properties(Access = protected)
         tree
     end
-
+    
     properties(Dependent)
         dataStore
     end
-        
+    
     methods
         
-        function obj = NodeManager(dataStore)
+        function obj = FeatureTreeManager(dataStore)
             if nargin < 1
                 dataStore = tree();
             end
@@ -20,25 +20,25 @@ classdef NodeManager < handle
         function setRootName(obj, name)
             
             import sa_labs.analysis.*;
-            node = entity.Node([], [], name);
+            node = entity.FeatureGroup([], [], name);
             node.id = 1;
             obj.setnode(node.id, node);
         end
         
-        function id = addNode(obj, id, splitParameter, spiltValue, dataSet)
+        function id = addFeatureGroup(obj, id, splitParameter, spiltValue, epochGroup)
             
             import sa_labs.analysis.*;
-            node = entity.Node(splitParameter, spiltValue);
+            node = entity.FeatureGroup(splitParameter, spiltValue);
             
-            if ~ isempty(dataSet)
-                node.dataSet = dataSet;
-                node.epochIndices = dataSet.epochIndices;
+            if ~ isempty(epochGroup)
+                node.epochGroup = epochGroup;
+                node.epochIndices = epochGroup.epochIndices;
             end
             id = obj.addnode(id, node);
             node.id = id;
         end
         
-        function removeNode(obj, id)
+        function removeFeatureGroup(obj, id)
             if ~ isempty(obj.tree.getchildren(id))
                 error('cannot remove ! node has children');
             end
@@ -46,7 +46,7 @@ classdef NodeManager < handle
             obj.updateDataStoreNodeId();
         end
         
-        function percolateUp(obj, nodeIds, varargin)
+        function copyFeaturesToGroup(obj, featureGroupIds, varargin)
             
             if length(varargin) == 2 && iscell(varargin{1}) && iscell(varargin{2})
                 inParameters = varargin{1};
@@ -61,23 +61,23 @@ classdef NodeManager < handle
                 error('Error: parameters must be specified in pairs');
             end
             
-            byNodes = @(in, out) arrayfun(@(nodeId) obj.percolateUpNode(nodeId, in ,out), nodeIds);
+            byNodes = @(in, out) arrayfun(@(nodeId) obj.percolateUpNode(nodeId, in ,out), featureGroupIds);
             arrayfun(@(i) byNodes(inParameters{i}, outParameters{i}), 1 : n);
         end
         
         % TODO move all find functions to visitor
-        function nodes = findNodesByName(obj, name)
+        function nodes = findFeatureGroup(obj, name)
             nodes = [];
             
             if isempty(name)
                 return
             end
             indices = find(obj.getStructure().regexpi(['\w*' name '\w*']).treefun(@any));
-            nodes = obj.getNodes(indices); %#ok
+            nodes = obj.getFeatureGroups(indices); %#ok
         end
         
-        function id = findNodeId(obj, name, nodeId)
-
+        function id = findFeatureGroupId(obj, name, nodeId)
+            
             if nargin < 3 || isempty(nodeId)
                 id = find(obj.getStructure().regexpi(['\w*' name '\w*']).treefun(@any));
                 return;
@@ -89,8 +89,30 @@ classdef NodeManager < handle
             id = arrayfun(@(index) subTree.get(index).id, indices);
         end
         
+        function append(obj, dataStore)
+            obj.tree = obj.tree.graft(1, dataStore);
+            obj.updateDataStoreNodeId();
+        end
+        
+        function tree = getStructure(obj)
+            tree = obj.tree.treefun(@(node) node.name);
+        end
+        
+        function ds = get.dataStore(obj)
+            ds = obj.tree;
+        end
+        
+        function nodes = getFeatureGroups(obj, ids)
+            nodes = arrayfun(@(index) obj.tree.get(index), ids, 'UniformOutput', false);
+            nodes = [nodes{:}];
+        end
+        
+        function tf = isBasicFeatureGroup(obj, nodes)
+            tf = ~ isempty(nodes) && all(ismember([nodes.id], obj.tree.findleaves)) == 1;
+        end
+        
         function nodes = getAllChildrensByName(obj, regexp)
-            nodesByName = obj.findNodesByName(regexp);
+            nodesByName = obj.findFeatureGroup(regexp);
             nodes = [];
             
             for i = 1 : numel(nodesByName)
@@ -102,43 +124,15 @@ classdef NodeManager < handle
         end
         
         function nodes = getImmediateChildrensByName(obj, regexp)
-            nodesByName = obj.findNodesByName(regexp);
+            nodesByName = obj.findFeatureGroup(regexp);
             nodes = [];
             
             for i = 1 : numel(nodesByName)
                 node = nodesByName(i);
                 childrens = obj.tree.getchildren(node.id);
-                childNodes = obj.getNodes(childrens);
+                childNodes = obj.getFeatureGroups(childrens);
                 nodes = [nodes, childNodes]; %#ok
             end
-        end
-        
-        function append(obj, dataStore)
-            obj.tree = obj.tree.graft(1, dataStore);
-            obj.updateDataStoreNodeId();
-        end
-        
-        function tree = getStructure(obj)
-            tree = obj.tree.treefun(@(node) node.name);
-        end
-
-        function ds = get.dataStore(obj)
-            ds = obj.tree;
-        end
-        
-        function nodes = getNodes(obj, ids)
-            nodes = arrayfun(@(index) obj.tree.get(index), ids, 'UniformOutput', false);
-            nodes = [nodes{:}];
-        end
-        
-        function tf = isAnalysisOnline(obj)
-            ROOT_ID = 1;
-            node = obj.tree.getChildern(ROOT_ID);
-            tf = isempty(node.dataSet);
-        end
-
-        function tf = isLeaf(obj, nodes)
-            tf = ~ isempty(nodes) && all(ismember([nodes.id], obj.tree.findleaves)) == 1;
         end
     end
     
@@ -156,7 +150,7 @@ classdef NodeManager < handle
         
         function setnode(obj, parent, node)
             obj.tree = obj.tree.set(parent, node);
-
+            
         end
         
         function id = addnode(obj, id, node)

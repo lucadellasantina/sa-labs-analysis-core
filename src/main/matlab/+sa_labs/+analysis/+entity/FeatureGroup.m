@@ -1,13 +1,13 @@
 classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
     
     properties
-        id                  % Identifier of the node, assigned by NodeManager @see NodeManager.addFeatureGroup
+        id                  % Identifier of the featureGroup, assigned by NodeManager @see NodeManager.addFeatureGroup
         epochGroup          % Read only dataSet and used as cache
     end
     
     properties(SetAccess = immutable)
-        name                % Descriptive name of the node, except root its usually of format [splitParameter = splitValue]
-        splitParameter      % Defines level of node in tree
+        name                % Descriptive name of the featureGroup, except root its usually of format [splitParameter = splitValue]
+        splitParameter      % Defines level of featureGroup in tree
         splitValue          % Defines the branch of tree
     end
     
@@ -128,19 +128,19 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             end
         end
         
-        function update(obj, node, in, out)
+        function update(obj, featureGroup, in, out)
             
-            % Generic code to handle merge from source node to destination
-            % obj(node). It merges following,
+            % Generic code to handle merge from source featureGroup to destination
+            % obj(featureGroup). It merges following,
             %
             %   1. properties
             %   2. Feature
             %   3. parameters 'matlab structure'
             %
             % arguments
-            % node - source node
-            % in  - It may be one of source node property, parameter and feature
-            % out - It may be one of destination obj(node) property, parameter and feature
+            % featureGroup - source featureGroup
+            % in  - It may be one of source featureGroup property, parameter and feature
+            % out - It may be one of destination obj(featureGroup) property, parameter and feature
             
             import sa_labs.analysis.util.collections.*;
             % safe casting
@@ -156,41 +156,41 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
                 error('id:update:prohibited', 'cannot updated instance id');
             end
             
-            % case 1 - node.in and obj.out is present has properties
-            if isprop(obj, out) && isprop(node, in)
+            % case 1 - featureGroup.in and obj.out is present has properties
+            if isprop(obj, out) && isprop(featureGroup, in)
                 old = obj.(out);
-                obj.(out) = addToCell(old, node.(in));
+                obj.(out) = addToCell(old, featureGroup.(in));
                 return
                 
             end
-            % case 2 - node.in is struct parameters & obj.out is class property
+            % case 2 - featureGroup.in is struct parameters & obj.out is class property
             if isprop(obj, out)
                 old = obj.(out);
-                obj.(out) = addToCell(old, node.getParameter(in));
+                obj.(out) = addToCell(old, featureGroup.getParameter(in));
                 return
             end
             
-            % case 3 node.in is class property but obj.out is struct
+            % case 3 featureGroup.in is class property but obj.out is struct
             % parameters
-            if isprop(node, in)
-                obj.appendParameter(out, node.(in));
+            if isprop(featureGroup, in)
+                obj.appendParameter(out, featureGroup.(in));
                 return
             end
             
             % case 4 in == out and its a key of featureMap
-            keys = node.featureMap.keys;
+            keys = featureGroup.featureMap.keys;
             if ismember(in, keys)
                 
                 if ~ strcmp(in, out)
                     error('in:out:mismatch', 'In and out should be same for appending feature map')
                 end
-                obj.appendFeature(node.featureMap(in))
+                obj.appendFeature(featureGroup.featureMap(in))
                 return
             end
             
             % case 5 just append the in to out struct parameters
             % for unknown in parameters, it creates empty out paramters
-            obj.appendParameter(out, node.getParameter(in));
+            obj.appendParameter(out, featureGroup.getParameter(in));
         end
         
         function keySet = getFeatureKey(obj)
