@@ -252,6 +252,7 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
                 for i = 1 : numel(attrKeys)
                     display.(attrKeys{i}) = obj.attributes(attrKeys{i});
                 end
+                
                 groups(1) = display;
                 groups(2) = dataSetKeys;
             catch

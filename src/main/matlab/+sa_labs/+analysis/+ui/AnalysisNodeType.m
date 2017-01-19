@@ -1,24 +1,36 @@
 classdef AnalysisNodeType
-	
-	enumeration
-		FEATURE_GROUPS
-		FEATURE
-	end
-
-	function c = char(obj)
-	    import sa_labs.analysis.ui.AnalysisNodeType;
-	    
-	    switch obj
-	        case AnalysisNodeType.FEATURE_GROUPS
-	            c = 'Feature Groups';
-	        case AnalysisNodeType.FEATURE
-	            c = 'Feature';
-	        otherwise
-	            c = 'Unknown';
-	    end
-	end
-	
-	function tf = isFeaturesFolder(obj)
-	    tf = obj == sa_labs.analysis.ui.AnalysisNodeType.FEATURE_GROUPS;
-	end
+    
+    enumeration
+        ANALYSIS_GROUP
+        FEATURE_GROUP
+        FEATURE
+        SUMMARY
+    end
+    
+    methods
+        function c = char(obj)
+            import sa_labs.analysis.ui.AnalysisNodeType;
+            
+            switch obj
+                case AnalysisNodeType.ANALYSIS_GROUP
+                    c = 'Analysis Group';
+                case AnalysisNodeType.FEATURE_GROUP
+                    c = 'Feature Group';
+                case AnalysisNodeType.FEATURE
+                    c = 'Feature';
+                case AnalysisNodeType.SUMMARY
+                    c = 'Summary';
+                otherwise
+                    c = 'Unknown';
+            end
+        end
+        
+        function tf = isFeaturesFolder(obj)
+            tf = obj == sa_labs.analysis.ui.AnalysisNodeType.FEATURE_GROUP;
+        end
+        
+        function tf = isAnalysisFolder(obj)
+            tf = obj == sa_labs.analysis.ui.AnalysisNodeType.ANALYSIS_GROUP;
+        end
+    end
 end

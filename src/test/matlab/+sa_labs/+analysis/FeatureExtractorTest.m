@@ -109,7 +109,7 @@ classdef FeatureExtractorTest < matlab.unittest.TestCase
             obj.extractor.nodeManager = Mock(core.NodeManager());
             obj.extractor.nodeManager.when.isAnalysisOnline(AnyArgs()).thenReturn(false);
             
-            actualResponse = obj.extractor.getResponse(node, 'Amp1');
+            actualResponse = obj.extractor.getBasicFeature(node, 'Amp1');
             obj.verifyEqual(actualResponse, [obj.noise + 1; obj.noise + 5; obj.noise + 7]);
         end
         

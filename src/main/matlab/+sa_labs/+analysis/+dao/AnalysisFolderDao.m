@@ -57,6 +57,8 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             fclose(fid);
         end
         
+        function saveAnalysisResults(obj, template, results)
+        end
     end
     
 end

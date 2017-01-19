@@ -61,7 +61,7 @@ classdef FeatureExtractor < handle
             end
         end
         
-        function response = getResponse(obj, node, stream)
+        function response = getBasicFeature(obj, node, stream)
             
             epochs = obj.getEpochs(node);
             n = numel(epochs);

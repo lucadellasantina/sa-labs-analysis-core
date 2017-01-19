@@ -6,6 +6,7 @@ classdef AnalysisDao < handle
         findCellNames(obj, regexp)
         findCell(obj, cellName)
         createProject(obj, project)
+        saveAnalysisResults(obj, template, results)
     end
     
 end
