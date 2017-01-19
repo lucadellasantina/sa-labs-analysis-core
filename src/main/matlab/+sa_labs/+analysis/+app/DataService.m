@@ -1,16 +1,14 @@
-classdef AnalysisDataService < handle & mdepin.Bean
-    
-    events
-    end
+classdef DataService < handle & mdepin.Bean
     
     properties
         analysisDao
         preferenceDao
+        analysis
     end
     
     methods
         
-        function obj = AnalysisDataService(config)
+        function obj = DataService(config)
             obj = obj@mdepin.Bean(config);
         end
         
@@ -57,22 +55,6 @@ classdef AnalysisDataService < handle & mdepin.Bean
                 cellData = fun(cellData);
             end
             obj.analysisDao.saveCellData(cellData);
-        end
-        
-        
-        function result = doOfflineAnalysis(obj, request)
-            
-            analysis = sa_labs.analysis.core.OfflineAnalysis(request.description, request.cellData);
-            templates = request.getTemplates();
-            
-            for i = 1 : numel(templates)
-                template = templates(i);
-                analysis.init(template);
-                t = analysis.service();
-                obj.analysisDao.saveTree(t, template);
-                analysis.collect();
-            end
-            result = analysis.getResult();
         end
     end
     
