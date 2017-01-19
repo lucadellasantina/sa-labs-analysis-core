@@ -1,17 +1,41 @@
-%% Mock object for presenters
+%% mock objects
+if exist('v', 'var')
+    v.close();
+end
+close all;
+clear all;
+
+clc;
+
 import sa_labs.analysis.*;
-config = Mock(mdepin.StructConfig());
-mockService = Mock(app.AnalysisDataService(config));
 
-presets = app.Presets.getDefault();
-session = app.Session(presets, mockService);
-project = entity.Project();
-project.createExperimentFilesType({'060716c1', '060716c2', '060716c3'});
+features = sa_labs.common.spike.features.SpikeTimeFeature.empty(0, 6);
+props = containers.Map();
+props('id') = 'response';
+props('properties') = 'endOffset = 0, baseLineEnd = 0';
+description = sa_labs.analysis.entity.FeatureDescription(props);
 
-%% Test project presenter
-mockService.when.initializeProject(AnyArgs()).thenReturn([]);
-mockService.when.createEmptyProject(AnyArgs()).thenReturn(project);
-mockService.when.createProject(AnyArgs()).thenReturn([]);
+epochParameters = struct('preTime', 500, 'stimTime', 1000, 'tailTime', 1000, 'responseLength', 25000, 'sampleRate', 10000);
+noise = randn(1, 25000);
 
-presenter = ui.presenters.ProjectsPresenter(session);
-presenter.goWaitStop();
+f1 = entity.Feature(description, noise);
+f1.id = 'epoch (1)';
+f2 = entity.Feature(description, noise);
+f2.id = 'epoch (2)';
+f3 = entity.Feature(description, noise);
+f3.id = 'epoch (3)';
+f4 = entity.Feature(description, noise);
+f4.id = 'epoch (4)';
+
+groupOne = Mock(entity.FeatureGroup('rstar', '0.01'));
+groupOne.when.getFeature(AnyArgs())...
+    .thenReturn([f1, f2, f3, f4]);
+
+%% testing view
+
+v = ui.AnalysisManagerView();
+v.show();
+v.getAnalysisGroupsNodes().Name = 'Light step';
+groupNode = v.addFeatureGroupNode(v.getAnalysisGroupsNodes, groupOne.name , groupOne);
+arrayfun(@(f) v.addFeatureNode(groupNode, f.id, f), groupOne.getFeature(description.id), 'UniformOutput', false);
+

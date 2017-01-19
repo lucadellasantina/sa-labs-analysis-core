@@ -8,26 +8,22 @@ classdef AnalaysisManagerPresenter < appbox.Presenter
     properties (Access = private)
         log
         settings
-        documentationService
+        dataService
         acquisitionService
-        configurationService
-        detailedEntitySet
         uuidToNode
     end
 
     methods
 
-        function obj = AnalaysisManagerPresenter(documentationService, acquisitionService, configurationService, view)
+        function obj = AnalaysisManagerPresenter(analysisManager, view)
             if nargin < 4
-                view = symphonyui.ui.views.DataManagerView();
+                view = sa_labs.analysis.ui.AnalaysisManagerView();
             end
             obj = obj@appbox.Presenter(view);
 
             obj.log = log4m.LogManager.getLogger(class(obj));
-            obj.settings = symphonyui.ui.settings.DataManagerSettings();
-            obj.documentationService = documentationService;
-            obj.acquisitionService = acquisitionService;
-            obj.configurationService = configurationService;
+            obj.settings = sa_labs.analysis.AnalysisManagerSettings();
+            obj.dataService = analysisManager.dataService;
             obj.detailedEntitySet = symphonyui.core.persistent.collections.EntitySet();
             obj.uuidToNode = containers.Map();
         end

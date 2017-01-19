@@ -7,9 +7,6 @@
 [submodule "lib/yamlmatlab"]
 	path = lib/yamlmatlab
 	url = https://github.com/ewiger/yamlmatlab.git
-[submodule "lib/MatlabQuery"]
-	path = lib/MatlabQuery
-	url = https://github.com/ragavsathish/MatlabQuery.git
 [submodule "lib/test/mmockito"]
 	path = lib/test/mmockito
 	url = https://github.com/ragavsathish/mmockito.git
