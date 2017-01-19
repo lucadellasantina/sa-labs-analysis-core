@@ -64,12 +64,12 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
                 
                 analysis.setEpochSource(epoch)
                 t = analysis.service();
-                node = core.NodeManager(t).findNodesByName(['stimTime==' num2str(stimTime)]);
+                node = core.FeatureTreeManager(t).findFeatureGroup(['stimTime==' num2str(stimTime)]);
                 obj.verifyEqual(analysis.nodeIdMap('stimTime'), node.id);
             end
             tree = analysis.getResult();
             expectedNumberOfNodes = tree.nnodes;
-            nodes = core.NodeManager(tree).getImmediateChildrensByName('stimTime==500');
+            nodes = core.FeatureTreeManager(tree).getImmediateChildrensByName('stimTime==500');
             expected = tree.findleaves();
             
             disp('analysis tree')

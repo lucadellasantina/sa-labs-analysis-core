@@ -27,7 +27,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
     
     methods (Access = protected)
         
-        function buildTree(obj)
+        function build(obj)
             obj.nodeIdMap = containers.Map();
 
             epochParameters = obj.epochStream.parameters;
@@ -44,7 +44,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
                 
                 % possible bottle neck if nodes are > 100,000 on first
                 % pause
-                id = obj.nodeManager.findNodeId(name, obj.nodeId);
+                id = obj.featureManager.findFeatureGroupId(name, obj.nodeId);
                 if isempty(id)
                     present = false;
                     break;
@@ -54,25 +54,25 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
             end
             
             if ~ present
-                obj.buildBranches(obj.splitParameters(depth : end));
+                obj.add(obj.splitParameters(depth : end));
             end
         end
         
-        function p = getSplitParameters(obj)
+        function p = getFilterParameters(obj)
             p = obj.splitParameters;
         end
         
-        function node = getNodes(obj, parameter)
+        function node = getFeatureGroups(obj, parameter)
             id = obj.nodeIdMap(parameter);
-            node = obj.nodeManager.getNodes(id);
+            node = obj.featureManager.getFeatureGroups(id);
             % disp([' [INFO] id ' num2str(id) ' parameter ' parameter]);
         end
 
-        function updateEpochParameters(obj, nodes)
+        function copyEpochParameters(obj, nodes)
             keySet = obj.epochStream.parameters.keys;
             
-            if ~ obj.nodeManager.isLeaf(nodes)
-                obj.nodeManager.percolateUp([nodes.id], keySet, keySet);
+            if ~ obj.featureManager.isBasicFeatureGroup(nodes)
+                obj.featureManager.copyFeaturesToGroup([nodes.id], keySet, keySet);
                 return
             end
 
@@ -99,14 +99,14 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
             end
         end
         
-        function buildBranches(obj, parameters)
-            EMPTY_DATASET = [];
+        function add(obj, parameters)
+            EMPTY_EpochGroup = [];
             epochParameters = obj.epochStream.parameters;
             
             for i = 1 : numel(parameters)
                 splitBy = parameters{i};
                 splitValue = epochParameters(splitBy);
-                obj.nodeId = obj.nodeManager.addNode(obj.nodeId, splitBy, splitValue, EMPTY_DATASET);
+                obj.nodeId = obj.featureManager.addFeatureGroup(obj.nodeId, splitBy, splitValue, EMPTY_EpochGroup);
                 
                 % update node map
                 obj.nodeIdMap(splitBy) = obj.nodeId;

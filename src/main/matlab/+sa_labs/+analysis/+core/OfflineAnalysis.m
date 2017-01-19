@@ -13,7 +13,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         
         function obj = OfflineAnalysis()
             obj@sa_labs.analysis.core.Analysis();
-            obj.resultManager = sa_labs.analysis.core.NodeManager();
+            obj.resultManager = sa_labs.analysis.core.FeatureTreeManager();
             obj.resultManager.setRootName('result');
         end
 
@@ -29,7 +29,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         
         function collect(obj, dataStores)
             if nargin < 2
-                dataStores = obj.nodeManager.dataStore;
+                dataStores = obj.featureManager.dataStore;
             end
             arrayfun(@(ds) obj.resultManager.append(ds), dataStores);
         end
@@ -41,48 +41,48 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
     
     methods (Access = protected)
         
-        function buildTree(obj)
+        function build(obj)
             
             for pathIndex = 1 : obj.analysisTemplate.numberOfPaths()
                 
-                dataSet = sa_labs.analysis.entity.DataSet(1 : numel(obj.cellData.epochs), 'root');
+                epochGroup = sa_labs.analysis.entity.EpochGroup(1 : numel(obj.cellData.epochs), 'root');
                 parameters = obj.analysisTemplate.getSplitParametersByPath(pathIndex);
-                obj.buildBranches(obj.DEFAULT_ROOT_ID, dataSet, parameters);
+                obj.add(obj.DEFAULT_ROOT_ID, epochGroup, parameters);
             end
         end
         
-        function p = getSplitParameters(obj)
+        function p = getFilterParameters(obj)
             p = obj.analysisTemplate.getSplitParameters();
         end
         
-        function nodes = getNodes(obj, parameter)
-            nodes = obj.nodeManager.findNodesByName(parameter);
+        function featureGroups = getFeatureGroups(obj, parameter)
+            featureGroups = obj.featureManager.findFeatureGroup(parameter);
         end
         
-        function updateEpochParameters(obj, nodes)
+        function copyEpochParameters(obj, featureGroups)
             
-            if obj.nodeManager.isLeaf(nodes)
-                obj.setEpochParameters(nodes);
+            if obj.featureManager.isBasicFeatureGroup(featureGroups)
+                obj.setEpochParameters(featureGroups);
             end
-            keySet = obj.cellData.getEpochKeysetUnion([nodes.epochIndices]);
+            keySet = obj.cellData.getEpochKeysetUnion([featureGroups.epochIndices]);
 
             if isempty(keySet)
                 disp('[WARN] keyset is empty, cannot percolate up epoch parameters');
                 return
             end
-            obj.nodeManager.percolateUp([nodes.id], keySet, keySet);
+            obj.featureManager.copyFeaturesToGroup([featureGroups.id], keySet, keySet);
         end
     end
     
     methods (Access = private)
         
-        function buildBranches(obj, parentId, dataSet, params)
+        function add(obj, parentId, epochGroup, params)
             splitBy = params{1};
-            [epochValueMap, filter] = obj.cellData.getEpochValuesMap(splitBy, dataSet.epochIndices);
+            [epochValueMap, filter] = obj.cellData.getEpochValuesMap(splitBy, epochGroup.epochIndices);
             splitValues = obj.analysisTemplate.validateSplitValues(splitBy, epochValueMap.keys);
             
             if isempty(splitValues) && length(params) > 1
-                obj.nodeManager.removeNode(parentId);
+                obj.featureManager.removeFeatureGroup(parentId);
             end
             
             for i = 1 : length(splitValues)
@@ -93,26 +93,26 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                     continue
                 end
                 
-                dataSet = sa_labs.analysis.entity.DataSet(epochIndices, filter, splitValue);
-                if ~ isempty(dataSet)
-                    id = obj.nodeManager.addNode(parentId, splitBy, splitValue, dataSet);
+                epochGroup = sa_labs.analysis.entity.EpochGroup(epochIndices, filter, splitValue);
+                if ~ isempty(epochGroup)
+                    id = obj.featureManager.addFeatureGroup(parentId, splitBy, splitValue, epochGroup);
                 end
                 
                 if length(params) > 1
-                    obj.buildBranches(id, dataSet, params(2 : end));
+                    obj.add(id, epochGroup, params(2 : end));
                 end
             end
         end
         
-        function setEpochParameters(obj, nodes)
-            for i = 1 : numel(nodes)
-                [p, v] = obj.cellData.getUniqueParamValues(nodes(i).epochIndices);
+        function setEpochParameters(obj, featureGroups)
+            for i = 1 : numel(featureGroups)
+                [p, v] = obj.cellData.getUniqueParamValues(featureGroups(i).epochIndices);
                 
                 if isempty(p)
-                    disp(['[WARN] no epoch parameter found for given node ' num2str(nodes(i).id)]);
+                    disp(['[WARN] no epoch parameter found for given node ' num2str(featureGroups(i).id)]);
                     continue;
                 end
-                nodes(i).setParameters(containers.Map(p, v));
+                featureGroups(i).setParameters(containers.Map(p, v));
             end
         end
     end

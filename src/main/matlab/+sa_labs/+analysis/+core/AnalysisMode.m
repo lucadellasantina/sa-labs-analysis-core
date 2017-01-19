@@ -6,6 +6,7 @@ classdef AnalysisMode
     end
     
     methods
+        
         function tf = isOnline(obj)
             tf = obj == sa_labs.analysis.core.AnalysisMode.ONLINE_ANALYSIS;
         end
