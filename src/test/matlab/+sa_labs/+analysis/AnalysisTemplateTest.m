@@ -26,7 +26,7 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
         function testProperties(obj)
             template = sa_labs.analysis.core.AnalysisTemplate(obj.lightStepStructure);
             obj.verifyEqual(template.copyParameters, {'ndf', 'etc'});
-            obj.verifyEqual(template.getSplitParameters(), {'dataSet', 'deviceStream', 'grpEpochs', 'rstarMean', 'epochId'});
+            obj.verifyEqual(template.getSplitParameters(), {'EpochGroup', 'deviceStream', 'grpEpochs', 'rstarMean', 'epochId'});
         end
         
         function testTemplateTree(obj)
@@ -49,7 +49,7 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
             template = sa_labs.analysis.core.AnalysisTemplate(obj.lightStepStructure);
             obj.verifyEmpty(template.getSplitValue('unkown'));
             
-            values = template.validateSplitValues('dataSet', 'empty');
+            values = template.validateSplitValues('EpochGroup', 'empty');
             obj.verifyEqual(values, {'empty'});
             
             values = template.validateSplitValues('deviceStream', 'Amplifier_ch1');

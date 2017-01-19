@@ -8,13 +8,13 @@ copyParameters :
   - etc
 
 buildTreeBy : 
-  - dataSet
+  - EpochGroup
   - deviceStream
   - grpEpochs
   - rstarMean
   - epochId
 
-dataSet :   
+EpochGroup :   
   featureExtractor : 
     - mergeTrees
 
