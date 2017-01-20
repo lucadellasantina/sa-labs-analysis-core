@@ -1,4 +1,4 @@
-classdef AnalaysisManager < handle
+classdef AnalaysisManager < sa_labs.analysis.core.FigureHandlerManager
     
     events
         AnalysisStopped
@@ -8,16 +8,23 @@ classdef AnalaysisManager < handle
         dataService
         onlineAnalysisState
     end
+
+    properties (Access = private)
+        onlineAnalysis
+        offlineAnalysis
+    end 
     
     methods
         
         function obj = AnalaysisManager(dataService)
             obj.dataService = dataService;
+            obj.offlineAnalysis = sa_labs.analysis.core.OfflineAnalysis();
+            obj.onlineAnalysis = sa_labs.analysis.core.OnlineAnalysis();
         end
         
         function result = doOfflineAnalysis(obj, request)
             
-            analysis = sa_labs.analysis.core.OfflineAnalysis();
+            analysis = obj.offlineAnalysis;
             templates = request.getTemplates();
             
             for i = 1 : numel(templates)
@@ -30,8 +37,8 @@ classdef AnalaysisManager < handle
             result = analysis.getResult();
         end
         
-        function result = doOnlineAnalysis(obj, request)
-            analysis = sa_labs.analysis.core.OnlineAnalysis();
+        function result = beginOnlineAnalysis(obj, request)
+            analysis = obj.OnlineAnalysis;
             templates = request.getTemplates();
             
             for i = 1 : numel(templates)
@@ -39,10 +46,19 @@ classdef AnalaysisManager < handle
                 if obj.onlineAnalysisState == AnalysisState.NOT_STARTED
                     analysis.init(template);
                 end
-                analysis.service();
             end
             
             obj.onlineAnalysisState = AnalysisState.STARTED;
+        end
+        
+        function updateFigures(obj, epochOrInterval)
+            analysis = obj.OnlineAnalysis;
+            analysis.setEpochSource(epochOrInterval);
+            analysis.service();
+
+            for i = 1:numel(obj.figureHandlers)
+                obj.figureHandlers{i}.handleEpochOrInterval(analysis.nodeId, analysis.featureManager);
+            end
         end
     end
 end

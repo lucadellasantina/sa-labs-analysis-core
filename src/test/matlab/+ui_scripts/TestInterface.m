@@ -9,7 +9,6 @@ clc;
 
 import sa_labs.analysis.*;
 
-features = sa_labs.common.spike.features.SpikeTimeFeature.empty(0, 6);
 props = containers.Map();
 props('id') = 'response';
 props('properties') = 'endOffset = 0, baseLineEnd = 0';
