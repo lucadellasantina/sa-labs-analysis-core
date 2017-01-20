@@ -25,7 +25,7 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             epoch = struct();
             parameterKey = {'preTime', 'stimTime', 'tailTime', 'chan1', 'rstar'};
             
-            template = core.AnalysisTemplate(structure);
+            template = core.AnalysisProtocol(structure);
             analysis = core.OnlineAnalysis();
             analysis.init(template)
             
@@ -116,7 +116,7 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             s.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
             s.buildTreeBy = {'protocol', 'textureAngle, barAngle, curSpotSize', 'RstarMean'};
             
-            template = core.AnalysisTemplate(s);
+            template = core.AnalysisProtocol(s);
             analysis = core.OnlineAnalysis();
             analysis.init(template)
             

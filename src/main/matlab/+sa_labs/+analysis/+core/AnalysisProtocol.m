@@ -1,6 +1,6 @@
-classdef AnalysisTemplate < handle
+classdef AnalysisProtocol < handle
     
-    % AnalysisTemplate contains information about split parameters, split
+    % AnalysisProtocol contains information about split parameters, split
     % values and extractor functions at the specified tree level
     
     properties (Access = private)
@@ -18,7 +18,7 @@ classdef AnalysisTemplate < handle
     
     methods
         
-        function obj = AnalysisTemplate(structure)
+        function obj = AnalysisProtocol(structure)
             obj.structure = structure;
             obj.populateFunctionContext();
             obj.makeTree();

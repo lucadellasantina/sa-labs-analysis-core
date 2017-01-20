@@ -1,7 +1,7 @@
 classdef OfflineAnalysisTest < matlab.unittest.TestCase
 
     properties
-        simpleAnalysisTemplate
+        simpleAnalysisProtocol
     end
 
     methods (TestClassSetup)
@@ -11,7 +11,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             structure.type = 'test-analysis';
             structure.buildTreeBy = {'EpochGroup', 'deviceStream'};
             structure.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
-            obj.simpleAnalysisTemplate = structure;
+            obj.simpleAnalysisProtocol = structure;
         end
     end
     
@@ -30,7 +30,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'});
 
             % Tree with two level - analysis
-            tree = obj.testAnalyze(obj.simpleAnalysisTemplate, mockedCellData);
+            tree = obj.testAnalyze(obj.simpleAnalysisProtocol, mockedCellData);
             actual = tree.treefun(@(node) node.name);
             
             expected = {'test-analysis'; 'EpochGroup==LightStep_20'; 'deviceStream==Amplifier_Ch1'};
@@ -64,7 +64,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
 
             mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'});
 
-            tree = obj.testAnalyze(obj.simpleAnalysisTemplate, mockedCellData);
+            tree = obj.testAnalyze(obj.simpleAnalysisProtocol, mockedCellData);
             actual = tree.treefun(@(node) node.name);
             
             expected = {'test-analysis'; 'EpochGroup==LightStep_20'; 'deviceStream==Amplifier_Ch1'; 'EpochGroup==LightStep_500'; 'deviceStream==Amplifier_Ch1'};
@@ -105,7 +105,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 .thenReturn(paramterNames)...
                 .thenReturn(paramterNames);
 
-            tree = obj.testAnalyze(obj.simpleAnalysisTemplate, mockedCellData);
+            tree = obj.testAnalyze(obj.simpleAnalysisProtocol, mockedCellData);
             actual = tree.treefun(@(node) node.name);
             
             expected = {'test-analysis'; 'EpochGroup==LightStep_20'; 'deviceStream==Amplifier_Ch1';'deviceStream==Amplifier_Ch2';...
@@ -250,7 +250,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             mockedCellData.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
             mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
             
-            template = core.AnalysisTemplate(s);
+            template = core.AnalysisProtocol(s);
             offlineAnalysis = core.OfflineAnalysis();
             offlineAnalysis.init(template, mockedCellData);
             offlineAnalysis.service();
@@ -296,7 +296,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
         function tree = testAnalyze(obj, structure, mockedCellData)
                 import sa_labs.analysis.*;
                 
-                template = core.AnalysisTemplate(structure);
+                template = core.AnalysisProtocol(structure);
                 offlineAnalysis = core.OfflineAnalysis();
                 offlineAnalysis.init(template, mockedCellData)
                 tree = offlineAnalysis.service();

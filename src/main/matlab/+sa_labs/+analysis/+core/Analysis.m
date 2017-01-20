@@ -11,28 +11,29 @@ classdef Analysis < handle
     end
     
     properties (Dependent)
-        analysisTemplate
+        analysisProtocol
     end
     
     methods
         
         function obj = Analysis()
             obj.featureManager = sa_labs.analysis.core.FeatureTreeManager();
+
         end
         
-        function init(obj, analysisTemplate)
-            obj.featureManager.setRootName(analysisTemplate.type);
-            obj.templateCache = analysisTemplate;
+        function init(obj, analysisProtocol)
+            obj.featureManager.setRootName(analysisProtocol.type);
+            obj.templateCache = analysisProtocol;
             
-            obj.extractor = sa_labs.analysis.core.FeatureExtractor.create(analysisTemplate);
-            obj.extractor.loadFeatureDescription(analysisTemplate.featureDescriptionFile);
+            obj.extractor = sa_labs.analysis.core.FeatureExtractor.create(analysisProtocol);
+            obj.extractor.loadFeatureDescription(analysisProtocol.featureDescriptionFile);
             obj.extractor.featureManager = obj.featureManager;
         end
         
         function ds = service(obj)
             
             if isempty(obj.templateCache)
-                error('analysisTemplate is not initiliazed');
+                error('analysisProtocol is not initiliazed');
             end
             obj.build();
             obj.extractFeatures();
@@ -47,7 +48,7 @@ classdef Analysis < handle
             r = obj.featureManager.dataStore;
         end
         
-        function template = get.analysisTemplate(obj)
+        function template = get.analysisProtocol(obj)
             template = obj.templateCache;
         end
     end
@@ -59,7 +60,7 @@ classdef Analysis < handle
             
             for i = numel(parameters) : -1 : 1
                 parameter = parameters{i};
-                functions = obj.analysisTemplate.getExtractorFunctions(parameter);
+                functions = obj.analysisProtocol.getExtractorFunctions(parameter);
                 nodes = obj.getFeatureGroups(parameter);
                 
                 if ~ isempty(nodes)

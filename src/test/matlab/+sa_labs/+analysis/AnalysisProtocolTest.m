@@ -1,4 +1,4 @@
-classdef AnalysisTemplateTest < matlab.unittest.TestCase
+classdef AnalysisProtocolTest < matlab.unittest.TestCase
     
     properties
         lightStepStructure
@@ -6,7 +6,7 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
     end
     
     methods
-        function obj = AnalysisTemplateTest()
+        function obj = AnalysisProtocolTest()
             fname = which('analysis.yaml');
             obj.lightStepStructure = yaml.ReadYaml(fname);
             fname = which('standard-analysis.yaml');
@@ -17,14 +17,14 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
     methods(Test)
         
         function testGetExtractorFunctions(obj)
-            template = sa_labs.analysis.core.AnalysisTemplate(obj.lightStepStructure);
+            template = sa_labs.analysis.core.AnalysisProtocol(obj.lightStepStructure);
             expected = {'MeanExtractor', 'spikeAmplitudeExtractor'};
             obj.verifyEqual(template.getExtractorFunctions('rstarMean'), expected);
             obj.verifyEmpty(template.getExtractorFunctions('unknown'));
         end
         
         function testProperties(obj)
-            template = sa_labs.analysis.core.AnalysisTemplate(obj.lightStepStructure);
+            template = sa_labs.analysis.core.AnalysisProtocol(obj.lightStepStructure);
             obj.verifyEqual(template.copyParameters, {'ndf', 'etc'});
             obj.verifyEqual(template.getSplitParameters(), {'EpochGroup', 'deviceStream', 'grpEpochs', 'rstarMean', 'epochId'});
         end
@@ -35,7 +35,7 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
             template.buildTreeBy = {'a', 'b, c, d', 'e, f', 'g, h, i'};
             template.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
             
-            t = sa_labs.analysis.core.AnalysisTemplate(template);
+            t = sa_labs.analysis.core.AnalysisProtocol(template);
             disp('Template tree for visual validation');
             t.displayTemplate();
             obj.verifyEqual(t.numberOfPaths(), 18);
@@ -46,7 +46,7 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
         end
         
         function testValidateSplitValues(obj)
-            template = sa_labs.analysis.core.AnalysisTemplate(obj.lightStepStructure);
+            template = sa_labs.analysis.core.AnalysisProtocol(obj.lightStepStructure);
             obj.verifyEmpty(template.getSplitValue('unkown'));
             
             values = template.validateSplitValues('EpochGroup', 'empty');
@@ -85,7 +85,7 @@ classdef AnalysisTemplateTest < matlab.unittest.TestCase
         function validateStandardAnalysis(obj)
             import sa_labs.analysis.*;
             
-            template = core.AnalysisTemplate(obj.standardAnalysis);
+            template = core.AnalysisProtocol(obj.standardAnalysis);
             
             [p, v] = template.getSplitParameters();
             obj.verifyEqual(p, {'displayName', 'textureAngle', 'RstarMean', 'barAngle', 'curSpotSize'});

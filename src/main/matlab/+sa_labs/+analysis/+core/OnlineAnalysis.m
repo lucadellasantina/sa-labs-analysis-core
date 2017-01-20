@@ -90,8 +90,8 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
             p = [];
             epochParameters = obj.epochStream.parameters;
             
-            for pathIndex = 1 : obj.analysisTemplate.numberOfPaths()
-                parameters = obj.analysisTemplate.getSplitParametersByPath(pathIndex);
+            for pathIndex = 1 : obj.analysisProtocol.numberOfPaths()
+                parameters = obj.analysisProtocol.getSplitParametersByPath(pathIndex);
                 if all(ismember(parameters, epochParameters.keys))
                     p = parameters;
                     break;
