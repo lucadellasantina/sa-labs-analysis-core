@@ -1,9 +1,10 @@
 classdef CellData < handle & matlab.mixin.CustomDisplay
     
     properties
+        identifier                          % cell identifier
         attributes                          % Map for attributes from data file (h5group root attributes + Nepochs)
         epochs                              % Array of sa_labs.analysis.core.entity.EpochData
-        savedEpochGroups                       % Saved Data Sets
+        savedEpochGroups                    % Saved Data Sets
         epochGroups                         % TODO
         tags                                % TODO
         savedFileName = ''                  % Current H5 file name without extension

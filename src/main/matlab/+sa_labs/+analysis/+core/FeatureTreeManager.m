@@ -165,7 +165,15 @@ classdef FeatureTreeManager < handle
                 end
             end
         end
+    end
+
+    methods (Static)
         
+        function resultManager = create(dataStores)
+            resultManager = sa_labs.analysis.core.FeatureTreeManager();
+            resultManager.setRootName('result');
+            arrayfun(@(ds) resultManager.append(ds), dataStores);
+        end
     end
 end
 

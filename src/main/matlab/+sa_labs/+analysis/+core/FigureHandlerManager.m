@@ -1,5 +1,6 @@
 classdef FigureHandlerManager < handle
     % A FigureHandlerManager manages figure handlers for a protocol.
+    % from https://github.com/Symphony-DAS/symphony-matlab
     
     properties (Access = private)
         log

@@ -254,39 +254,39 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             offlineAnalysis = core.OfflineAnalysis(struct('cellData', mockedCellData));
             offlineAnalysis.init(template);
             offlineAnalysis.service();
-            offlineAnalysis.collect();
-            tree = offlineAnalysis.getResult();
+            result = offlineAnalysis.getResult();
+            result = core.FeatureTreeManager.create(result).dataStore;
             disp('analysis tree')
-            tree.treefun(@(node) node.name).tostring()
+            result.treefun(@(node) node.name).tostring()
             
-            leafs = tree.findleaves();
+            leafs = result.findleaves();
             
-            obj.verifyEqual(tree.get(leafs(1)).epochIndices, rstarMeanDriftingTextureAngle10(0.1));
-            obj.verifyEqual(tree.get(leafs(2)).epochIndices, rstarMeanDriftingTextureAngle10(0.2));
+            obj.verifyEqual(result.get(leafs(1)).epochIndices, rstarMeanDriftingTextureAngle10(0.1));
+            obj.verifyEqual(result.get(leafs(2)).epochIndices, rstarMeanDriftingTextureAngle10(0.2));
             
-            obj.verifyEqual(tree.get(leafs(3)).epochIndices, rstarMeanDriftingTextureAngle20(0.1));
-            obj.verifyEqual(tree.get(leafs(4)).epochIndices, rstarMeanDriftingTextureAngle20(0.2));
+            obj.verifyEqual(result.get(leafs(3)).epochIndices, rstarMeanDriftingTextureAngle20(0.1));
+            obj.verifyEqual(result.get(leafs(4)).epochIndices, rstarMeanDriftingTextureAngle20(0.2));
             
-            obj.verifyEqual(tree.get(leafs(5)).epochIndices, rstarMeanDriftingTextureAngle30(0.1));
-            obj.verifyEqual(tree.get(leafs(6)).epochIndices, rstarMeanDriftingTextureAngle30(0.2));
+            obj.verifyEqual(result.get(leafs(5)).epochIndices, rstarMeanDriftingTextureAngle30(0.1));
+            obj.verifyEqual(result.get(leafs(6)).epochIndices, rstarMeanDriftingTextureAngle30(0.2));
             
-            obj.verifyEqual(tree.get(leafs(7)).epochIndices, rstarMeanDriftingGratingAngle10(0.5));
-            obj.verifyEqual(tree.get(leafs(8)).epochIndices, rstarMeanDriftingGratingAngle10(0.6));
+            obj.verifyEqual(result.get(leafs(7)).epochIndices, rstarMeanDriftingGratingAngle10(0.5));
+            obj.verifyEqual(result.get(leafs(8)).epochIndices, rstarMeanDriftingGratingAngle10(0.6));
             
-            obj.verifyEqual(tree.get(leafs(9)).epochIndices, rstarMeanDriftingGratingAngle20(0.5));
-            obj.verifyEqual(tree.get(leafs(10)).epochIndices, rstarMeanDriftingGratingAngle20(0.6));
+            obj.verifyEqual(result.get(leafs(9)).epochIndices, rstarMeanDriftingGratingAngle20(0.5));
+            obj.verifyEqual(result.get(leafs(10)).epochIndices, rstarMeanDriftingGratingAngle20(0.6));
             
-            obj.verifyEqual(tree.get(leafs(11)).epochIndices, rstarMeanDriftingGratingAngle30(0.5));
-            obj.verifyEqual(tree.get(leafs(12)).epochIndices, rstarMeanDriftingGratingAngle30(0.6));
+            obj.verifyEqual(result.get(leafs(11)).epochIndices, rstarMeanDriftingGratingAngle30(0.5));
+            obj.verifyEqual(result.get(leafs(12)).epochIndices, rstarMeanDriftingGratingAngle30(0.6));
             
-            obj.verifyEqual(tree.get(leafs(13)).epochIndices, rstarMeanBarAngle10(0.1));
-            obj.verifyEqual(tree.get(leafs(14)).epochIndices, rstarMeanBarAngle10(0.2));
+            obj.verifyEqual(result.get(leafs(13)).epochIndices, rstarMeanBarAngle10(0.1));
+            obj.verifyEqual(result.get(leafs(14)).epochIndices, rstarMeanBarAngle10(0.2));
             
-            obj.verifyEqual(tree.get(leafs(15)).epochIndices, rstarMeanBarAngle20(0.1));
-            obj.verifyEqual(tree.get(leafs(16)).epochIndices, rstarMeanBarAngle20(0.2));
+            obj.verifyEqual(result.get(leafs(15)).epochIndices, rstarMeanBarAngle20(0.1));
+            obj.verifyEqual(result.get(leafs(16)).epochIndices, rstarMeanBarAngle20(0.2));
             
-            obj.verifyEqual(tree.get(leafs(17)).epochIndices, rstarMeanBarAngle30(0.1));
-            obj.verifyEqual(tree.get(leafs(18)).epochIndices, rstarMeanBarAngle30(0.2));
+            obj.verifyEqual(result.get(leafs(17)).epochIndices, rstarMeanBarAngle30(0.1));
+            obj.verifyEqual(result.get(leafs(18)).epochIndices, rstarMeanBarAngle30(0.2));
             
         end
     end

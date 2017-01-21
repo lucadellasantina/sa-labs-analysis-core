@@ -24,7 +24,7 @@ classdef Analysis < handle
         
         function obj = Analysis(project)
             obj.featureManager = sa_labs.analysis.core.FeatureTreeManager();
-            obj.state == sa_labs.analysis.app.AnalysisState.NOT_STARTED;
+            obj.state = sa_labs.analysis.app.AnalysisState.NOT_STARTED;
             obj.project = project;
         end
         
@@ -46,11 +46,11 @@ classdef Analysis < handle
                 error('analysisProtocol is not initiliazed');
             end
 
-            obj.state == sa_labs.analysis.app.AnalysisState.STARTED;
+            obj.state = sa_labs.analysis.app.AnalysisState.STARTED;
             obj.build();
             obj.extractFeatures();
             ds = obj.featureManager.dataStore;
-            obj.state == sa_labs.analysis.app.AnalysisState.COMPLETED;
+            obj.state = sa_labs.analysis.app.AnalysisState.COMPLETED;
         end
         
         function destroy(obj)

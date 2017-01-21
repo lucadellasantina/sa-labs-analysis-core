@@ -7,6 +7,7 @@ classdef FigureHandler < handle
     %   1. Subclass FigureHandler
     %   2. Implement a constructor method to build the figure ui
     %   3. Implement the handleEpoch method to update the figure when epochs complete
+    % from https://github.com/Symphony-DAS/symphony-matlab
     
     events (NotifyAccess = private)
         Closed  % Triggers when the handler is closed

@@ -1,4 +1,5 @@
 classdef FigureHandlerSettings < appbox.Settings
+    % from https://github.com/Symphony-DAS/symphony-matlab
     
     properties
         figurePosition

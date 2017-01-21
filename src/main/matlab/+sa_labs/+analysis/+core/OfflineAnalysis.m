@@ -1,7 +1,6 @@
 classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
     
     properties (Access = private)
-        resultManager
     end
 
     properties
@@ -16,33 +15,22 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         
         function obj = OfflineAnalysis(project)
             obj@sa_labs.analysis.core.Analysis(project);
-            obj.resultManager = sa_labs.analysis.core.FeatureTreeManager();
-            obj.resultManager.setRootName('result');
         end
 
         function init(obj, analysisProtocol)
             init@sa_labs.analysis.core.Analysis(obj, analysisProtocol);
             obj.extractor.epochStream = @(indices) obj.project.cellData.epochs(indices);
         end
-        
-        function collect(obj, dataStores)
-            if nargin < 2
-                dataStores = obj.featureManager.dataStore;
-            end
-            arrayfun(@(ds) obj.resultManager.append(ds), dataStores);
-        end
-        
-        function r = getResult(obj)
-            r = obj.resultManager.dataStore;
-        end
     end
     
     methods (Access = protected)
         
         function build(obj)
+            cellData = obj.project.cellData;
+
             for pathIndex = 1 : obj.analysisProtocol.numberOfPaths()
-                numberOfEpochs = numel(obj.project.cellData.epochs);
-                epochGroup = sa_labs.analysis.entity.EpochGroup(1 : numberOfEpochs, 'root');
+                numberOfEpochs = numel(cellData.epochs);
+                epochGroup = sa_labs.analysis.entity.EpochGroup(1 : numberOfEpochs, cellData.identifier);
                 parameters = obj.analysisProtocol.getSplitParametersByPath(pathIndex);
                 obj.add(obj.DEFAULT_ROOT_ID, epochGroup, parameters);
             end
