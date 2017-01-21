@@ -8,17 +8,21 @@ classdef Analysis < handle
     
     properties (Access = private)
         templateCache
+        state
     end
     
     properties (Dependent)
         analysisProtocol
+    end
+
+    properties(Abstract)
+        mode
     end
     
     methods
         
         function obj = Analysis()
             obj.featureManager = sa_labs.analysis.core.FeatureTreeManager();
-
         end
         
         function init(obj, analysisProtocol)
@@ -28,6 +32,7 @@ classdef Analysis < handle
             obj.extractor = sa_labs.analysis.core.FeatureExtractor.create(analysisProtocol);
             obj.extractor.loadFeatureDescription(analysisProtocol.featureDescriptionFile);
             obj.extractor.featureManager = obj.featureManager;
+            obj.extractor.analysisMode = obj.mode;
         end
         
         function ds = service(obj)

@@ -62,6 +62,9 @@ classdef FigureHandler < handle
         function handleEpoch(obj, epoch) %#ok<INUSD>
             
         end
+
+        function handleFeature(obj, featureManager) %#ok<INUSD>
+        end
         
         function show(obj)
             figure(obj.figureHandle);

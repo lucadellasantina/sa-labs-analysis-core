@@ -41,7 +41,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             cellData = result.cellData;
         end
         
-        function projectFolder = createProject(obj, project)
+        function projectFolder = createProject(obj, experimentFiles)
             cellNames = project.experimentFiles;
             today = obj.repository.dateFormat(now);
             

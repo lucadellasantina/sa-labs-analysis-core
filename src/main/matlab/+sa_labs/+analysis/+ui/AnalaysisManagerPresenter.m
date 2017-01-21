@@ -8,7 +8,7 @@ classdef AnalaysisManagerPresenter < appbox.Presenter
         log
         settings
         dataService
-        acquisitionService
+        featureManager
         uuidToNode
     end
     

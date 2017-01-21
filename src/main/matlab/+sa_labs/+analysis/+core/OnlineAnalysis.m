@@ -9,6 +9,10 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
     properties (SetAccess = private)
         nodeIdMap
     end
+
+    properties
+        mode = sa_labs.analysis.core.AnalysisMode.ONLINE_ANALYSIS;
+    end
     
     methods
         

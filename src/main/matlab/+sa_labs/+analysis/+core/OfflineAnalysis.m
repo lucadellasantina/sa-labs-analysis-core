@@ -4,6 +4,10 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         cellData
         resultManager
     end
+
+    properties
+        mode = sa_labs.analysis.core.AnalysisMode.OFFLINE_ANALYSIS;
+    end
     
     properties (Constant)
         DEFAULT_ROOT_ID = 1;
