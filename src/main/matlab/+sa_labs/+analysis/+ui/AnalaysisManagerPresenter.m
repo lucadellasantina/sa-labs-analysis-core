@@ -23,6 +23,7 @@ classdef AnalaysisManagerPresenter < appbox.Presenter
             obj.log = log4m.LogManager.getLogger(class(obj));
             obj.settings = sa_labs.analysis.AnalysisManagerSettings();
             obj.dataService = analysisManager.dataService;
+            featureManager = analysisManager.getFeatureManager();
             obj.detailedEntitySet = symphonyui.core.persistent.collections.EntitySet();
             obj.uuidToNode = containers.Map();
         end

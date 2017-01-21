@@ -7,6 +7,7 @@ function test(package)
     
     addpath(genpath(fullfile(rootPath, 'lib')));
     addpath(genpath(fullfile(rootPath, 'src')));
+    addpath(genpath(fullfile(rootPath, 'apps')));
     
     suite = matlab.unittest.TestSuite.fromPackage(package, 'IncludingSubpackages', true);
     results = run(suite);

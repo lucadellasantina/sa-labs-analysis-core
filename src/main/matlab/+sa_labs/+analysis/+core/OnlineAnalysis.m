@@ -16,14 +16,12 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
     
     methods
         
-        function obj = OnlineAnalysis()
-            obj@sa_labs.analysis.core.Analysis();
+        function obj = OnlineAnalysis(project)
+            obj@sa_labs.analysis.core.Analysis(project);
         end
         
         function setEpochSource(obj, epoch)
-            if nargin < 2
-                return
-            end
+            obj.state = sa_labs.analysis.app.AnalysisState.PROCESSING_STREAMS;
             obj.epochStream = epoch;
             obj.extractor.epochStream = epoch;
         end

@@ -4,11 +4,12 @@ classdef Analysis < handle
         functionContext
         featureManager
         extractor
+        state
     end
     
-    properties (Access = private)
+    properties (SetAccess = private)
         templateCache
-        state
+        project
     end
     
     properties (Dependent)
@@ -21,8 +22,10 @@ classdef Analysis < handle
     
     methods
         
-        function obj = Analysis()
+        function obj = Analysis(project)
             obj.featureManager = sa_labs.analysis.core.FeatureTreeManager();
+            obj.state == sa_labs.analysis.app.AnalysisState.NOT_STARTED;
+            obj.project = project;
         end
         
         function init(obj, analysisProtocol)
@@ -33,6 +36,8 @@ classdef Analysis < handle
             obj.extractor.loadFeatureDescription(analysisProtocol.featureDescriptionFile);
             obj.extractor.featureManager = obj.featureManager;
             obj.extractor.analysisMode = obj.mode;
+
+            obj.state = sa_labs.analysis.app.AnalysisState.INITIALIZED;
         end
         
         function ds = service(obj)
@@ -40,9 +45,12 @@ classdef Analysis < handle
             if isempty(obj.templateCache)
                 error('analysisProtocol is not initiliazed');
             end
+
+            obj.state == sa_labs.analysis.app.AnalysisState.STARTED;
             obj.build();
             obj.extractFeatures();
             ds = obj.featureManager.dataStore;
+            obj.state == sa_labs.analysis.app.AnalysisState.COMPLETED;
         end
         
         function destroy(obj)
@@ -55,6 +63,9 @@ classdef Analysis < handle
         
         function template = get.analysisProtocol(obj)
             template = obj.templateCache;
+        end
+
+        function setEpochSource(obj)
         end
     end
     
@@ -82,9 +93,4 @@ classdef Analysis < handle
         getFilterParameters(obj)
         getFeatureGroups(obj, parameter)
     end
-    
-    methods (Abstract)
-        setEpochSource(obj)
-    end
-    
 end

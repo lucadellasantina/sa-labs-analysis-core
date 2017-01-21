@@ -26,7 +26,7 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             parameterKey = {'preTime', 'stimTime', 'tailTime', 'chan1', 'rstar'};
             
             template = core.AnalysisProtocol(structure);
-            analysis = core.OnlineAnalysis();
+            analysis = core.OnlineAnalysis(struct());
             analysis.init(template)
             
             for i = 1 : 10
@@ -117,7 +117,7 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             s.buildTreeBy = {'protocol', 'textureAngle, barAngle, curSpotSize', 'RstarMean'};
             
             template = core.AnalysisProtocol(s);
-            analysis = core.OnlineAnalysis();
+            analysis = core.OnlineAnalysis(struct());
             analysis.init(template)
             
             parameterKey1 = {'protocol', 'textureAngle', 'RstarMean'};
