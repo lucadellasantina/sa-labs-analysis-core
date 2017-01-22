@@ -32,13 +32,13 @@ classdef OnlineAnalaysisManager < sa_labs.analysis.core.FigureHandlerManager
         end
 
         function onServiceEndedEpochGroup(obj, ~, ~)
-            obj.recordingLabel = '';
+            obj.recordingLabel = [];
         end
             
-        function addOnlineAnalysis(obj)
+        function createNewAnalysis(obj)
             import sa_labs.analysis.*;
             
-            if isempty(obj.recordingLabel)
+            if ~ obj.isVaildRecordingLabel()
                 obj.recordingLabel = char(datetime);
             end
             protocols = obj.analysisQueue.getActiveProtocols();
@@ -56,26 +56,32 @@ classdef OnlineAnalaysisManager < sa_labs.analysis.core.FigureHandlerManager
 
             for i = 1:numel(obj.figureHandlers)
                 obj.figureHandlers{i}.handleEpochOrInterval(epochOrInterval);
+                %TODO handle feature manager
                 obj.figureHandlers{i}.handleFeature(obj.analysis.featureManager);
             end
         end
+
+        function tf = isVaildRecordingLabel(obj)
+            tf = ~ isempty(obj.recordingLabel) && any(strmatch(obj.recordingLabel, obj.analysisMap.keys));
+        end  
     end
 
     methods (Access = private)
 
         function updateAnalysis(obj, epochSource)
             
-            if isempty(obj.recordingLabel)
-               obj.addOnlineAnalysis();
+            if ~ obj.isVaildRecordingLabel(obj.recordingLabel)
+               obj.createNewAnalysis();
             end
+            type = obj.analysisQueue.getActiveProtocolsType()
             identifiers = strcat(type, obj.recordingLabel);
             keys = obj.analysisMap.keys;
 
-            for i = find(ismember(keys, identifiers));
+            for i = find(ismember(keys, identifiers))
                 analysis = obj.analysisContext(keys{i});
                 analysis.setEpochSource(epochSource);
                 analysis.service();
             end
-        end  
+        end
     end
 end
