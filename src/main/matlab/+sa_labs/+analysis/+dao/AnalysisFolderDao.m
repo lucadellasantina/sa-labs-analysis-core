@@ -57,7 +57,11 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             fclose(fid);
         end
         
-        function saveAnalysisResults(obj, template, results)
+        function saveAnalysisResult(obj, cellName, protocol, result)
+        end
+
+        function result = findAnalysisResult(obj, regexp)
+            result = [];
         end
     end
     

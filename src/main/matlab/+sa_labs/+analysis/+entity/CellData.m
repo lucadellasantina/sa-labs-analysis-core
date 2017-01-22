@@ -1,7 +1,7 @@
 classdef CellData < handle & matlab.mixin.CustomDisplay
     
     properties
-        identifier                          % cell identifier
+        recordingLabel                      % recording cluster label
         attributes                          % Map for attributes from data file (h5group root attributes + Nepochs)
         epochs                              % Array of sa_labs.analysis.core.entity.EpochData
         savedEpochGroups                    % Saved Data Sets

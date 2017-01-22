@@ -2,11 +2,10 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
 	
 	properties
 		identifier
-		cellData
+		cellDataMap
 		name
 		date
 		performedBy
-		resultStore
 	end
-	
+
 end

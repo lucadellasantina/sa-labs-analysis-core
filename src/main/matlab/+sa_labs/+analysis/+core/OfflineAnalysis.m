@@ -1,6 +1,7 @@
 classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
     
     properties (Access = private)
+        cellData
     end
 
     properties
@@ -13,24 +14,24 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
     
     methods
         
-        function obj = OfflineAnalysis(project)
-            obj@sa_labs.analysis.core.Analysis(project);
+        function obj = OfflineAnalysis(analysisProtocol, recordingLabel)
+            obj@sa_labs.analysis.core.Analysis(analysisProtocol, recordingLabel);
         end
 
-        function init(obj, analysisProtocol)
-            init@sa_labs.analysis.core.Analysis(obj, analysisProtocol);
-            obj.extractor.epochStream = @(indices) obj.project.cellData.epochs(indices);
+        function setEpochSource(obj, cellData)
+            obj.cellData = cellData;
+            obj.extractor.epochStream = @(indices) obj.cellData.epochs(indices);
         end
     end
     
     methods (Access = protected)
         
         function build(obj)
-            cellData = obj.project.cellData;
+            data = obj.cellData;
 
             for pathIndex = 1 : obj.analysisProtocol.numberOfPaths()
-                numberOfEpochs = numel(cellData.epochs);
-                epochGroup = sa_labs.analysis.entity.EpochGroup(1 : numberOfEpochs, cellData.identifier);
+                numberOfEpochs = numel(data.epochs);
+                epochGroup = sa_labs.analysis.entity.EpochGroup(1 : numberOfEpochs, data.identifier);
                 parameters = obj.analysisProtocol.getSplitParametersByPath(pathIndex);
                 obj.add(obj.DEFAULT_ROOT_ID, epochGroup, parameters);
             end
@@ -49,7 +50,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             if obj.featureManager.isBasicFeatureGroup(featureGroups)
                 obj.setEpochParameters(featureGroups);
             end
-            keySet = obj.project.cellData.getEpochKeysetUnion([featureGroups.epochIndices]);
+            keySet = obj.cellData.getEpochKeysetUnion([featureGroups.epochIndices]);
 
             if isempty(keySet)
                 disp('[WARN] keyset is empty, cannot percolate up epoch parameters');
@@ -63,9 +64,9 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         
         function add(obj, parentId, epochGroup, params)
             splitBy = params{1};
-            cellData = obj.project.cellData;
+            data = obj.cellData;
 
-            [epochValueMap, filter] = cellData.getEpochValuesMap(splitBy, epochGroup.epochIndices);
+            [epochValueMap, filter] = data.getEpochValuesMap(splitBy, epochGroup.epochIndices);
             splitValues = obj.analysisProtocol.validateSplitValues(splitBy, epochValueMap.keys);
             
             if isempty(splitValues) && length(params) > 1
@@ -92,10 +93,10 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         end
         
         function setEpochParameters(obj, featureGroups)
-            cellData = obj.project.cellData;
+            data = obj.cellData;
             
             for i = 1 : numel(featureGroups)
-                [p, v] = cellData.getUniqueParamValues(featureGroups(i).epochIndices);
+                [p, v] = data.getUniqueParamValues(featureGroups(i).epochIndices);
                 
                 if isempty(p)
                     disp(['[WARN] no epoch parameter found for given node ' num2str(featureGroups(i).id)]);

@@ -1,18 +1,14 @@
 classdef Analysis < handle
     
     properties (SetAccess = protected)
+        identifier
         functionContext
         featureManager
         extractor
         state
     end
     
-    properties (SetAccess = private)
-        templateCache
-        project
-    end
-    
-    properties (Dependent)
+    properties
         analysisProtocol
     end
 
@@ -22,50 +18,29 @@ classdef Analysis < handle
     
     methods
         
-        function obj = Analysis(project)
-            obj.featureManager = sa_labs.analysis.core.FeatureTreeManager();
-            obj.state = sa_labs.analysis.app.AnalysisState.NOT_STARTED;
-            obj.project = project;
+        function obj = Analysis(analysisProtocol, recordingLabel)
+            obj.identifier = strcat(analysisProtocol.type, '-', recordingLabel);
+            obj.analysisProtocol = analysisProtocol;
+            obj.init();
         end
-        
-        function init(obj, analysisProtocol)
-            obj.featureManager.setRootName(analysisProtocol.type);
-            obj.templateCache = analysisProtocol;
-            
-            obj.extractor = sa_labs.analysis.core.FeatureExtractor.create(analysisProtocol);
-            obj.extractor.loadFeatureDescription(analysisProtocol.featureDescriptionFile);
-            obj.extractor.featureManager = obj.featureManager;
-            obj.extractor.analysisMode = obj.mode;
 
-            obj.state = sa_labs.analysis.app.AnalysisState.INITIALIZED;
-        end
-        
-        function ds = service(obj)
+        function service(obj)
             
-            if isempty(obj.templateCache)
-                error('analysisProtocol is not initiliazed');
+            if isempty(obj.analysisProtocol)
+                error('analysisProtocol is empty'); %TODO replace with exception
             end
-
             obj.state = sa_labs.analysis.app.AnalysisState.STARTED;
             obj.build();
             obj.extractFeatures();
-            ds = obj.featureManager.dataStore;
             obj.state = sa_labs.analysis.app.AnalysisState.COMPLETED;
-        end
-        
-        function destroy(obj)
-            obj.templateCache = [];
         end
         
         function r = getResult(obj)
             r = obj.featureManager.dataStore;
         end
-        
-        function template = get.analysisProtocol(obj)
-            template = obj.templateCache;
-        end
 
-        function setEpochSource(obj)
+        function setEpochSource(obj, source) %#ok
+            % will be overriden in the subclass
         end
     end
     
@@ -92,5 +67,24 @@ classdef Analysis < handle
         copyEpochParameters(obj, nodes)
         getFilterParameters(obj)
         getFeatureGroups(obj, parameter)
+    end
+
+    methods (Access = private)
+
+        function init(obj)
+            import sa_labs.analysis.*;
+            protocol = obj.analysisProtocol;
+            obj.state = app.AnalysisState.NOT_STARTED;
+            
+            obj.featureManager = core.FeatureTreeManager();
+            obj.featureManager.setRootName(protocol.type);
+
+            obj.extractor = core.FeatureExtractor.create(protocol);
+            obj.extractor.loadFeatureDescription(protocol.featureDescriptionFile);
+            obj.extractor.featureManager = obj.featureManager;
+            obj.extractor.analysisMode = obj.mode;
+
+            obj.state = app.AnalysisState.INITIALIZED;
+        end
     end
 end

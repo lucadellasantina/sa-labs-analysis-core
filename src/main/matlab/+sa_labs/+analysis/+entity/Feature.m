@@ -5,7 +5,6 @@ classdef Feature < handle & matlab.mixin.Heterogeneous
     end
     
     properties
-        id
         data
     end
     

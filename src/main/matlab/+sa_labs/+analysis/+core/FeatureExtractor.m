@@ -62,16 +62,16 @@ classdef FeatureExtractor < handle
             end
         end
         
-        function response = getBasicFeature(obj, node, stream)
+        function response = getBasicFeature(obj, node, device)
             
             epochs = obj.getEpochs(node);
             n = numel(epochs);
-            data = epochs(1).getResponse(stream);
+            data = epochs(1).getResponse(device);
             response = zeros(n, numel(data));
             
             response(1, :) = data;
             for i = 2 : n
-                data = epochs(i).getResponse(stream);
+                data = epochs(i).getResponse(device);
                 response(i, :) = data;
             end
         end

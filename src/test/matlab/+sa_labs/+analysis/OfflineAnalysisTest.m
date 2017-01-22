@@ -250,9 +250,9 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             mockedCellData.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
             mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
             
-            template = core.AnalysisProtocol(s);
-            offlineAnalysis = core.OfflineAnalysis(struct('cellData', mockedCellData));
-            offlineAnalysis.init(template);
+            analysisProtocol = core.AnalysisProtocol(s);
+            offlineAnalysis = core.OfflineAnalysis(analysisProtocol, 'identifier');
+            offlineAnalysis.setEpochSource(mockedCellData);
             offlineAnalysis.service();
             result = offlineAnalysis.getResult();
             result = core.FeatureTreeManager.create(result).dataStore;
@@ -293,17 +293,16 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
     
     methods
 
-        function tree = testAnalyze(obj, structure, mockedCellData)
+        function t = testAnalyze(obj, structure, mockedCellData)
                 import sa_labs.analysis.*;
-                project = struct();
-                project.cellData = mockedCellData;
                 
                 protocol = core.AnalysisProtocol(structure);
-                offlineAnalysis = core.OfflineAnalysis(project);
-                offlineAnalysis.init(protocol)
-                tree = offlineAnalysis.service();
+                offlineAnalysis = core.OfflineAnalysis(protocol, 'identifier');
+                offlineAnalysis.setEpochSource(mockedCellData);
+                offlineAnalysis.service();
+                t = offlineAnalysis.getResult();
                 disp('analysis tree')
-                tree.treefun(@(node) node.name).tostring()
+                t.treefun(@(node) node.name).tostring()
             end
     end
 end

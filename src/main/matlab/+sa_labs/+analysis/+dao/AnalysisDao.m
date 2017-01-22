@@ -5,8 +5,10 @@ classdef AnalysisDao < handle
         saveCell(obj, cellData)
         findCellNames(obj, regexp)
         findCell(obj, cellName)
+
         createProject(obj, project)
-        saveAnalysisResults(obj, template, results)
+        saveAnalysisResult(obj, cellName, protocol, result)
+        findAnalysisResult(obj, regexp)
     end
     
 end

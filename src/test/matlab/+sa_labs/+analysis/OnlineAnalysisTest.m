@@ -25,15 +25,14 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             epoch = struct();
             parameterKey = {'preTime', 'stimTime', 'tailTime', 'chan1', 'rstar'};
             
-            template = core.AnalysisProtocol(structure);
-            analysis = core.OnlineAnalysis(struct());
-            analysis.init(template)
+            analysisProtocol = core.AnalysisProtocol(structure);
+            analysis = core.OnlineAnalysis(analysisProtocol, 'identifier');
             
             for i = 1 : 10
                 epoch.parameters = containers.Map(parameterKey, {300, 20, 500, 'Amp1', i * 100});
                 analysis.setEpochSource(epoch)
-                tree = analysis.service();
-                
+                analysis.service();
+                tree = analysis.getResult();
                 obj.verifyEqual(analysis.nodeIdMap('stimTime'), 2);
                 obj.verifyEqual(analysis.nodeIdMap('rstar'), 2 + i);
                 obj.verifyEqual(tree.nnodes, 2 + i);
@@ -63,7 +62,8 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
                 epoch.parameters = containers.Map(parameterKey, {300, stimTime, 500, 'Amp1', i * 100});
                 
                 analysis.setEpochSource(epoch)
-                t = analysis.service();
+                analysis.service();
+                t = analysis.getResult();
                 node = core.FeatureTreeManager(t).findFeatureGroup(['stimTime==' num2str(stimTime)]);
                 obj.verifyEqual(analysis.nodeIdMap('stimTime'), node.id);
             end
@@ -83,14 +83,16 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             % in analysis template
             epoch.parameters = containers.Map({'param1', 'param2'}, {300, 500});
             analysis.setEpochSource(epoch)
-            t = analysis.service();
+            analysis.service();
+            t = analysis.getResult();
             obj.verifyEqual(t.nnodes, expectedNumberOfNodes);
             
             % alternate case - 2 if any of the epoch parameter is present
             % in analysis template
             epoch.parameters = containers.Map({'stimTime', 'param2'}, {300, 500});
             analysis.setEpochSource(epoch)
-            t = analysis.service();
+            analysis.service();
+            t = analysis.getResult();
             obj.verifyEqual(t.nnodes, expectedNumberOfNodes);
         end
         
@@ -116,9 +118,8 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             s.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
             s.buildTreeBy = {'protocol', 'textureAngle, barAngle, curSpotSize', 'RstarMean'};
             
-            template = core.AnalysisProtocol(s);
-            analysis = core.OnlineAnalysis(struct());
-            analysis.init(template)
+            analysisProtocol = core.AnalysisProtocol(s);
+            analysis = core.OnlineAnalysis(analysisProtocol, 'identifier');
             
             parameterKey1 = {'protocol', 'textureAngle', 'RstarMean'};
             parameterKey2 = {'protocol', 'textureAngle', 'RstarMean'};
@@ -160,7 +161,8 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
                 for i = 1 : epochsInEachProtocol
                     epoch.parameters = containers.Map(k, valueSetHandle(i));
                     analysis.setEpochSource(epoch)
-                    t = analysis.service();
+                    analysis.service();
+                    t = analysis.getResult();
                     %logTree()
                     %pause(1);
                 end

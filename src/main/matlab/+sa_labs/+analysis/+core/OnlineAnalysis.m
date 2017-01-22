@@ -16,8 +16,8 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
     
     methods
         
-        function obj = OnlineAnalysis(project)
-            obj@sa_labs.analysis.core.Analysis(project);
+        function obj = OnlineAnalysis(analysisProtocol, recordingLabel)
+            obj@sa_labs.analysis.core.Analysis(analysisProtocol, recordingLabel);
         end
         
         function setEpochSource(obj, epoch)
