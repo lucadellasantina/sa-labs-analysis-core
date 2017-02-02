@@ -7,6 +7,7 @@ classdef FeatureDescription < dynamicprops
         unit
         chartType
         xAxis
+        samplingRate
     end
     
     methods

@@ -102,13 +102,13 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
         end
         
         function add(obj, parameters)
-            EMPTY_EpochGroup = [];
+            EMPTY_EPOCH_INDEX = [];
             epochParameters = obj.epochStream.parameters;
             
             for i = 1 : numel(parameters)
                 splitBy = parameters{i};
                 splitValue = epochParameters(splitBy);
-                obj.nodeId = obj.featureManager.addFeatureGroup(obj.nodeId, splitBy, splitValue, EMPTY_EpochGroup);
+                obj.nodeId = obj.featureManager.addFeatureGroup(obj.nodeId, splitBy, splitValue, EMPTY_EPOCH_INDEX);
                 
                 % update node map
                 obj.nodeIdMap(splitBy) = obj.nodeId;
