@@ -1,12 +1,12 @@
 classdef AnalysisDao < handle
     
     methods(Abstract)
+        saveProject(obj, project)
+        findProjects(obj, identifier)
         findRawDataFiles(obj, regexp)
         saveCell(obj, cellData)
-        findCellNames(obj, regexp)
         findCell(obj, cellName)
-
-        createProject(obj, project)
+        findCellNames(obj, regexp)
         saveAnalysisResult(obj, cellName, protocol, result)
         findAnalysisResult(obj, regexp)
     end

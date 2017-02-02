@@ -23,14 +23,14 @@ classdef DaoTest < matlab.unittest.TestCase
             repository.preferenceFolder = [fixture filesep 'PreferenceFiles'];
             repository.analysisFolder = [fixture filesep 'analysis'];
             repository.rawDataFolder = [fixture filesep 'rawDataFolder'];
-       
+            
             util.file.overWrite(repository.analysisFolder);
             util.file.overWrite(repository.rawDataFolder);
             util.file.overWrite([repository.analysisFolder filesep 'cellData']);
-
+            
             obj.testCellDatas = entity.CellData.empty(10, 0);
             obj.cellNames = cell(obj.NO_OF_FILES, 1);
-
+            
             for i = 1 : obj.NO_OF_FILES
                 name = [datestr(now, 'mmddyy') obj.FILE_PREFIX num2str(i)];
                 path = [repository.rawDataFolder filesep  name '.h5'];
@@ -46,7 +46,7 @@ classdef DaoTest < matlab.unittest.TestCase
     end
     
     methods(Test)
-      
+        
         % Test for Analysis Dao
         
         function testFindRawDataFiles(obj)
@@ -72,15 +72,51 @@ classdef DaoTest < matlab.unittest.TestCase
             end
         end
         
-        function testCreateProject(obj)
-             import sa_labs.analysis.*;
-             project = struct();
-             project.experimentFiles = obj.cellNames;
-             
-             dao = obj.beanFactory.getBean('analysisDao');
-             folder = dao.createProject(project);
-             text = importdata([folder filesep 'cellNames.txt'],'\n');
-             obj.verifyEqual(obj.cellNames, text);
+        function testSaveProject(obj)
+            import sa_labs.analysis.*;
+            expected = struct('identifier', 'test-project-1',...
+                'description', 'matlab-unit-test',...
+                'date', datestr(now, 'dd.mm.yyyy'),...
+                'performedBy', 'Sathish');
+            expected.cellDataNames = obj.cellNames(1 : end -1)';
+            project = entity.AnalysisProject(expected);
+            dao = obj.beanFactory.getBean('analysisDao');
+            project = dao.saveProject(project);
+            obj.verifyNotEmpty(project.file);
+            
+            expected.cellDataNames = obj.cellNames';
+            project = entity.AnalysisProject(expected);
+            project = dao.saveProject(project);
+            obj.verifyNotEmpty(project.file);
+        end
+        
+        function testFindProject(obj)
+            import sa_labs.analysis.*;
+            expected = struct('identifier', 'test-project-1',...
+                'description', 'matlab-unit-test',...
+                'date', datestr(now, 'dd.mm.yyyy'),...
+                'performedBy', 'Sathish');
+            expected.cellDataNames = obj.cellNames';
+            dao = obj.beanFactory.getBean('analysisDao');
+            project = dao.findProjects('test-project-1');
+            attributes = fields(expected);
+            validate(project, attributes);
+            
+            expected.identifier = 'test-project-2';
+            project = entity.AnalysisProject(expected);
+            dao.saveProject(project);
+            projects = dao.findProjects({'test-project-1', 'test-project-2'});
+            obj.verifyEqual({projects.identifier}, {'test-project-1', 'test-project-2'});
+            
+            handle = @()dao.findProjects('unknow');
+            obj.verifyError(handle, app.Exceptions.NO_PROJECT.msgId);
+            
+            function validate(project, attributes)
+                for j = 1 : numel(attributes)
+                    attr = attributes{j};
+                    obj.verifyEqual(project.(attr), expected.(attr));
+                end
+            end
         end
         
         function testFindCellNames(obj)
@@ -104,8 +140,8 @@ classdef DaoTest < matlab.unittest.TestCase
     
     methods(Test)
         
-         % Test for fileRepository and preferenceDao
-         
+        % Test for fileRepository and preferenceDao
+        
         function testFileRepositorySettings(obj)
             % TODO verify folder exisits
             rep = obj.beanFactory.getBean('fileRepository');

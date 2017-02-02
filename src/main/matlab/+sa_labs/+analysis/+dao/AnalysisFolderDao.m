@@ -10,8 +10,43 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             obj = obj@mdepin.Bean(config);
         end
         
-        function fnames = findRawDataFiles(obj, date)
+        function project = saveProject(obj, project)
             
+            projectFile = [obj.repository.analysisFolder filesep 'Projects'...
+                filesep project.identifier filesep];
+            
+            sa_labs.analysis.util.file.overWrite(projectFile);
+            projectStruct = struct();
+            attributes = properties(project);
+            
+            for i = 1 : numel(attributes)
+                attr = attributes{i};
+                projectStruct.(attr) = project.(attr);
+            end
+            file = [projectFile 'project.yaml'];
+            yaml.WriteYaml(file, projectStruct, 1);
+            project.file = file;
+        end
+        
+        function projects = findProjects(obj, identifier)
+            import sa_labs.analysis.*
+            
+            path = [obj.repository.analysisFolder filesep 'Projects' filesep];
+            info = dir(path);
+            index = find(ismember({info.name}, identifier));
+            
+            if isempty(index)
+                throw(app.Exceptions.NO_PROJECT.create());
+            end
+            
+            projects = entity.AnalysisProject.empty(0, numel(index));
+            for i = 1 : numel(index)
+                projects(i) = entity.AnalysisProject(yaml.ReadYaml([path info(index(i)).name filesep 'project.yaml']));
+            end
+            
+        end
+        
+        function fnames = findRawDataFiles(obj, date)
             try
                 date = obj.repository.dateFormat(date);
                 
@@ -41,25 +76,9 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             cellData = result.cellData;
         end
         
-        function projectFolder = createProject(obj, project)
-            cellNames = project.experimentFiles;
-            today = obj.repository.dateFormat(now);
-            
-            projectFolder = [obj.repository.analysisFolder filesep 'Projects' filesep today '_temp'];
-            sa_labs.analysis.util.file.overWrite(projectFolder);
-            
-            fid = fopen([projectFolder filesep 'cellNames.txt'], 'w');
-            for i = 1 : length(cellNames)
-                if ~ isempty(cellNames{i})
-                    fprintf(fid, '%s\n', cellNames{i});
-                end
-            end
-            fclose(fid);
-        end
-        
         function saveAnalysisResult(obj, cellName, protocol, result)
         end
-
+        
         function result = findAnalysisResult(obj, regexp)
             result = [];
         end
