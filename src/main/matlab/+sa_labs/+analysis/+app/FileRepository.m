@@ -11,9 +11,19 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
     
     methods
         
-         function obj = FileRepository(config)
+        function obj = FileRepository(config)
             obj = obj@mdepin.Bean(config);
-        end 
+            
+            if ~ exist(obj.analysisFolder, 'dir')
+                mkdir(obj.analysisFolder)
+            end
+            if ~ exist(obj.rawDataFolder, 'dir')
+                mkdir(obj.rawDataFolder)
+            end
+            if ~ exist(obj.preferenceFolder, 'dir')
+                mkdir(obj.preferenceFolder)
+            end
+        end
         
         function f = get.startupFile(obj)
             f = obj.get('startupFile', '');
@@ -60,7 +70,7 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
             obj.put('preferenceFolder', f);
         end
         
-         function f = get.dateFormat(obj)
+        function f = get.dateFormat(obj)
             f = obj.get('dateFormat', @(date)datestr(date, 'mmddyy'));
         end
         

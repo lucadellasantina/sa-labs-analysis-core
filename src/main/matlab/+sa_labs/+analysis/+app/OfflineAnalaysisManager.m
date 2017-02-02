@@ -14,24 +14,28 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
         function cellData = parseSymphonyFiles(obj, date)
             files = obj.analysisDao.findRawDataFiles(date);
             
+            if isempty(files)
+                error('h5 file not found'); %TODO replace it with exception
+            end
+            
             for i = 1 : numel(files)
                 parser = sa_labs.analysis.parser.getInstance(files{i});
                 cellData = parser.parse().getResult();
-                obj.analysisDao.saveCellData(cellData);
+                obj.analysisDao.saveCell(cellData);
             end
         end
         
-        function createProject(obj, date)
+        function createProject(obj, project)
             import sa_labs.analysis.constants.*;
             
             dao = obj.analysisDao;
-            names = dao.findCellNames(date);
+            names = dao.findCellNames(project.cellDataNames);
             
             if isempty(names)
-                obj.parseSymphonyFiles(date);
+                cellData = obj.parseSymphonyFiles(project.experimentDate);
             end
-            names = obj.preferenceDao.mergeCellNames(names);
-            dao.createProject(names);
+            project.addCellData(cellData.savedFileName, cellData);
+            dao.saveProject(project);
         end
         
         function project = initializeProject(obj, name)

@@ -47,12 +47,14 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         end
         
         function fnames = findRawDataFiles(obj, date)
-            try
-                date = obj.repository.dateFormat(date);
-                
-            catch exception
-                disp(exception.message);
-                date = [];
+            
+            if ~ ischar(date)
+                try
+                    date = obj.repository.dateFormat(date);
+                catch exception
+                    disp(exception.message);
+                    date = [];
+                end
             end
             path = [obj.repository.rawDataFolder filesep];
             info = dir([path date '*.h5']);
@@ -61,10 +63,17 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         
         function saveCell(obj, cellData)
             dir = [obj.repository.analysisFolder filesep 'cellData' filesep];
+            if ~ exist(dir, 'dir')
+                mkdir(dir);
+            end
             save([dir cellData.savedFileName], 'cellData');
         end
         
         function names = findCellNames(obj, date)
+            names = [];
+            if isempty(date)
+                return; 
+            end
             date = obj.repository.dateFormat(date);
             info = dir([obj.repository.analysisFolder filesep 'cellData' filesep date '*c*.mat']);
             names = arrayfun(@(d) {d.name(1 : end-4)}, info);

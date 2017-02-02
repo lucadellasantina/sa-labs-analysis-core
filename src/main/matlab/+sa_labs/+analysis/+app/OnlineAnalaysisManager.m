@@ -57,7 +57,7 @@ classdef OnlineAnalaysisManager < sa_labs.analysis.core.FigureHandlerManager
             for i = 1:numel(obj.figureHandlers)
                 obj.figureHandlers{i}.handleEpochOrInterval(epochOrInterval);
                 %TODO handle feature manager
-                obj.figureHandlers{i}.handleFeature(obj.analysis.featureManager);
+                obj.figureHandlers{i}.handleFeature(obj.analysis);
             end
         end
 
@@ -73,7 +73,7 @@ classdef OnlineAnalaysisManager < sa_labs.analysis.core.FigureHandlerManager
             if ~ obj.isVaildRecordingLabel(obj.recordingLabel)
                obj.createNewAnalysis();
             end
-            type = obj.analysisQueue.getActiveProtocolsType()
+            type = obj.analysisQueue.getActiveProtocolsType();
             identifiers = strcat(type, obj.recordingLabel);
             keys = obj.analysisMap.keys;
 

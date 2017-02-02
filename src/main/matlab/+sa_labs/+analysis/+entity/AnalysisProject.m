@@ -4,7 +4,8 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
         identifier
         cellDataNames
         description
-        date
+        analysisDate
+        experimentDate
         performedBy
         file
     end
