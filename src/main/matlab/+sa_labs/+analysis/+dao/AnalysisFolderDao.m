@@ -85,7 +85,13 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             cellData = result.cellData;
         end
         
-        function saveAnalysisResult(obj, cellName, protocol, result)
+        function saveAnalysisResults(obj, cellName, protocol, result)
+            dir = [obj.repository.analysisFolder filesep 'analysisTrees' filesep];
+            if ~ exist(dir, 'dir')
+                mkdir(dir);
+            end
+            save([dir cellName], 'result');
+            yaml.WriteYaml([dir protocol.type '.yaml'], protocol.structure, 1);
         end
         
         function result = findAnalysisResult(obj, regexp)

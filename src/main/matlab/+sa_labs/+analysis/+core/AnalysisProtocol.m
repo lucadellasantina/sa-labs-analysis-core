@@ -4,7 +4,6 @@ classdef AnalysisProtocol < handle
     % values and extractor functions at the specified tree level
     
     properties (Access = private)
-        structure           % Structure from user interface or yaml
         functionContext     % Map containing key as split parameter and value as extractor functions
         templateTree
     end
@@ -16,6 +15,10 @@ classdef AnalysisProtocol < handle
         featureDescriptionFile  % Feature description CSV file location
     end
     
+    properties
+        structure               % Structure from user interface or yaml
+    end
+
     methods
         
         function obj = AnalysisProtocol(structure)

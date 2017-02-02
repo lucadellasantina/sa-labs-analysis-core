@@ -15,6 +15,10 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
         location = []                       % [X, Y, whichEye] (X,Y in microns; whichEye is -1 for left eye and +1 for right eye)
     end
     
+    properties (Dependent)
+        experimentDate
+    end
+    
     methods
         
         function obj = CellData()
@@ -152,6 +156,9 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             for i = 1 : length(keys)
                 key = keys{i};
                 values = obj.getEpochValues(key, epochIndices);
+                if iscell(values) && ~ iscellstr(values)
+                    values = [values{:}];
+                end
                 map(key) =  unique(values);
             end
             params = map.keys;
@@ -227,6 +234,9 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             tf = functionHandle(obj);
         end
         
+        function d = get.experimentDate(obj)
+            d = obj.savedFileName(1 : 6);
+        end
     end
     
     methods(Access = protected)

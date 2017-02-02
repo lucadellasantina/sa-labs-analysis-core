@@ -31,7 +31,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
 
             for pathIndex = 1 : obj.analysisProtocol.numberOfPaths()
                 numberOfEpochs = numel(data.epochs);
-                epochGroup = sa_labs.analysis.entity.EpochGroup(1 : numberOfEpochs, data.identifier);
+                epochGroup = sa_labs.analysis.entity.EpochGroup(1 : numberOfEpochs, data.recordingLabel);
                 parameters = obj.analysisProtocol.getSplitParametersByPath(pathIndex);
                 obj.add(obj.DEFAULT_ROOT_ID, epochGroup, parameters);
             end

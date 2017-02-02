@@ -40,32 +40,35 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
         
         function project = initializeProject(obj, name)
             dao = obj.analysisDao;
-            project = dao.findProject(name);
+            project = dao.findProjects(name);
             
-            for i = 1 : numel(project.cellNames)
-                name = dao.findRawDataFiles(project.cellNames{i});
+            for i = 1 : numel(project.cellDataNames)
+                cellName = project.cellDataNames{i};
+                cellData = dao.findCell(cellName);
+                project.addCellData(cellName, cellData);
+                file = dao.findRawDataFiles(cellData.experimentDate);
                 
-                if isempty(name)
-                    % TODO copy raw data files from server to local
+                if isempty(file)
+                    % TODO check and synchronize from server
+                    error('h5 file not found in the rawDataFolder')
                 end
             end
         end
         
-        function cellData = preProcess(obj, cellData, functions)
+        function preProcess(obj, cellData, functions)
             
             for i = 1 : numel(functions)
                 fun = functions{i};
-                cellData = fun(cellData);
+                fun(cellData);
             end
-            obj.analysisDao.saveCellData(cellData);
+            obj.analysisDao.saveCell(cellData);
         end
         
         
-        function doOfflineAnalysis(obj, request)
+        function analysisProject = doAnalysis(obj, projectName, protocols)
             import sa_labs.analysis.*;
             
-            analysisProject = obj.initializeProject(request.projectName);
-            protocols = request.getAnalysisProtocols();
+            analysisProject = obj.initializeProject(projectName);
             cellDataList = analysisProject.getCellDataList();
             
             for i = 1 : numel(cellDataList)
@@ -76,7 +79,9 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                     analysis = core.OfflineAnalysis(protocol, cellData.recordingLabel);
                     analysis.setEpochSource(cellData);
                     analysis.service();
-                    obj.analysisDao.saveAnalysisResults(cellName, protocol, analysis.getResult());
+                    result = analysis.getResult();
+                    obj.analysisDao.saveAnalysisResults(cellData.savedFileName, protocol, result);
+                    analysisProject.addResult(protocol, result);
                 end
             end
         end
