@@ -8,7 +8,7 @@ configPath = which('ExampleAnalysisContext');
 obj.beanFactory = mdepin.getBeanFactory(configPath);
 offlineAnalysisManager = obj.beanFactory.getBean('offlineAnalaysisManager');
 
-%% phase 1) project creation block
+%% step 1) create project
 
 project = entity.AnalysisProject();
 project.identifier = 'optometer-calibration';
@@ -24,7 +24,7 @@ data.recordingLabel = 'optometer';
 
 data %#ok display data
 
-%% phase 2) start analysis
+%% step 2) do analysis
 
 analysisPreset = struct();
 analysisPreset.type = 'optometer-analysis';
@@ -40,7 +40,7 @@ treeManager.getStructure().tostring()
 
 treeManager.getFeatureGroups(1).parameters
 
-%% phase 3) plot the results
+%% step 3) plot the results
 
 figure(1)
 for i = [3, 4, 5, 6]
