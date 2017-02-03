@@ -88,32 +88,7 @@ classdef FeatureExtractorTest < matlab.unittest.TestCase
             obj.verifyEqual(simpleExtractor.callstack, 3);
         end
         
-        function testGetResponse(obj)
-            import sa_labs.analysis.*;
-            
-            % Mockito is not working for array of mock objects
-            % Error using Mock/subsref (line 121)
-            % Must call a function on the mock object
-            
-            epochs = entity.EpochData.empty(0, 10);
-            for i = 1 : 10
-                epochs(i) = entity.EpochData();
-                epochs(i).dataLinks = containers.Map('Amp1', 'path');
-                epochs(i).responseHandle =  @(a) obj.noise + i;
-            end
-            
-            node = entity.FeatureGroup('test', 1);
-            node.epochIndices = [1, 5, 7];
-            
-            obj.extractor.epochStream = @(indices) epochs(node.epochIndices);
-            obj.extractor.analysisMode = core.AnalysisMode.OFFLINE_ANALYSIS;
-            obj.extractor.featureManager = Mock(core.FeatureTreeManager());
-            obj.extractor.featureManager.when.isAnalysisOnline(AnyArgs()).thenReturn(false);
-            
-            actualResponse = obj.extractor.getBasicFeature(node, 'Amp1');
-            obj.verifyEqual(actualResponse, [obj.noise + 1; obj.noise + 5; obj.noise + 7]);
-        end
-        
+       
         function testGetEpochs(obj)
             import sa_labs.analysis.*;
             

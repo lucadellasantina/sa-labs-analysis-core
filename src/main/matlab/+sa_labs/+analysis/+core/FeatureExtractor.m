@@ -39,44 +39,29 @@ classdef FeatureExtractor < handle
             
             % Format specifier description
             % ----------------------------------------------------------------------------
-            % 'id', 'description', 'strategy', 'unit', 'chartType', 'xAxis', 'properties'    
-            % ----------------------------------------------------------------------------  
+            % 'id', 'description', 'strategy', 'unit', 'chartType', 'xAxis', 'properties'
+            % ----------------------------------------------------------------------------
             
             fid = fopen(fname, 'r');
             text = textscan(fid, obj.FORMAT_SPECIFIER, 'Delimiter', ',');
             % unwrap cell array to array
             text =  [text{1, :}];
             columns = find(~ cellfun(@isempty, text(1, :)));
-            text = text(:, columns); 
+            text = text(:, columns);
             fclose(fid);
         end
         
-        function delegate(obj, extractorFunctions, nodes)
+        function delegate(obj, extractorFunctions, featureGroups)
             
             for i = 1 : numel(extractorFunctions)
                 func = str2func(extractorFunctions{i});
-                
-                arrayfun(@(node) func(obj, node), nodes)
-                featureKeySet = nodes.getFeatureKey();
-                obj.featureManager.copyFeaturesToGroup([nodes.id], featureKeySet, featureKeySet);
+                arrayfun(@(featureGroup) func(obj, featureGroup), featureGroups)
             end
+            featureKeySet = featureGroups.getFeatureKey();
+            obj.featureManager.copyFeaturesToGroup([featureGroups.id], featureKeySet, featureKeySet);
         end
         
-        function response = getBasicFeature(obj, node, device)
-            
-            epochs = obj.getEpochs(node);
-            n = numel(epochs);
-            data = epochs(1).getResponse(device);
-            response = zeros(n, numel(data));
-            
-            response(1, :) = data;
-            for i = 2 : n
-                data = epochs(i).getResponse(device);
-                response(i, :) = data;
-            end
-        end
-        
-        function epochs = getEpochs(obj, node)
+        function epochs = getEpochs(obj, featureGroup)
             
             if obj.analysisMode.isOnline()
                 epochs = obj.epochStream;
@@ -84,10 +69,10 @@ classdef FeatureExtractor < handle
             end
             % If the epoch Indices are not present in the EpochGroup it will
             % throw an error
-            epochs = obj.epochStream(node.epochIndices);
+            epochs = obj.epochStream(featureGroup.epochIndices);
         end
     end
-        
+    
     methods (Static)
         
         function featureExtractor = create(template)

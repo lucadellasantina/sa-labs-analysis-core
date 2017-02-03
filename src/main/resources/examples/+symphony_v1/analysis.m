@@ -30,7 +30,22 @@ analysisPreset = struct();
 analysisPreset.type = 'optometer-analysis';
 analysisPreset.buildTreeBy = {'stimTime', 'pulseAmplitude'};
 analysisPreset.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
+analysisPreset.pulseAmplitude.featureExtractor = {'@(e, f) symphony_v1.addEpochAsFeature(e, f, ''device'', ''Optometer'')'};
 
 analysisProtocol = core.AnalysisProtocol(analysisPreset);
-
 project = offlineAnalysisManager.doAnalysis('optometer-calibration', analysisProtocol);
+
+treeManager = core.FeatureTreeManager(project.getAllresult{1});
+treeManager.getStructure().tostring() 
+
+treeManager.getFeatureGroups(1).parameters
+
+%% phase 3) plot the results
+
+figure(1)
+for i = [3, 4, 5, 6]
+    epochsOfpulseAmplitude80 = treeManager.getFeatureGroups(i).featureMap('EPOCH');
+    plot(mean([epochsOfpulseAmplitude80.data], 2));
+    hold on;
+end
+hold off;

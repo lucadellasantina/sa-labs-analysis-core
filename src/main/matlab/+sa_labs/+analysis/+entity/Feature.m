@@ -13,7 +13,7 @@ classdef Feature < handle & matlab.mixin.Heterogeneous
         function obj = Feature(desc, data)
             if nargin < 2
                 data = [];
-            end            
+            end
             obj.description = desc;
             obj.data = data;
         end

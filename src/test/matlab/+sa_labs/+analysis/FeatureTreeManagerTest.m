@@ -41,7 +41,7 @@ classdef FeatureTreeManagerTest < matlab.unittest.TestCase
         function testFindFeatureGroup(obj)
             
             % Root node check
-            nodes = obj.manager.findFeatureGroup('light-step-analysis');
+            nodes = obj.manager.findFeatureGroup('Light-step-analysis');
             obj.verifyLength(nodes, 1);
             obj.verifyEqual(nodes.id, 1);
             

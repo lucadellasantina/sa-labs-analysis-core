@@ -72,19 +72,19 @@ classdef FeatureTreeManager < handle
             if isempty(name)
                 return
             end
-            indices = find(obj.getStructure().regexpi(['\w*' name '\w*']).treefun(@any));
+            indices = find(obj.getStructure().regexp(['\w*' name '\w*']).treefun(@any));
             nodes = obj.getFeatureGroups(indices); %#ok
         end
         
         function id = findFeatureGroupId(obj, name, nodeId)
             
             if nargin < 3 || isempty(nodeId)
-                id = find(obj.getStructure().regexpi(['\w*' name '\w*']).treefun(@any));
+                id = find(obj.getStructure().regexp(['\w*' name '\w*']).treefun(@any));
                 return;
             end
             subTree = obj.tree.subtree(nodeId);
             structure = subTree.treefun(@(node) node.name);
-            indices = find(structure.regexpi(['\w*' name '\w*']).treefun(@any));
+            indices = find(structure.regexp(['\w*' name '\w*']).treefun(@any));
             
             id = arrayfun(@(index) subTree.get(index).id, indices);
         end
@@ -95,7 +95,7 @@ classdef FeatureTreeManager < handle
         end
         
         function tree = getStructure(obj)
-            tree = obj.tree.treefun(@(node) node.name);
+            tree = obj.tree.treefun(@(node) strcat(node.name, ' (' , num2str(node.id), ') '));
         end
         
         function ds = get.dataStore(obj)
