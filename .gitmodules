@@ -1,15 +1,3 @@
-[submodule "lib/appbox"]
-	path = lib/appbox
-	url = https://github.com/cafarm/appbox.git
-[submodule "lib/matlab-tree"]
-	path = lib/matlab-tree
-	url = https://github.com/raacampbell/matlab-tree.git
 [submodule "lib/yamlmatlab"]
 	path = lib/yamlmatlab
 	url = https://github.com/ewiger/yamlmatlab.git
-[submodule "lib/test/mmockito"]
-	path = lib/test/mmockito
-	url = https://github.com/ragavsathish/mmockito.git
-[submodule "lib/mdepin"]
-	path = lib/mdepin
-	url = https://github.com/ragavsathish/mdepin.git

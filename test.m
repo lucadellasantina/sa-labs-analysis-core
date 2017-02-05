@@ -4,8 +4,11 @@ function test(package)
     end
     
     rootPath = fileparts(mfilename('fullpath'));
-    
     addpath(genpath(fullfile(rootPath, 'lib')));
+    
+    run(which('dependency'));
+    tbUse('mmockito');
+    
     addpath(genpath(fullfile(rootPath, 'src')));
     addpath(genpath(fullfile(rootPath, 'apps')));
     
