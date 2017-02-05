@@ -1,0 +1,7 @@
+{
+  "type": "standard-analysis",
+  "buildTreeBy": [
+    "displayName",
+    "textureAngle, RstarMean, barAngle, curSpotSize"
+  ]
+}

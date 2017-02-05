@@ -7,10 +7,10 @@ classdef AnalysisProtocolTest < matlab.unittest.TestCase
     
     methods
         function obj = AnalysisProtocolTest()
-            fname = which('analysis.yaml');
-            obj.lightStepStructure = yaml.ReadYaml(fname);
-            fname = which('standard-analysis.yaml');
-            obj.standardAnalysis = yaml.ReadYaml(fname);
+            fname = which('analysis.json');
+            obj.lightStepStructure = loadjson(fname);
+            fname = which('standard-analysis.json');
+            obj.standardAnalysis = loadjson(fname);
         end
     end
     

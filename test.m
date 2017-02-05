@@ -5,8 +5,6 @@ function test(package)
     
     rootPath = fileparts(mfilename('fullpath'));
     addpath(genpath(fullfile(rootPath, 'lib')));
-    
-    run(which('dependency'));
     tbUse('mmockito');
     
     addpath(genpath(fullfile(rootPath, 'src')));

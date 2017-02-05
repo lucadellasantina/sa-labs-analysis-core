@@ -61,8 +61,6 @@ classdef AnalysisProtocol < handle
             
             if ischar(values)
                 values = {values};
-            elseif isnumeric(values)
-                templateValues = cell2mat(templateValues);
             end
             
             if isempty(templateValues)
@@ -115,7 +113,11 @@ classdef AnalysisProtocol < handle
         end
         
         function p = get.copyParameters(obj)
-            p = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_COPY_PARAMETERS);
+            p = [];
+            field = sa_labs.analysis.app.Constants.TEMPLATE_COPY_PARAMETERS;
+            if isfield(obj.structure, field)
+                p = obj.structure.(field);
+            end
         end
         
         function p = get.type(obj)

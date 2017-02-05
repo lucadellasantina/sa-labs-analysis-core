@@ -23,9 +23,9 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 attr = attributes{i};
                 projectStruct.(attr) = project.(attr);
             end
-            file = [projectFile 'project.yaml'];
-            yaml.WriteYaml(file, projectStruct, 1);
+            file = [projectFile 'project.json'];
             project.file = file;
+            savejson('', projectStruct, file);
         end
         
         function projects = findProjects(obj, identifier)
@@ -41,7 +41,8 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             
             projects = entity.AnalysisProject.empty(0, numel(index));
             for i = 1 : numel(index)
-                projects(i) = entity.AnalysisProject(yaml.ReadYaml([path info(index(i)).name filesep 'project.yaml']));
+                structure = loadjson([path info(index(i)).name filesep 'project.json']);
+                projects(i) = entity.AnalysisProject(structure);
             end
             
         end
@@ -91,7 +92,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 mkdir(dir);
             end
             save([dir cellName], 'result');
-            yaml.WriteYaml([dir protocol.type '.yaml'], protocol.structure, 1);
+            savejson('', protocol, [dir protocol.type '.json']);
         end
         
         function result = findAnalysisResult(obj, regexp)
