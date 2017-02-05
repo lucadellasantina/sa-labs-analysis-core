@@ -7,9 +7,10 @@
 
 ## Clone
 
-`git clone https://github.com/Schwartz-AlaLaurila-Labs/sa-labs-analysis-core.git --recursive`
+`git clone https://github.com/Schwartz-AlaLaurila-Labs/sa-labs-analysis-core.git`
 
-**Note:** You must use the `--recursive` option to recursively clone all submodules.
+It uses [ToolboxHub](https://github.com/ToolboxHub/ToolboxToolbox) for dependency management
+
 
 ## Usage
 
@@ -18,3 +19,4 @@ TODO
 ## Requirements
 
 - Matlab 2016a+
+- [ToolboxHub](https://github.com/ToolboxHub/ToolboxToolbox) for dependency management
