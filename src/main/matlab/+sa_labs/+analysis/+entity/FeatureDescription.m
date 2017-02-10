@@ -7,26 +7,41 @@ classdef FeatureDescription < dynamicprops
         unit
         chartType
         xAxis
-        samplingRate
+        downSampleFactor
     end
     
     methods
         
         function obj = FeatureDescription(map)
+            props = [];
             
-            props = map('properties');
-            map = remove(map, 'properties');
+            if isKey(map, 'properties')
+                props = map('properties');
+                map = remove(map, 'properties');
+            end
             cellfun(@(k) obj.set(k, map(k)), map.keys);
             
-            if  isempty(props)
+            if isempty(props)
                 return
             end
+            
+            obj.setProperties(props);
+        end
+        
+        function setProperties(obj, props)
+            import  sa_labs.analysis.app.*;
+
             props = strsplit(props, ',');
             
             for i = 1 : numel(props)
                 props = strrep(props, '"', '');
                 prop = strsplit(props{i}, '=');
-                obj.set(prop{1}, prop{2});
+                
+                if numel(prop) == 2
+                    obj.set(prop{1}, prop{2});
+                else
+                    Exceptions.INVALID_PROPERTY_PAIR.create('warning', true);
+                end
             end
         end
     end
@@ -34,17 +49,40 @@ classdef FeatureDescription < dynamicprops
     methods (Access = private)
         
         function set(obj, k, v)
-            
-            if ~ isempty(k)
-                var = strtrim(k);
-                
-                if ~ isprop(obj, var)
-                    addprop(obj, var);
+            try
+                if ~ isempty(k)
+                    var = strtrim(k);
+                    
+                    if ~ isprop(obj, var)
+                        addprop(obj, var);
+                    end
+                    % TODO check for data type of v and convert to appropriate
+                    obj.(var) = strtrim(v);
                 end
-                % TODO check for data type of v and convert to appropriate
-                obj.(var) = strtrim(v);
+            catch exception
+                warning(exception.identifier, exception.message)
             end
         end
+    end
+    
+    methods (Static)
+        
+        function descriptionMap = cacheMap(descriptionMap)
+            
+            persistent map;
+            
+            if nargin < 1
+                descriptionMap = map;
+                return
+            end
+            map = descriptionMap;
+        end
+        
+        function tf = isPresent(id)
+            map = sa_labs.analysis.entity.FeatureDescription.cacheMap();
+            tf = isKey(map, id);
+        end
+        
     end
 end
 

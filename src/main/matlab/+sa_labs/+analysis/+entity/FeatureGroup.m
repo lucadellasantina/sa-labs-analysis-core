@@ -33,6 +33,93 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             obj.splitValue = splitValue;
         end
         
+        function value = getParameter(obj, property)
+            
+            % getParameter - get the value from obj.parameters for
+            % given property
+            % Return data type of value is scalar or cell array
+            
+            value = [];
+            if  isfield(obj.parameters, property)
+                value = obj.parameters.(property);
+            end
+        end
+
+        function feature = createFeature(obj, id, data, varargin)
+
+            key = varargin(1 : 2 : end);
+            value = varargin(2 : 2 : end);
+            
+            if ~ isempty(key)
+                propertyMap = containers.Map(key, value);
+            else
+                propertyMap = containers.Map();
+            end
+            propertyMap('id') = id;
+            description = sa_labs.analysis.entity.FeatureDescription(propertyMap);
+            description.id = id;
+            
+            feature = sa_labs.analysis.entity.Feature(description, data);
+            obj.appendFeature(feature);
+        end
+
+        function data = getFeatureData(obj, key)
+            import sa_labs.analysis.app.*;
+
+            data = [];
+            if iscellstr(key) && numel(key) > 1
+                throw(Exceptions.MULTIPLE_FEATURE_KEY_PRESENT.create())
+            end
+            
+            if ~ isKey(obj.featureMap, key)
+                Exceptions.FEATURE_KEY_NOT_FOUND.create('warning', true)
+                return 
+            end
+            features = obj.featureMap(key);
+            data = [features.data];
+        end
+
+        function features = getFeatures(obj, keys)
+            
+            % getFeatures - returns the feature based on FeatureDescription
+            % reference
+            features = [];
+            if ischar(keys)
+                keys = {keys};
+            end
+            
+            keys = unique(keys);
+            for i = 1 : numel(keys)
+                key = keys{i};
+                if isKey(obj.featureMap, key)
+                    feature = obj.featureMap(key);
+                    features = [features, feature]; %#ok
+                end
+            end
+        end
+
+        function appendFeature(obj, newFeatures)
+            
+            for i = 1 : numel(newFeatures)
+                key = newFeatures(i).description.id;
+                
+                f = obj.getFeatures(key);
+                if f == newFeatures(i)
+                    continue;
+                end
+                obj.featureMap = sa_labs.analysis.util.collections.addToMap(obj.featureMap, key, newFeatures(i));
+            end
+        end
+
+        function keySet = getFeatureKey(obj)
+            if numel(obj) > 1
+                result = arrayfun(@(ref) ref.featureMap.keys, obj, 'UniformOutput', false);
+                keySet = unique([result{:}]);
+                return
+            end
+            keySet = obj.featureMap.keys;
+        end
+
         function setParameters(obj, parameters)
             
             % setParameters - Copies from parameters to obj.parameters
@@ -54,18 +141,6 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
                 for i = 1 : length(names)
                     obj.addParameter(names{i}, parameters(names{i}));
                 end
-            end
-        end
-        
-        function value = getParameter(obj, property)
-            
-            % getParameter - get the value from obj.parameters for
-            % given property
-            % Return data type of value is scalar or cell array
-            
-            value = [];
-            if  isfield(obj.parameters, property)
-                value = obj.parameters.(property);
             end
         end
         
@@ -94,38 +169,6 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
                 warning('mixedType:parameters', e.message);
             end
             obj.addParameter(key, new);
-        end
-        
-        function appendFeature(obj, newFeatures)
-            
-            for i = 1 : numel(newFeatures)
-                key = newFeatures(i).description.id;
-                
-                f = obj.getFeature(key);
-                if f == newFeatures(i)
-                    continue;
-                end
-                obj.featureMap = sa_labs.analysis.util.collections.addToMap(obj.featureMap, key, newFeatures(i));
-            end
-        end
-        
-        function features = getFeature(obj, keys)
-            
-            % getFeature - returns the feature based on FeatureDescription
-            % reference
-            features = [];
-            if ischar(keys)
-                keys = {keys};
-            end
-            
-            keys = unique(keys);
-            for i = 1 : numel(keys)
-                key = keys{i};
-                if isKey(obj.featureMap, key)
-                    feature = obj.featureMap(key);
-                    features = [features, feature]; %#ok
-                end
-            end
         end
         
         function update(obj, featureGroup, in, out)
@@ -192,15 +235,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             % for unknown in parameters, it creates empty out paramters
             obj.appendParameter(out, featureGroup.getParameter(in));
         end
-        
-        function keySet = getFeatureKey(obj)
-            if numel(obj) > 1
-                result = arrayfun(@(ref) ref.featureMap.keys, obj, 'UniformOutput', false);
-                keySet = unique([result{:}]);
-                return
-            end
-            keySet = obj.featureMap.keys;
-        end
+
     end
     
     methods(Access = private)
@@ -209,8 +244,6 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             % setParameters - set property, value pair to parameters
             obj.parameters.(property) = value;
         end
-        
     end
-    
 end
 

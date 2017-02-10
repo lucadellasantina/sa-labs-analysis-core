@@ -193,6 +193,7 @@ classdef EntityTest < matlab.unittest.TestCase
     
     methods(Test)
         
+        
         function testParameters(obj)
             import sa_labs.analysis.entity.*;
             featureGroup = FeatureGroup('root','value');
@@ -234,51 +235,49 @@ classdef EntityTest < matlab.unittest.TestCase
         function testFeature(obj)
             import sa_labs.analysis.entity.*;
             featureGroup = FeatureGroup('root', 'param');
-            property = containers.Map({'id', 'properties'}, {'TEST_FIRST', []});
-            
-            desc = FeatureDescription(property);
-            feature = Feature(desc);
-            featureGroup.appendFeature(feature);
+            featureGroup.createFeature('TEST_FIRST', []);
+            feature = featureGroup.getFeatures('TEST_FIRST');
             
             obj.verifyEmpty(feature.data);
             
             % test append data
             feature.appendData(1 : 1000);
-            obj.verifyEqual(featureGroup.getFeature('TEST_FIRST').data, 1 : 1000);
+            obj.verifyEqual(featureGroup.getFeatures('TEST_FIRST').data, (1 : 1000)');
             
             % check feature as reference object
-            feature.data = feature.data + ones(1,1000);
-            obj.verifyEqual(featureGroup.getFeature('TEST_FIRST').data, 2 : 1001);
+            feature.data = feature.data + ones(1000, 1);
+            obj.verifyEqual(featureGroup.getFeatures('TEST_FIRST').data, (2 : 1001)');
             
             % scalar check
             feature.appendData(1002);
-            obj.verifyEqual(featureGroup.getFeature('TEST_FIRST').data, 2 : 1002);
+            obj.verifyEqual(featureGroup.getFeatures('TEST_FIRST').data, (2 : 1002)');
             
             % vector check
             feature.appendData(1003 : 1010);
-            obj.verifyEqual(featureGroup.getFeature('TEST_FIRST').data, 2 : 1010);
+            obj.verifyEqual(featureGroup.getFeatures('TEST_FIRST').data, (2 : 1010)');
             
             % adding same feature again shouldnot append to the feature map
             featureGroup.appendFeature(feature);
-            obj.verifyEqual(featureGroup.getFeature('TEST_FIRST').data, 2 : 1010);
+            obj.verifyEqual(featureGroup.getFeatures('TEST_FIRST').data, (2 : 1010)');
+            
+            % function handle check
+            feature.data = @() 5 * ones(1, 10);
+            expected =  5 * ones(10, 1);
+            obj.verifyEqual(featureGroup.getFeatures('TEST_FIRST').data, expected);
+            
         end
         
         function testUpdate(obj)
             import sa_labs.analysis.entity.*;
+            
+            % create a sample feature group
             featureGroup = FeatureGroup('Child', 'param');
-            property = containers.Map({'id', 'properties'}, {'TEST_FIRST', []});
             
-            desc = FeatureDescription(property);
-            f = Feature(desc);
-            f.data = 1 : 1000;
-            featureGroup.appendFeature(f);
+            % create two features
+            featureGroup.createFeature('TEST_FIRST', 1 : 1000, 'properties', []);
+            featureGroup.createFeature('TEST_SECOND', ones(1,1000), 'properties', []);
             
-            property = containers.Map({'id', 'properties'}, {'TEST_SECOND', []});
-            desc2 = FeatureDescription(property);
-            f2 = Feature(desc2);
-            f2.data = ones(1,1000);
-            featureGroup.appendFeature(f2);
-            
+            % append some parameter to the feature group
             featureGroup.appendParameter('string', 'Foo bar');
             featureGroup.appendParameter('int', 8);
             featureGroup.appendParameter('cell', {'one', 'two'});
@@ -302,9 +301,9 @@ classdef EntityTest < matlab.unittest.TestCase
             obj.verifyEqual([newFeatureGroup.epochIndices{:}], 1:7);
             
             % case 3 feature map check
-            obj.verifyEqual(newFeatureGroup.featureMap.keys, { property('id') });
+            obj.verifyEqual(newFeatureGroup.featureMap.keys, { 'TEST_SECOND' });
             feature = newFeatureGroup.featureMap.values;
-            obj.verifyEqual([feature{:}.data], ones(1,1000));
+            obj.verifyEqual([feature{:}.data], ones(1000, 1));
             
             obj.verifyError(@()newFeatureGroup.update(featureGroup, 'TEST_FIRST', 'TEST_SECOND'), 'in:out:mismatch')
             
@@ -323,7 +322,7 @@ classdef EntityTest < matlab.unittest.TestCase
             obj.verifyEqual(featureGroup.featureMap.keys, {'TEST_FIRST', 'TEST_SECOND'});
             features = featureGroup.featureMap.values;
             features = [features{:}];
-            obj.verifyEqual([features(:).data], [(1 : 1000), ones(1,1000)]);
+            obj.verifyEqual([features(:).data], [(1 : 1000)', ones(1000, 1)]);
             
             obj.verifyError(@()newFeatureGroup.update(featureGroup, 'name', 'name'),'MATLAB:class:SetProhibited');
             obj.verifyError(@()newFeatureGroup.update(featureGroup, 'splitParameter', 'splitParameter'),'MATLAB:class:SetProhibited');
@@ -340,19 +339,87 @@ classdef EntityTest < matlab.unittest.TestCase
             f = Feature(desc);
             f.data = 1 : 1000;
             featureGroup.appendFeature(f);
-
+            
             property = containers.Map({'id', 'properties'}, {'TEST_SECOND', []});
             desc2 = FeatureDescription(property);
             f = Feature(desc2);
             f.data = 1001 : 2000;
             featureGroup.appendFeature(f);
             
-            features = featureGroup.getFeature({'TEST_FIRST', 'TEST_FIRST'});
-            obj.verifyEqual([features(:).data], 1 : 1000);
+            features = featureGroup.getFeatures({'TEST_FIRST', 'TEST_FIRST'});
+            obj.verifyEqual([features(:).data], (1 : 1000)');
             
-            features = featureGroup.getFeature({'TEST_FIRST', 'TEST_SECOND'});
-            obj.verifyEqual([features(:).data], [1 : 1000, 1001 : 2000]);
+            features = featureGroup.getFeatures({'TEST_FIRST', 'TEST_SECOND'});
+            obj.verifyEqual([features(:).data], [(1 : 1000)', (1001 : 2000)']);
+        end
+        
+        function testGetFeatureData(obj)
+            import sa_labs.analysis.*;
+            featureGroup = entity.FeatureGroup('test', 'param');
+            obj.verifyWarning(@()featureGroup.getFeatureData('none'), app.Exceptions.FEATURE_KEY_NOT_FOUND.msgId);
+            obj.verifyError(@() featureGroup.getFeatureData({'none', 'other'}), app.Exceptions.MULTIPLE_FEATURE_KEY_PRESENT.msgId);
+            
+            featureGroup.createFeature('TEST_FIRST', 1 : 1000, 'properties', []);
+            featureGroup.createFeature('TEST_FIRST', ones(1000, 1), 'properties', []);
+            obj.verifyEqual(featureGroup.getFeatureData('TEST_FIRST'), [(1 : 1000)', ones(1000, 1)]);
         end
     end
     
+    % Test methods for Feature and FeatureDescription
+    
+    methods(Test)
+
+        function testFeatureDescriptionInstance(obj)
+            import sa_labs.analysis.*;
+            
+            propertyMap = containers.Map('id', 'FEATURE_ID');
+            description = entity.FeatureDescription(propertyMap);
+            obj.verifyEqual(description.id, 'FEATURE_ID');
+
+            propertyMap('properties') = '"  param1 =   value1  , param2 =   value2   "';
+            description = entity.FeatureDescription(propertyMap);
+            obj.verifyEqual(description.param1, 'value1');
+            obj.verifyEqual(description.param2, 'value2');
+
+            propertyMap('properties') = '"1param = value2"';
+            obj.verifyWarning(@() entity.FeatureDescription(propertyMap), 'MATLAB:ClassUstring:InvalidDynamicPropertyName');
+
+            propertyMap('properties') = '"  param1 =   value2  , param2 "';
+            description = obj.verifyWarning(@() entity.FeatureDescription(propertyMap), app.Exceptions.INVALID_PROPERTY_PAIR.msgId);
+            obj.verifyEqual(description.param1, 'value2');
+
+        end
+
+        function testFeatureInstance(obj)
+            import sa_labs.analysis.*;
+            propertyMap = containers.Map('id', 'FEATURE_ID');
+            description = entity.FeatureDescription(propertyMap);
+
+            feature = entity.Feature(description, @() 1 : 10);
+            obj.verifyEqual(feature.data, (1 : 10)');
+
+            description.downSampleFactor = 2;
+            obj.verifyEqual(feature.data, (1 : 2 : 10)');
+
+            % verify vector
+            feature.appendData(11 : 2 : 20);
+            obj.verifyEqual(feature.data, (1 : 2 : 20)');
+            
+            % verify scalar
+            feature.appendData(21);
+            obj.verifyEqual(feature.data, (1 : 2 : 22)');
+
+            % verify cell array
+            expected = {'abc', 'def'};
+            feature = entity.Feature(description, expected);
+            obj.verifyEqual(feature.data, expected');
+
+            feature.appendData({'ghi', 'jkl'});
+            obj.verifyEqual(feature.data, {expected{:}, 'ghi', 'jkl'}');
+
+            feature.appendData({'mno', 'pqr'}');
+            obj.verifyEqual(feature.data, {expected{:}, 'ghi', 'jkl', 'mno', 'pqr'}');
+        end
+
+    end 
 end
