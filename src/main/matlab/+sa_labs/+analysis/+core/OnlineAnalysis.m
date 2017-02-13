@@ -23,7 +23,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
         function setEpochSource(obj, epoch)
             obj.state = sa_labs.analysis.app.AnalysisState.PROCESSING_STREAMS;
             obj.epochStream = epoch;
-            obj.extractor.epochStream = epoch;
+            obj.featureManager.epochStream = epoch;
         end
     end
     

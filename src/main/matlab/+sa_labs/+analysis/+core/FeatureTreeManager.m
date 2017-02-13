@@ -1,4 +1,4 @@
-classdef FeatureTreeManager < handle
+classdef FeatureTreeManager < sa_labs.analysis.core.FeatureManager
     
     properties(Access = protected)
         tree
@@ -10,40 +10,41 @@ classdef FeatureTreeManager < handle
     
     methods
         
-        function obj = FeatureTreeManager(dataStore)
-            if nargin < 1
+        function obj = FeatureTreeManager(analysisProtocol, analysisMode, dataStore)
+            if isempty(dataStore)
                 dataStore = tree();
             end
-            obj.tree = dataStore;
+            obj@sa_labs.analysis.core.FeatureManager(analysisProtocol, analysisMode, dataStore);
+            obj.setRootName(analysisProtocol.type);
         end
         
-        function setRootName(obj, name)
-            
-            import sa_labs.analysis.*;
-            node = entity.FeatureGroup([], [], name);
-            node.id = 1;
-            obj.setnode(node.id, node);
+        function obj = set.dataStore(obj, tree)
+            obj.tree = tree;
+        end
+        
+        % This may be a performance hit
+        % Think of merging a tree in an alternative way.
+        
+        function append(obj, dataStore)
+            obj.tree = obj.tree.graft(1, dataStore);
+            obj.updateDataStoreFeatureGroupId();
+        end
+        
+        function ds = get.dataStore(obj)
+            ds = obj.tree;
         end
         
         function id = addFeatureGroup(obj, id, splitParameter, spiltValue, epochGroup)
             
             import sa_labs.analysis.*;
-            node = entity.FeatureGroup(splitParameter, spiltValue);
+            featureGroup = entity.FeatureGroup(splitParameter, spiltValue);
             
             if ~ isempty(epochGroup)
-                node.epochGroup = epochGroup;
-                node.epochIndices = epochGroup.epochIndices;
+                featureGroup.epochGroup = epochGroup;
+                featureGroup.epochIndices = epochGroup.epochIndices;
             end
-            id = obj.addnode(id, node);
-            node.id = id;
-        end
-        
-        function removeFeatureGroup(obj, id)
-            if ~ isempty(obj.tree.getchildren(id))
-                error('cannot remove ! node has children');
-            end
-            obj.tree = obj.tree.removenode(id);
-            obj.updateDataStoreNodeId();
+            id = obj.addfeatureGroup(id, featureGroup);
+            featureGroup.id = id;
         end
         
         function copyFeaturesToGroup(obj, featureGroupIds, varargin)
@@ -61,118 +62,117 @@ classdef FeatureTreeManager < handle
                 error('Error: parameters must be specified in pairs');
             end
             
-            byNodes = @(in, out) arrayfun(@(nodeId) obj.percolateUpNode(nodeId, in ,out), featureGroupIds);
-            arrayfun(@(i) byNodes(inParameters{i}, outParameters{i}), 1 : n);
+            copy = @(in, out) arrayfun(@(id) obj.percolateUpFeatureGroup(id, in ,out), featureGroupIds);
+            arrayfun(@(i) copy(inParameters{i}, outParameters{i}), 1 : n);
+        end
+        
+        function removeFeatureGroup(obj, id)
+            if ~ isempty(obj.tree.getchildren(id))
+                error('cannot remove ! featureGroup has children');
+            end
+            obj.tree = obj.tree.removenode(id);
+            obj.updateDataStoreFeatureGroupId();
+        end
+        
+        function tree = getStructure(obj)
+            tree = obj.tree.treefun(@(featureGroup) strcat(featureGroup.name, ' (' , num2str(featureGroup.id), ') '));
+        end
+        
+        function featureGroups = getFeatureGroups(obj, ids)
+            featureGroups = arrayfun(@(index) obj.tree.get(index), ids, 'UniformOutput', false);
+            featureGroups = [featureGroups{:}];
+        end
+        
+        function tf = isBasicFeatureGroup(obj, featureGroups)
+            tf = ~ isempty(featureGroups) && all(ismember([featureGroups.id], obj.tree.findleaves)) == 1;
         end
         
         % TODO move all find functions to visitor
-        function nodes = findFeatureGroup(obj, name)
-            nodes = [];
+        
+        function featureGroups = findFeatureGroup(obj, name)
+            featureGroups = [];
             
             if isempty(name)
                 return
             end
             indices = find(obj.getStructure().regexp(['\w*' name '\w*']).treefun(@any));
-            nodes = obj.getFeatureGroups(indices); %#ok
+            featureGroups = obj.getFeatureGroups(indices); %#ok
         end
         
-        function id = findFeatureGroupId(obj, name, nodeId)
+        function id = findFeatureGroupId(obj, name, featureGroupId)
             
-            if nargin < 3 || isempty(nodeId)
+            if nargin < 3 || isempty(featureGroupId)
                 id = find(obj.getStructure().regexp(['\w*' name '\w*']).treefun(@any));
                 return;
             end
-            subTree = obj.tree.subtree(nodeId);
-            structure = subTree.treefun(@(node) node.name);
+            subTree = obj.tree.subtree(featureGroupId);
+            structure = subTree.treefun(@(featureGroup) featureGroup.name);
             indices = find(structure.regexp(['\w*' name '\w*']).treefun(@any));
             
             id = arrayfun(@(index) subTree.get(index).id, indices);
         end
         
-        function append(obj, dataStore)
-            obj.tree = obj.tree.graft(1, dataStore);
-            obj.updateDataStoreNodeId();
-        end
-        
-        function tree = getStructure(obj)
-            tree = obj.tree.treefun(@(node) strcat(node.name, ' (' , num2str(node.id), ') '));
-        end
-        
-        function ds = get.dataStore(obj)
-            ds = obj.tree;
-        end
-        
-        function nodes = getFeatureGroups(obj, ids)
-            nodes = arrayfun(@(index) obj.tree.get(index), ids, 'UniformOutput', false);
-            nodes = [nodes{:}];
-        end
-        
-        function tf = isBasicFeatureGroup(obj, nodes)
-            tf = ~ isempty(nodes) && all(ismember([nodes.id], obj.tree.findleaves)) == 1;
-        end
-        
-        function nodes = getAllChildrensByName(obj, regexp)
-            nodesByName = obj.findFeatureGroup(regexp);
-            nodes = [];
+        function featureGroups = getAllChildrensByName(obj, regexp)
+            featureGroupsByName = obj.findFeatureGroup(regexp);
+            featureGroups = [];
             
-            for i = 1 : numel(nodesByName)
-                node = nodesByName(i);
-                subTree = obj.tree.subtree(node.id);
-                childNodes = arrayfun(@(index) subTree.get(index), subTree.depthfirstiterator, 'UniformOutput', false);
-                nodes = [nodes, childNodes{:}]; %#ok
+            for i = 1 : numel(featureGroupsByName)
+                featureGroup = featureGroupsByName(i);
+                subTree = obj.tree.subtree(featureGroup.id);
+                childFeatureGroups = arrayfun(@(index) subTree.get(index), subTree.depthfirstiterator, 'UniformOutput', false);
+                featureGroups = [featureGroups, childFeatureGroups{:}]; %#ok
             end
         end
         
-        function nodes = getImmediateChildrensByName(obj, regexp)
-            nodesByName = obj.findFeatureGroup(regexp);
-            nodes = [];
+        function featureGroups = getImmediateChildrensByName(obj, regexp)
+            featureGroupsByName = obj.findFeatureGroup(regexp);
+            featureGroups = [];
             
-            for i = 1 : numel(nodesByName)
-                node = nodesByName(i);
-                childrens = obj.tree.getchildren(node.id);
-                childNodes = obj.getFeatureGroups(childrens);
-                nodes = [nodes, childNodes]; %#ok
+            for i = 1 : numel(featureGroupsByName)
+                featureGroup = featureGroupsByName(i);
+                childrens = obj.tree.getchildren(featureGroup.id);
+                childFeatureGroups = obj.getFeatureGroups(childrens);
+                featureGroups = [featureGroups, childFeatureGroups]; %#ok
             end
         end
     end
     
     methods(Access = private)
         
-        function percolateUpNode(obj, nodeId, in , out)
+        function setRootName(obj, name)
+            
+            import sa_labs.analysis.*;
+            featureGroup = entity.FeatureGroup([], [], name);
+            featureGroup.id = 1;
+            obj.setfeatureGroup(featureGroup.id, featureGroup);
+        end
+        
+        function percolateUpFeatureGroup(obj, featureGroupId, in , out)
             t = obj.tree;
-            node = t.get(nodeId);
-            parent = t.getparent(nodeId);
-            parentNode = t.get(parent);
+            featureGroup = t.get(featureGroupId);
+            parent = t.getparent(featureGroupId);
+            parentFeatureGroup = t.get(parent);
             
-            parentNode.update(node, in, out);
-            obj.setnode(parent, parentNode);
+            parentFeatureGroup.update(featureGroup, in, out);
+            obj.setfeatureGroup(parent, parentFeatureGroup);
         end
         
-        function setnode(obj, parent, node)
-            obj.tree = obj.tree.set(parent, node);
+        function setfeatureGroup(obj, parent, featureGroup)
+            obj.tree = obj.tree.set(parent, featureGroup);
             
         end
         
-        function id = addnode(obj, id, node)
-            [obj.tree, id] = obj.tree.addnode(id, node);
+        function id = addfeatureGroup(obj, id, featureGroup)
+            [obj.tree, id] = obj.tree.addnode(id, featureGroup);
         end
         
-        function updateDataStoreNodeId(obj)
+        function updateDataStoreFeatureGroupId(obj)
             for i = obj.tree.breadthfirstiterator
                 if obj.tree.get(i).id ~= i
                     % disp(['[INFO] updating datastore index ' num2str(i)]);
                     obj.tree.get(i).id = i;
                 end
             end
-        end
-    end
-
-    methods (Static)
-        
-        function resultManager = create(dataStores)
-            resultManager = sa_labs.analysis.core.FeatureTreeManager();
-            resultManager.setRootName('result');
-            arrayfun(@(ds) resultManager.append(ds), dataStores);
         end
     end
 end

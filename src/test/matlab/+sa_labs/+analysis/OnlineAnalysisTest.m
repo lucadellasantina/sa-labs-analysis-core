@@ -1,6 +1,7 @@
 classdef OnlineAnalysisTest < matlab.unittest.TestCase
     
     properties
+        mode = sa_labs.analysis.core.AnalysisMode.ONLINE_ANALYSIS;
     end
     
     methods(Test)
@@ -20,7 +21,7 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             structure = struct();
             structure.type = 'test-analysis';
             structure.buildTreeBy = {'stimTime', 'rstar'};
-            structure.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
+            structure.featureManager = 'sa_labs.analysis.core.FeatureTreeManager';
             
             epoch = struct();
             parameterKey = {'preTime', 'stimTime', 'tailTime', 'chan1', 'rstar'};
@@ -64,12 +65,16 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
                 analysis.setEpochSource(epoch)
                 analysis.service();
                 t = analysis.getResult();
-                node = core.FeatureTreeManager(t).findFeatureGroup(['stimTime==' num2str(stimTime)]);
+                % TODO replace this with query manager
+                
+                node = core.FeatureTreeManager(analysis.analysisProtocol, obj.mode, t).findFeatureGroup(['stimTime==' num2str(stimTime)]);
                 obj.verifyEqual(analysis.nodeIdMap('stimTime'), node.id);
             end
             tree = analysis.getResult();
             expectedNumberOfNodes = tree.nnodes;
-            nodes = core.FeatureTreeManager(tree).getImmediateChildrensByName('stimTime==500');
+            
+            % TODO replace this with query manager
+            nodes = core.FeatureTreeManager(analysis.analysisProtocol, obj.mode, tree).getImmediateChildrensByName('stimTime==500');
             expected = tree.findleaves();
             
             disp('analysis tree')
@@ -115,7 +120,7 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             % analysis template structure
             s = struct();
             s.type = 'complex-analysis';
-            s.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
+            s.featureManager = 'sa_labs.analysis.core.FeatureTreeManager';
             s.buildTreeBy = {'protocol', 'textureAngle, barAngle, curSpotSize', 'RstarMean'};
             
             analysisProtocol = core.AnalysisProtocol(s);

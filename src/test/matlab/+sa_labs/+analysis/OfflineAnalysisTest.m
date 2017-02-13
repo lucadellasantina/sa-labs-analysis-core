@@ -10,7 +10,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             structure = struct();
             structure.type = 'test-analysis';
             structure.buildTreeBy = {'EpochGroup', 'deviceStream'};
-            structure.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
+            structure.featureManager = 'sa_labs.analysis.core.FeatureTreeManager';
             obj.simpleAnalysisProtocol = structure;
         end
     end
@@ -167,7 +167,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
 
             s = struct();
             s.type = 'complex-analysis';
-            s.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
+            s.featureManager = 'sa_labs.analysis.core.FeatureTreeManager';
             s.buildTreeBy = {'EpochGroup', 'deviceStream', 'epochgroups', 'rstar'};
             s.EpochGroup.splitValue = 'LightStep_20';
             s.deviceStream = {'Amplifier_Ch1', 'Amplifier_Ch2'};
@@ -199,7 +199,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             % analysis template structure
             s = struct();
             s.type = 'complex-analysis';
-            s.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
+            s.featureManager = 'sa_labs.analysis.core.FeatureTreeManager';
             s.buildTreeBy = {'protocol', 'textureAngle, barAngle, curSpotSize', 'RstarMean'};
             
             % mocked cell data
@@ -255,7 +255,6 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             offlineAnalysis.setEpochSource(mockedCellData);
             offlineAnalysis.service();
             result = offlineAnalysis.getResult();
-            result = core.FeatureTreeManager.create(result).dataStore;
             disp('analysis tree')
             result.treefun(@(node) node.name).tostring()
             

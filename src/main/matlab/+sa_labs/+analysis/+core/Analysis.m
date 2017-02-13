@@ -4,7 +4,6 @@ classdef Analysis < handle
         identifier
         functionContext
         featureManager
-        extractor
         state
     end
     
@@ -55,8 +54,8 @@ classdef Analysis < handle
                 nodes = obj.getFeatureGroups(parameter);
                 
                 if ~ isempty(nodes)
-                    obj.extractor.delegate(functions, nodes);
                     obj.copyEpochParameters(nodes);
+                    obj.featureManager.delegate(functions, nodes);
                 end
             end
         end
@@ -76,14 +75,7 @@ classdef Analysis < handle
             protocol = obj.analysisProtocol;
             obj.state = app.AnalysisState.NOT_STARTED;
             
-            obj.featureManager = core.FeatureTreeManager();
-            obj.featureManager.setRootName(protocol.type);
-
-            obj.extractor = core.FeatureExtractor.create(protocol);
-            obj.extractor.loadFeatureDescription(protocol.featureDescriptionFile);
-            obj.extractor.featureManager = obj.featureManager;
-            obj.extractor.analysisMode = obj.mode;
-
+            obj.featureManager = core.FeatureManager.create(protocol, obj.mode);
             obj.state = app.AnalysisState.INITIALIZED;
         end
     end

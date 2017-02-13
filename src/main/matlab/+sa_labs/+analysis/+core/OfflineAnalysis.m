@@ -20,7 +20,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
 
         function setEpochSource(obj, cellData)
             obj.cellData = cellData;
-            obj.extractor.epochStream = @(indices) obj.cellData.epochs(indices);
+            obj.featureManager.epochStream = @(indices) obj.cellData.epochs(indices);
         end
     end
     

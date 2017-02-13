@@ -11,7 +11,7 @@ classdef AnalysisProtocol < handle
     properties (Dependent)
         copyParameters          % List of unique-paramters to copied from epoch to node
         type                    % Type of analysis
-        extractorClazz          % Feature extractor class name
+        featureManagerClazz     % Feature extractor class name
         featureDescriptionFile  % Feature description CSV file location
     end
     
@@ -135,8 +135,8 @@ classdef AnalysisProtocol < handle
             end
         end
 
-        function e = get.extractorClazz(obj)
-            e = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_EXTRACTOR_CLASS);
+        function e = get.featureManagerClazz(obj)
+            e = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_FEATURE_MANAGER_CLASS);
         end
         
         function displayTemplate(obj)
