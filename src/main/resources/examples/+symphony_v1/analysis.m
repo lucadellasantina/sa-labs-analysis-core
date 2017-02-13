@@ -29,24 +29,37 @@ data %#ok display data
 analysisPreset = struct();
 analysisPreset.type = 'optometer-analysis';
 analysisPreset.buildTreeBy = {'stimTime', 'pulseAmplitude'};
-analysisPreset.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
-analysisPreset.pulseAmplitude.featureExtractor = {'@(e, f) symphony_v1.addEpochAsFeature(e, f, ''device'', ''Optometer'')',...
-    '@(e, f)symphony_v1.computeIntegralOfPulse(e, f)'};
+analysisPreset.featureManager = 'sa_labs.analysis.core.FeatureTreeManager';
+analysisPreset.pulseAmplitude.featureExtractor = {'@(e, f) symphony_v1.extractorFunctions.addEpochAsFeature(e, f, ''device'', ''Optometer'')'};
+analysisPreset.stimTime.featureExtractor = {'@(e, f)symphony_v1.extractorFunctions.computeIntegralOfPulse(e, f)'};
 
 analysisProtocol = core.AnalysisProtocol(analysisPreset);
-project = offlineAnalysisManager.doAnalysis('optometer-calibration', analysisProtocol);
 
-treeManager = core.FeatureTreeManager(project.getAllresult{1});
+tic;
+project = offlineAnalysisManager.doAnalysis('optometer-calibration', analysisProtocol);
+result = project.getResult('optometer-analysis');
+toc;
+
+treeManager = core.FeatureTreeManager(analysisProtocol, core.AnalysisMode.OFFLINE_ANALYSIS, result);
 treeManager.getStructure().tostring()
 
-treeManager.getFeatureGroups(1).parameters
+treeManager.getFeatureGroups(2).parameters
 
 %% step 3) plot the results
 
 figure(1)
 for i = [3, 4, 5, 6]
-    epochsOfpulseAmplitude = treeManager.getFeatureGroups(i).featureMap('EPOCH');
-    plot(mean([epochsOfpulseAmplitude.data], 2));
+    group = treeManager.getFeatureGroups(i);
+    tic;
+    average = group.getFeatureData('EPOCH_AVERAGE');
+    toc;
+    t = symphony_v1.extractorFunctions.util.getStimulusDuration(group);
+    plot(t, average);
     hold on;
 end
 hold off;
+
+figure(2)
+power = treeManager.getFeatureGroups(2).getFeatureData('TIME_INTEGRAL');
+pulseAmplitude = treeManager.getFeatureGroups(2).getParameter('pulseAmplitude');
+plot(pulseAmplitude, power, 'o--')

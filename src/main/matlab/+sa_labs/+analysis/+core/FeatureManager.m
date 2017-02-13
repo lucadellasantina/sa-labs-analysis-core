@@ -35,7 +35,7 @@ classdef FeatureManager < handle
             
             for i = 1 : numel(extractorFunctions)
                 func = str2func(extractorFunctions{i});
-                arrayfun(@(featureGroup) func(obj, featureGroup), featureGroups)
+                arrayfun(@(featureGroup) func(obj, featureGroup), featureGroups);
             end
             featureKeySet = featureGroups.getFeatureKey();
             obj.copyFeaturesToGroup([featureGroups.id], featureKeySet, featureKeySet);
