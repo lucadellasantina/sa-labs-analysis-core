@@ -76,14 +76,14 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 
                 for j = 1 : numel(protocols)
                     protocol = protocols(j);
-                    analysis = core.OfflineAnalysis(protocol, cellData.recordingLabel);
+                    analysis = core.OfflineAnalysis(protocol, cellData.savedFileName);
                     analysis.setEpochSource(cellData);
                     analysis.service();
                     result = analysis.getResult();
-                    obj.analysisDao.saveAnalysisResults(cellData.savedFileName, protocol, result);
-                    analysisProject.addResult(protocol, result);
+                    obj.analysisDao.saveAnalysisResults(analysis.identifier, result, protocol);
+                    analysisProject.addResult(analysis.identifier, result);
                 end
-                 obj.analysisDao.saveProject(analysisProject);
+                obj.analysisDao.saveProject(analysisProject);
             end
         end
         

@@ -7,7 +7,7 @@ classdef AnalysisDao < handle
         saveCell(obj, cellData)
         findCell(obj, cellName)
         findCellNames(obj, regexp)
-        saveAnalysisResults(obj, cellName, protocol, result)
+        saveAnalysisResults(obj, resultId, result, protocol)
         findAnalysisResult(obj, regexp)
     end
     

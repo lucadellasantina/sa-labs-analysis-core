@@ -87,13 +87,13 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             cellData = result.cellData;
         end
         
-        function saveAnalysisResults(obj, cellName, protocol, result)
+        function saveAnalysisResults(obj, resultId, result, protocol)
             dir = [obj.repository.analysisFolder filesep 'analysisTrees' filesep];
             if ~ exist(dir, 'dir')
                 mkdir(dir);
             end
-            save([dir cellName], 'result');
-            savejson('', protocol, [dir protocol.type '.json']);
+            save([dir resultId], 'result');
+            savejson('', protocol, [dir resultId '.json']);
         end
         
         function result = findAnalysisResult(obj, regexp)

@@ -35,6 +35,8 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 parameters = obj.analysisProtocol.getSplitParametersByPath(pathIndex);
                 obj.add(obj.DEFAULT_ROOT_ID, epochGroup, parameters);
             end
+            group = obj.featureManager.getFeatureGroups(obj.DEFAULT_ROOT_ID);
+            group.setParameters(data.getCellParameterMap());
         end
         
         function p = getFilterParameters(obj)

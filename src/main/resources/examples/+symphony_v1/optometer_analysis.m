@@ -37,13 +37,13 @@ analysisProtocol = core.AnalysisProtocol(analysisPreset);
 
 tic;
 project = offlineAnalysisManager.doAnalysis('optometer-calibration', analysisProtocol);
-result = project.getResult('optometer-analysis');
+result = project.getAllresult();
 toc;
 
-treeManager = core.FeatureTreeManager(analysisProtocol, core.AnalysisMode.OFFLINE_ANALYSIS, result);
+treeManager = core.FeatureTreeManager(analysisProtocol, core.AnalysisMode.OFFLINE_ANALYSIS, result{1});
 treeManager.getStructure().tostring()
 
-treeManager.findFeatureGroup('stimTime == 20').parameters
+treeManager.findFeatureGroup('stimTime==20').parameters
 
 %% step 3) plot the results
 

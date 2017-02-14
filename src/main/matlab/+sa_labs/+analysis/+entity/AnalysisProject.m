@@ -3,6 +3,7 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
     properties
         identifier
         cellDataNames
+        analysisResultNames
         description
         analysisDate
         experimentDate
@@ -13,7 +14,6 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
     properties(Access = private)
         cellDataMap
         resultMap
-        protocols
     end
     
     methods
@@ -46,15 +46,15 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
             list = obj.cellDataMap.values;
         end
 
-        function addResult(obj, protocol, analysisResult)
-            if ~ isKey(obj.resultMap, protocol.type)
-                obj.protocols{end + 1} = protocol;
+        function addResult(obj, resultId, analysisResult)
+            if ~ isKey(obj.resultMap, resultId)
+                obj.analysisResultNames{end + 1} = resultId;
             end
-            obj.resultMap(protocol.type) = analysisResult;
+            obj.resultMap(resultId) = analysisResult;
         end
         
-        function c = getResult(obj, protocolType)
-            c = obj.resultMap(protocolType);
+        function c = getResult(obj, resultId)
+            c = obj.resultMap(resultId);
         end
 
         function list = getAllresult(obj)

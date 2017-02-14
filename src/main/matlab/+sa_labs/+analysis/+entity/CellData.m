@@ -237,6 +237,12 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
         function d = get.experimentDate(obj)
             d = obj.savedFileName(1 : 6);
         end
+
+        function map = getCellParameterMap(obj)
+           map = obj.attributes;
+           map('cellType') = obj.cellType;
+           map('recordingLabel') = obj.recordingLabel;
+        end
     end
     
     methods(Access = protected)
