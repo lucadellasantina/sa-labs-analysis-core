@@ -45,7 +45,6 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 structure = loadjson([path info(index(i)).name filesep 'project.json']);
                 projects(i) = entity.AnalysisProject(structure);
             end
-            
         end
         
         function fnames = findRawDataFiles(obj, date)
@@ -96,8 +95,11 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             savejson('', protocol, [dir resultId '.json']);
         end
         
-        function result = findAnalysisResult(obj, regexp)
-            result = [];
+        function result = findAnalysisResult(obj, resultId)
+            r = [];
+            path = [obj.repository.analysisFolder filesep 'analysisTrees' filesep resultId];
+            r = load(path);
+            result = r.result;
         end
     end
     

@@ -53,6 +53,12 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                     error('h5 file not found in the rawDataFolder')
                 end
             end
+            
+            for i = 1 : numel(project.analysisResultNames)
+                resultId = project.analysisResultNames{i};
+                result = dao.findAnalysisResult(resultId);
+                project.addResult(resultId, result);
+            end
         end
         
         function preProcess(obj, cellData, functions)
@@ -65,11 +71,11 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
         end
         
         
-        function analysisProject = doAnalysis(obj, projectName, protocols)
+        function project = doAnalysis(obj, projectName, protocols)
             import sa_labs.analysis.*;
             
-            analysisProject = obj.initializeProject(projectName);
-            cellDataList = analysisProject.getCellDataList();
+            project = obj.initializeProject(projectName);
+            cellDataList = project.getCellDataList();
             
             for i = 1 : numel(cellDataList)
                 cellData = cellDataList{i};
@@ -81,12 +87,11 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                     analysis.service();
                     result = analysis.getResult();
                     obj.analysisDao.saveAnalysisResults(analysis.identifier, result, protocol);
-                    analysisProject.addResult(analysis.identifier, result);
+                    project.addResult(analysis.identifier, result);
                 end
-                obj.analysisDao.saveProject(analysisProject);
+                obj.analysisDao.saveProject(project);
             end
         end
-        
     end
 end
 
