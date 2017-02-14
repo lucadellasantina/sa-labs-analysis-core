@@ -83,6 +83,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                     obj.analysisDao.saveAnalysisResults(cellData.savedFileName, protocol, result);
                     analysisProject.addResult(protocol, result);
                 end
+                 obj.analysisDao.saveProject(analysisProject);
             end
         end
         

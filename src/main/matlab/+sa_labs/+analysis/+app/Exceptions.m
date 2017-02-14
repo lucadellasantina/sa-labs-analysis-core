@@ -7,7 +7,7 @@ classdef Exceptions < handle
         SPLIT_VALUE_NOT_FOUND('validateLevel:splitValueNotFound', 'No matching split value while building the tree')
         MULTIPLE_FEATURE_KEY_PRESENT('getFeatureData:multipleFeatureIdErr', 'cannot fetch features as the supplied feature ids are different')
         FEATURE_KEY_NOT_FOUND('getFeatureData:featureIdNotPresent', 'Feature Id is not found in the feature map');
-        MISMATCHED_FEATURE_MANAGER_TYPE('extractorType:invalid', ['instance is not of type' sa_labs.analysis.core.FeatureManager.CLASS]);
+        MISMATCHED_FEATURE_MANAGER_TYPE('extractorType:invalid', 'instance is not of type  sa_labs.analysis.core.FeatureManager');
         INVALID_PROPERTY_PAIR('properties:invalid', 'properties deos not have valid param value pair');
         
     end

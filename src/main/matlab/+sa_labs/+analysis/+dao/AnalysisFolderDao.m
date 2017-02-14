@@ -24,6 +24,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 projectStruct.(attr) = project.(attr);
             end
             file = [projectFile 'project.json'];
+            projectStruct.file = file;
             project.file = file;
             savejson('', projectStruct, file);
         end

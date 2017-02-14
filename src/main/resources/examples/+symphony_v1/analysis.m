@@ -43,13 +43,12 @@ toc;
 treeManager = core.FeatureTreeManager(analysisProtocol, core.AnalysisMode.OFFLINE_ANALYSIS, result);
 treeManager.getStructure().tostring()
 
-treeManager.getFeatureGroups(2).parameters
+treeManager.findFeatureGroup('stimTime == 20').parameters
 
 %% step 3) plot the results
 
 figure(1)
-for i = [3, 4, 5, 6]
-    group = treeManager.getFeatureGroups(i);
+for group = treeManager.findFeatureGroup('pulseAmplitude')
     tic;
     average = group.getFeatureData('EPOCH_AVERAGE');
     toc;
@@ -60,6 +59,6 @@ end
 hold off;
 
 figure(2)
-power = treeManager.getFeatureGroups(2).getFeatureData('TIME_INTEGRAL');
-pulseAmplitude = treeManager.getFeatureGroups(2).getParameter('pulseAmplitude');
+power = treeManager.findFeatureGroup('stimTime').getFeatureData('TIME_INTEGRAL');
+pulseAmplitude = treeManager.findFeatureGroup('stimTime').getParameter('pulseAmplitude');
 plot(pulseAmplitude, power, 'o--')
