@@ -7,6 +7,7 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
         rawDataFolder
         preferenceFolder
         dateFormat
+        logFile
     end
     
     methods
@@ -77,6 +78,15 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
         function set.dateFormat(obj, f)
             validateattributes(f, { 'function_handle'}, {'2d'});
             obj.put('dateFormat', f);
+        end
+
+        function f = get.logFile(obj, f)
+             f = obj.get('logFile', fullfile(char(java.lang.System.getProperty('user.home')), 'data', 'analysis', 'analysis.log'));
+        end
+
+        function set.logFile(obj, f)
+            validateattributes(p, {'char', 'function_handle'}, {'2d'});
+            obj.put('logFile', f);
         end
     end
     

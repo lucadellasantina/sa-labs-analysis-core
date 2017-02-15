@@ -3,6 +3,7 @@ classdef AnalysisProtocolTest < matlab.unittest.TestCase
     properties
         lightStepStructure
         standardAnalysis
+        log
     end
     
     methods
@@ -11,6 +12,7 @@ classdef AnalysisProtocolTest < matlab.unittest.TestCase
             obj.lightStepStructure = loadjson(fname);
             fname = which('standard-analysis.json');
             obj.standardAnalysis = loadjson(fname);
+            obj.log = logging.getLogger('test-logger');
         end
     end
     
@@ -36,8 +38,9 @@ classdef AnalysisProtocolTest < matlab.unittest.TestCase
             template.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
             
             t = sa_labs.analysis.core.AnalysisProtocol(template);
-            disp('Template tree for visual validation');
-            t.displayTemplate();
+            obj.log.info('Template tree for visual validation');
+            obj.log.info(t.getTemplateTree().tostring());
+            
             obj.verifyEqual(t.numberOfPaths(), 18);
             v = t.getSplitParametersByPath(1);
             obj.verifyEqual(v, {'a', 'b', 'e', 'g'});

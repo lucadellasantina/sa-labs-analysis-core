@@ -139,8 +139,8 @@ classdef AnalysisProtocol < handle
             e = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_FEATURE_MANAGER_CLASS);
         end
         
-        function displayTemplate(obj)
-            disp(obj.templateTree.tostring());
+        function t = getTemplateTree(obj)
+            t = obj.templateTree;
         end
     end
     
