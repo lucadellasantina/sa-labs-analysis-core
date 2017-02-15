@@ -12,96 +12,93 @@ classdef AnalysisProtocolTest < matlab.unittest.TestCase
             obj.lightStepStructure = loadjson(fname);
             fname = which('standard-analysis.json');
             obj.standardAnalysis = loadjson(fname);
+            
             obj.log = logging.getLogger('test-logger');
         end
     end
     
     methods(Test)
-        
-        function testGetExtractorFunctions(obj)
-            template = sa_labs.analysis.core.AnalysisProtocol(obj.lightStepStructure);
-            expected = {'MeanExtractor', 'spikeAmplitudeExtractor'};
-            obj.verifyEqual(template.getExtractorFunctions('rstarMean'), expected);
-            obj.verifyEmpty(template.getExtractorFunctions('unknown'));
-        end
-        
-        function testProperties(obj)
-            template = sa_labs.analysis.core.AnalysisProtocol(obj.lightStepStructure);
-            obj.verifyEqual(template.copyParameters, {'ndf', 'etc'});
-            obj.verifyEqual(template.getSplitParameters(), {'EpochGroup', 'deviceStream', 'grpEpochs', 'rstarMean', 'epochId'});
-        end
-        
-        function testTemplateTree(obj)
-            template = struct();
-            template.type = 'test-analysis';
-            template.buildTreeBy = {'a', 'b, c, d', 'e, f', 'g, h, i'};
-            template.extractorClass = 'sa_labs.analysis.core.FeatureExtractor';
+
+        function testGetSplitParametersByPath(obj)
+            protocol = struct();
+            protocol.type = 'test-analysis';
+            protocol.buildTreeBy = {'a', 'b, c, d', 'e, f', 'g, h, i'};
             
-            t = sa_labs.analysis.core.AnalysisProtocol(template);
-            obj.log.info('Template tree for visual validation');
-            obj.log.info(t.getTemplateTree().tostring());
+            p = sa_labs.analysis.core.AnalysisProtocol(protocol);
+            obj.log.info('Template tree for visual validation : [ 1 -> a, 2 -> bcd, 3 -> ef, 4 -> ghi]');
+            obj.log.info(p.toTree().tostring());
             
-            obj.verifyEqual(t.numberOfPaths(), 18);
-            v = t.getSplitParametersByPath(1);
+            obj.verifyEqual(p.numberOfPaths(), 18);
+
+            v = p.getSplitParametersByPath(1);
             obj.verifyEqual(v, {'a', 'b', 'e', 'g'});
-            v = t.getSplitParametersByPath(18);
+            v = p.getSplitParametersByPath(18);
             obj.verifyEqual(v, {'a', 'd', 'f', 'i'});
         end
-        
+       
         function testValidateSplitValues(obj)
-            template = sa_labs.analysis.core.AnalysisProtocol(obj.lightStepStructure);
-            obj.verifyEmpty(template.getSplitValue('unkown'));
+            protocol = sa_labs.analysis.core.AnalysisProtocol(obj.lightStepStructure);
+            obj.verifyEmpty(protocol.getSplitValue('unkown'));
             
-            values = template.validateSplitValues('EpochGroup', 'empty');
+            values = protocol.validateSplitValues('EpochGroup', 'empty');
             obj.verifyEqual(values, {'empty'});
             
-            values = template.validateSplitValues('deviceStream', 'Amplifier_ch1');
+            values = protocol.validateSplitValues('deviceStream', 'Amplifier_ch1');
             obj.verifyEqual(values, {'Amplifier_ch1'});
             
-            values = template.validateSplitValues('deviceStream', {'Amplifier_ch1', 'Amplifier_ch2'});
+            values = protocol.validateSplitValues('deviceStream', {'Amplifier_ch1', 'Amplifier_ch2'});
             obj.verifyEqual(values, {'Amplifier_ch1'});
             
             expected = {'G1', 'G3'};
-            values = template.validateSplitValues('grpEpochs',  {'G0', 'G1', 'G3', 'G5'});
+            values = protocol.validateSplitValues('grpEpochs',  {'G0', 'G1', 'G3', 'G5'});
             obj.verifyEqual(values, expected);
             
             expected = {'G3'};
-            values = template.validateSplitValues('grpEpochs',  'G3');
+            values = protocol.validateSplitValues('grpEpochs',  'G3');
             obj.verifyEqual(values, expected);
             
-            handle = @() template.validateSplitValues('grpEpochs',  {'unknown'});
+            handle = @() protocol.validateSplitValues('grpEpochs',  {'unknown'});
             obj.verifyError(handle, sa_labs.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.msgId);
             
-            values = template.validateSplitValues('rstarMean', 1:5);
+            values = protocol.validateSplitValues('rstarMean', 1:5);
             obj.verifyEqual(values, 1:5);
             
-            values = template.validateSplitValues('epochId', 1:3);
+            values = protocol.validateSplitValues('epochId', 1:3);
             obj.verifyEqual(values, 1:3);
             
-            handle = @()template.validateSplitValues('epochId', 6);
+            handle = @()protocol.validateSplitValues('epochId', 6);
             obj.verifyError(handle, sa_labs.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.msgId);
             
-            values = template.validateSplitValues('epochId', 2:3);
+            values = protocol.validateSplitValues('epochId', 2:3);
             obj.verifyEqual(values, 2:3);
         end
         
-        function validateStandardAnalysis(obj)
+        function testProtocols(obj)
             import sa_labs.analysis.*;
+
+            % Light step analysis json
+
+            protocol = core.AnalysisProtocol(obj.lightStepStructure);
+            obj.verifyEqual(protocol.getExtractorFunctions('rstarMean'), {'MeanExtractor', 'spikeAmplitudeExtractor'});
+            obj.verifyEmpty(protocol.getExtractorFunctions('unknown'));
+            obj.verifyEqual(protocol.copyParameters, {'ndf', 'etc'});
+            obj.verifyEqual(protocol.featurebuilderClazz, 'FeatureBuilder');
+            obj.verifyEqual(protocol.getSplitParameters(), {'EpochGroup', 'deviceStream', 'grpEpochs', 'rstarMean', 'epochId'});
+
+            % standard analysis json
             
-            template = core.AnalysisProtocol(obj.standardAnalysis);
-            
-            [p, v] = template.getSplitParameters();
+            protocol = core.AnalysisProtocol(obj.standardAnalysis);           
+            [p, v] = protocol.getSplitParameters();
             obj.verifyEqual(p, {'displayName', 'textureAngle', 'RstarMean', 'barAngle', 'curSpotSize'});
             obj.verifyEqual(v, [1, 2, 2, 2, 2]);
-            
-            obj.verifyEqual(4,  template.numberOfPaths());
-            
-            v = template.getSplitParametersByPath(4);
+            obj.verifyEqual(4,  protocol.numberOfPaths());
+            obj.verifyEqual(protocol.featurebuilderClazz, 'sa_labs.analysis.core.FeatureTreeBuilder');
+            v = protocol.getSplitParametersByPath(4);
             obj.verifyEqual(v, {'displayName', 'curSpotSize'});
             
             fname = app.App.getResource(app.Constants.FEATURE_DESC_FILE_NAME);
-            obj.verifyNotEmpty(template.featureDescriptionFile);
-            obj.verifyEqual(template.featureDescriptionFile, fname);
+            obj.verifyNotEmpty(protocol.featureDescriptionFile);
+            obj.verifyEqual(protocol.featureDescriptionFile, fname);
         end
         
     end

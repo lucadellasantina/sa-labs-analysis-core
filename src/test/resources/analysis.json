@@ -1,6 +1,6 @@
 {
   "type": "LightStep",
-  "extractorClass": "SimpleFeatureExtractor",
+  "featureBuilder" : "FeatureBuilder",
   "copyParameters": [
     "ndf",
     "etc"

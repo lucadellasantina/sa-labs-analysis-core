@@ -8,7 +8,7 @@ classdef Constants < handle
         TEMPLATE_SPLIT_VALUE = 'splitValue'
         TEMPLATE_FEATURE_EXTRACTOR = 'featureExtractor'
         TEMPLATE_TYPE = 'type'
-        TEMPLATE_FEATURE_MANAGER_CLASS = 'featureManager'
+        TEMPLATE_FEATURE_BUILDER_CLASS = 'featureBuilder'
         TEMPLATE_FEATURE_DESC_FILE = 'feature-description-file'
         
         FEATURE_DESC_FILE_NAME = 'feature-description.csv'

@@ -4,19 +4,19 @@ classdef AnalysisProtocol < handle
     % values and extractor functions at the specified tree level
     
     properties (Access = private)
-        functionContext     % Map containing key as split parameter and value as extractor functions
-        templateTree
+        functionContext         % Map containing key as split parameter and value as extractor functions
+        protocolTree
     end
     
     properties (Dependent)
         copyParameters          % List of unique-paramters to copied from epoch to node
         type                    % Type of analysis
-        featureManagerClazz     % Feature extractor class name
+        featurebuilderClazz     % Feature extractor class name
         featureDescriptionFile  % Feature description CSV file location
     end
     
     properties
-        structure               % Structure from user interface or yaml
+        structure               % Structure from user interface or json
     end
 
     methods
@@ -24,13 +24,13 @@ classdef AnalysisProtocol < handle
         function obj = AnalysisProtocol(structure)
             obj.structure = structure;
             obj.populateFunctionContext();
-            obj.makeTree();
+            obj.buildTree();
         end
 
         function parameters = getSplitParametersByPath(obj, index)
-            leafs = obj.templateTree.findleaves();
-            path =  sort(obj.templateTree.pathtoroot(leafs(index)));
-            parameters = arrayfun(@(id) obj.templateTree.get(id), path, 'UniformOutput', false);
+            leafs = obj.protocolTree.findleaves();
+            path =  sort(obj.protocolTree.pathtoroot(leafs(index)));
+            parameters = arrayfun(@(id) obj.protocolTree.get(id), path, 'UniformOutput', false);
             parameters = parameters(2 : end);
         end
 
@@ -44,10 +44,6 @@ classdef AnalysisProtocol < handle
                 parameters = {parameters{:}, branches{:}}; %#ok
                 levels = [levels, i * ones(1, numel(branches))]; %#ok
             end
-        end
-
-        function n = numberOfPaths(obj)
-            n = numel(obj.templateTree.findleaves());
         end
 
         function values = validateSplitValues(obj, parameter, values)
@@ -135,12 +131,22 @@ classdef AnalysisProtocol < handle
             end
         end
 
-        function e = get.featureManagerClazz(obj)
-            e = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_FEATURE_MANAGER_CLASS);
+        function e = get.featurebuilderClazz(obj)
+            clazz = sa_labs.analysis.app.Constants.TEMPLATE_FEATURE_BUILDER_CLASS;
+            
+            if ~ isfield(obj.structure, clazz)
+                e = 'sa_labs.analysis.core.FeatureTreeBuilder'
+                return
+            end
+            e = obj.structure.(clazz);
         end
         
-        function t = getTemplateTree(obj)
-            t = obj.templateTree;
+        function n = numberOfPaths(obj)
+            n = numel(obj.protocolTree.findleaves());
+        end
+        
+        function t = toTree(obj)
+            t = obj.protocolTree;
         end
     end
     
@@ -159,7 +165,7 @@ classdef AnalysisProtocol < handle
             end
         end
         
-        function makeTree(obj)
+        function buildTree(obj)
             t = tree();
             t = t.addnode(0, obj.type);
             [parameters, levels] = obj.getSplitParameters();
@@ -176,7 +182,7 @@ classdef AnalysisProtocol < handle
                     end
                 end
             end
-            obj.templateTree = t;
+            obj.protocolTree = t;
         end
     end
 end
