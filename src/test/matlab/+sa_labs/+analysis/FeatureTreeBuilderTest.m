@@ -134,12 +134,12 @@ classdef FeatureTreeBuilderTest < matlab.unittest.TestCase
             expecteLastLeaf = obj.builder.getFeatureGroups(obj.treeIndices.ds4_rstar_0_1);
             n = obj.builder.dataStore.nnodes;
 
-            b = core.FeatureTreeBuilder('cell', 'ac2');
+            b = core.factory.createFeatureBuilder('cell', 'ac2');
             b.addFeatureGroup(1, 'Amp', 'Amplifier_ch3', entity.EpochGroup(1:500, 'none'));
             b.addFeatureGroup(1, 'Amp', 'Amplifier_ch4', entity.EpochGroup(1:500, 'none'));
             % validate leaf
             disp(' Merging tree ');
-            obj.builder.append(b.dataStore);
+            obj.builder.append(b.dataStore, true);
             actual = obj.builder.getFeatureGroups(obj.treeIndices.ds1_rstar_0_01);
             obj.verifyEqual(actual.name, expectedFirstLeaf.name);
             
@@ -157,7 +157,7 @@ classdef FeatureTreeBuilderTest < matlab.unittest.TestCase
         
         function testBasicFeatureGroup(obj)
             import sa_labs.analysis.*;
-            b = core.FeatureTreeBuilder('cell', 'ac3');
+             b = core.factory.createFeatureBuilder('cell', 'ac2');
             % empty check
             obj.verifyFalse(b.isBasicFeatureGroup([]));
             id = b.addFeatureGroup(1, 'Amp', 'Amplifier_ch3', entity.EpochGroup(1:500, 'none'));

@@ -32,9 +32,24 @@ classdef FeatureTreeBuilder < handle
         % This may be a performance hit
         % Think of merging a tree in an alternative way.
         
-        function append(obj, dataStore)
-            obj.tree = obj.tree.graft(1, dataStore);
+        function append(obj, dataTree, copyEnabled)
+
+            if nargin < 3
+                copyEnabled = false;
+            end
+
+            obj.tree = obj.tree.graft(1, dataTree);
+            childrens = obj.tree.getchildren(1);
             obj.updateDataStoreFeatureGroupId();
+            obj.log.info([ dataTree.get(1).name ' is grafted to parant tree '])
+
+            if copyEnabled
+                id = childrens(end);
+                group = obj.getFeatureGroups(id);
+                parent = obj.getFeatureGroups(1);
+                obj.log.debug([' analysis parameter from [ ' group.name ' ] is pushed to [ ' parent.name ' ]'])
+                parent.setParameters(group.parameters);
+            end
         end
         
         function ds = get.dataStore(obj)
@@ -171,7 +186,7 @@ classdef FeatureTreeBuilder < handle
         function updateDataStoreFeatureGroupId(obj)
             for i = obj.tree.breadthfirstiterator
                 if obj.tree.get(i).id ~= i
-                    obj.log.debug(['updating tree index [ ' num2str(i) ' ]'])
+                    obj.log.trace(['updating tree index [ ' num2str(i) ' ]'])
                     obj.tree.get(i).id = i;
                 end
             end
