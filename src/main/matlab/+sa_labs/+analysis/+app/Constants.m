@@ -12,6 +12,7 @@ classdef Constants < handle
         TEMPLATE_FEATURE_DESC_FILE = 'feature-description-file'
         
         FEATURE_DESC_FILE_NAME = 'feature-description.csv'
+        ANALYSIS_LOGGER = 'sa-labs-analysis-core-logger'
     end
 end
 
