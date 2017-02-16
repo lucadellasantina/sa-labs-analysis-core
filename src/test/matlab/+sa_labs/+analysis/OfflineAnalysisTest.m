@@ -2,6 +2,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
 
     properties
         simpleAnalysisProtocol
+        recordingLabel
     end
 
     methods (TestClassSetup)
@@ -12,6 +13,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             structure.buildTreeBy = {'EpochGroup', 'deviceStream'};
             structure.featureManager = 'sa_labs.analysis.core.FeatureTreeManager';
             obj.simpleAnalysisProtocol = structure;
+            obj.recordingLabel = 'label';
         end
     end
     
@@ -19,6 +21,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
         
         function testBuildTreeSimpleTwoLevel(obj)
             import sa_labs.analysis.*;
+            expectedRoot = @(id) strcat('analysis==', id, '-', obj.recordingLabel);
             
             levelOne = containers.Map({'LightStep_20'}, {1 : 50});
             levelTwo = containers.Map({'Amplifier_Ch1'}, {1 : 50});
@@ -33,7 +36,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             tree = obj.testAnalyze(obj.simpleAnalysisProtocol, mockedCellData);
             actual = tree.treefun(@(node) node.name);
             
-            expected = {'test-analysis'; 'EpochGroup==LightStep_20'; 'deviceStream==Amplifier_Ch1'};
+            expected = {expectedRoot('test-analysis'); 'EpochGroup==LightStep_20'; 'deviceStream==Amplifier_Ch1'};
             obj.verifyEqual(actual.Node, expected);
             leaf = tree.findleaves();
             obj.verifyEqual(tree.get(leaf).epochIndices, 1:50);
@@ -45,7 +48,8 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
 
         function testBuildTreeSimpleMultipleBranches(obj)
             import sa_labs.analysis.*;
-
+            expectedRoot = @(id) strcat('analysis==', id, '-', obj.recordingLabel);
+            
             % Tree with two level and one branch - analysis
             % Tree with two level - analysis
             levelOne = containers.Map({'LightStep_20', 'LightStep_500'}, {1 : 50, 51 : 100});
@@ -67,7 +71,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             tree = obj.testAnalyze(obj.simpleAnalysisProtocol, mockedCellData);
             actual = tree.treefun(@(node) node.name);
             
-            expected = {'test-analysis'; 'EpochGroup==LightStep_20'; 'deviceStream==Amplifier_Ch1'; 'EpochGroup==LightStep_500'; 'deviceStream==Amplifier_Ch1'};
+            expected = {expectedRoot('test-analysis'); 'EpochGroup==LightStep_20'; 'deviceStream==Amplifier_Ch1'; 'EpochGroup==LightStep_500'; 'deviceStream==Amplifier_Ch1'};
             obj.verifyEqual(actual.Node, expected);
             leafs = tree.findleaves();
 
@@ -82,7 +86,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
 
         function  testBuildTreeMutlipleLevelMultipleBranches(obj)           
             import sa_labs.analysis.*;
-
+            expectedRoot = @(id) strcat('analysis==', id, '-', obj.recordingLabel);
             % Tree with two level and two branch - analysis
             levelOne = containers.Map({'LightStep_20', 'LightStep_500'}, {1 : 50, 51 : 100});
             levelTwo = containers.Map({'Amplifier_Ch1', 'Amplifier_Ch2'}, {1 : 50, 1 : 50});
@@ -108,7 +112,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             tree = obj.testAnalyze(obj.simpleAnalysisProtocol, mockedCellData);
             actual = tree.treefun(@(node) node.name);
             
-            expected = {'test-analysis'; 'EpochGroup==LightStep_20'; 'deviceStream==Amplifier_Ch1';'deviceStream==Amplifier_Ch2';...
+            expected = {expectedRoot('test-analysis'); 'EpochGroup==LightStep_20'; 'deviceStream==Amplifier_Ch1';'deviceStream==Amplifier_Ch2';...
                 'EpochGroup==LightStep_500'; 'deviceStream==Amplifier_Ch1';'deviceStream==Amplifier_Ch2'};
             
             obj.verifyEqual(actual.Node, expected);
@@ -251,7 +255,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
             
             analysisProtocol = core.AnalysisProtocol(s);
-            offlineAnalysis = core.OfflineAnalysis(analysisProtocol, 'identifier');
+            offlineAnalysis = core.OfflineAnalysis(analysisProtocol, obj.recordingLabel);
             offlineAnalysis.setEpochSource(mockedCellData);
             offlineAnalysis.service();
             result = offlineAnalysis.getResult();
@@ -296,7 +300,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 import sa_labs.analysis.*;
                 
                 protocol = core.AnalysisProtocol(structure);
-                offlineAnalysis = core.OfflineAnalysis(protocol, 'identifier');
+                offlineAnalysis = core.OfflineAnalysis(protocol, obj.recordingLabel);
                 offlineAnalysis.setEpochSource(mockedCellData);
                 offlineAnalysis.service();
                 t = offlineAnalysis.getResult();

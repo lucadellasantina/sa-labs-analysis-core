@@ -10,7 +10,8 @@ function test(package)
     addpath(genpath(fullfile(rootPath, 'apps')));
     
     delete('test.log');
-    [~, deleteLogger] = logging.getLogger('test-logger', 'path', 'test.log');
+    [log, deleteLogger] = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER, 'path', 'test.log');
+    log.setLogLevel(logging.logging.ALL);
     suite = matlab.unittest.TestSuite.fromPackage(package, 'IncludingSubpackages', true);
     results = run(suite);
     

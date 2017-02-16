@@ -23,7 +23,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
         function setEpochSource(obj, epoch)
             obj.state = sa_labs.analysis.app.AnalysisState.PROCESSING_STREAMS;
             obj.epochStream = epoch;
-            obj.featureManager.epochStream = epoch;
+            % obj.featureBuilder.epochStream = epoch;
         end
     end
     
@@ -46,7 +46,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
                 
                 % possible bottle neck if nodes are > 100,000 on first
                 % pause
-                id = obj.featureManager.findFeatureGroupId(name, obj.nodeId);
+                id = obj.featureBuilder.findFeatureGroupId(name, obj.nodeId);
                 if isempty(id)
                     present = false;
                     break;
@@ -60,21 +60,29 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
             end
         end
         
-        function p = getFilterParameters(obj)
+        function [map, order] = getFeaureGroupsByProtocol(obj)
             p = obj.splitParameters;
-        end
-        
-        function node = getFeatureGroups(obj, parameter)
-            id = obj.nodeIdMap(parameter);
-            node = obj.featureManager.getFeatureGroups(id);
-            % disp([' [INFO] id ' num2str(id) ' parameter ' parameter]);
+            map = containers.Map();
+            order = [];
+            
+            for i = 1 : numel(p)
+                key = p{i};
+                id = obj.nodeIdMap(key);
+                featureGroup = obj.featureBuilder.getFeatureGroups(id);
+                obj.log.trace([' id ' num2str(id) ' parameter ' key]);
+                map(key) = featureGroup;
+            end
+            if isempty(p)
+                return
+            end
+            [~ , order] = ismember(p, map.keys);
         end
 
         function copyEpochParameters(obj, nodes)
             keySet = obj.epochStream.parameters.keys;
             
-            if ~ obj.featureManager.isBasicFeatureGroup(nodes)
-                obj.featureManager.copyFeaturesToGroup([nodes.id], keySet, keySet);
+            if ~ obj.featureBuilder.isBasicFeatureGroup(nodes)
+                obj.featureBuilder.collect([nodes.id], keySet, keySet);
                 return
             end
 
@@ -108,7 +116,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
             for i = 1 : numel(parameters)
                 splitBy = parameters{i};
                 splitValue = epochParameters(splitBy);
-                obj.nodeId = obj.featureManager.addFeatureGroup(obj.nodeId, splitBy, splitValue, EMPTY_EPOCH_INDEX);
+                obj.nodeId = obj.featureBuilder.addFeatureGroup(obj.nodeId, splitBy, splitValue, EMPTY_EPOCH_INDEX);
                 
                 % update node map
                 obj.nodeIdMap(splitBy) = obj.nodeId;

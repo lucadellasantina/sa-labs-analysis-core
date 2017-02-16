@@ -3,41 +3,54 @@ classdef Analysis < handle
     properties (SetAccess = protected)
         identifier
         functionContext
-        featureManager
+        featureBuilder
         state
     end
     
     properties
         analysisProtocol
+        log
     end
-
+    
     properties(Abstract)
         mode
     end
     
     methods
         
-        function obj = Analysis(analysisProtocol, recordingLabel)
-            obj.identifier = strcat(analysisProtocol.type, '-', recordingLabel);
-            obj.analysisProtocol = analysisProtocol;
-            obj.init();
+        function obj = Analysis(protocol, recordingLabel)
+            import sa_labs.analysis.*;
+            obj.log = logging.getLogger(app.Constants.ANALYSIS_LOGGER);
+            
+            obj.state = app.AnalysisState.NOT_STARTED;
+            obj.state = app.AnalysisState.INITIALIZED;
+            obj.identifier = strcat(protocol.type, '-', recordingLabel);
+            obj.analysisProtocol = protocol;
+            obj.featureBuilder = core.factory.createFeatureBuilder('class', protocol.featurebuilderClazz,...
+                'name', 'analysis',...
+                'value', obj.identifier);
+            
+            obj.log.debug(['protocol [ ' obj.identifier ' ] is initialized with builder [ ' class(obj.featureBuilder) ' ]' ]);
         end
-
+        
         function service(obj)
             
             if isempty(obj.analysisProtocol)
                 error('analysisProtocol is empty'); %TODO replace with exception
             end
             obj.state = sa_labs.analysis.app.AnalysisState.STARTED;
+            obj.log.info('started building analysis ...');
             obj.build();
+            obj.log.info('started extracting features ...');
             obj.extractFeatures();
             obj.state = sa_labs.analysis.app.AnalysisState.COMPLETED;
+            obj.log.info('completed analysis ...');
         end
         
         function r = getResult(obj)
-            r = obj.featureManager.dataStore;
+            r = obj.featureBuilder.dataStore;
         end
-
+        
         function setEpochSource(obj, source) %#ok
             % will be overriden in the subclass
         end
@@ -46,16 +59,24 @@ classdef Analysis < handle
     methods (Access = protected)
         
         function extractFeatures(obj)
-            parameters = obj.getFilterParameters();
+            [map, order] = obj.getFeaureGroupsByProtocol();
+            keys = map.keys();
+            parameters = keys(order);
             
             for i = numel(parameters) : -1 : 1
                 parameter = parameters{i};
                 functions = obj.analysisProtocol.getExtractorFunctions(parameter);
-                nodes = obj.getFeatureGroups(parameter);
+                featureGroups = map(parameter);
                 
-                if ~ isempty(nodes)
-                    obj.copyEpochParameters(nodes);
-                    obj.featureManager.delegate(functions, nodes);
+                if ~ isempty(featureGroups)
+                    obj.log.debug(['feature extraction for [ ' parameter ' ]']);
+                    
+                    obj.copyEpochParameters(featureGroups);
+                    obj.delegateFeatureExtraction(functions, featureGroups);
+                    
+                    obj.log.debug(['collecting features ...']);
+                    keySet = featureGroups.getFeatureKey();
+                    obj.featureBuilder.collect([featureGroups.id], keySet, keySet);
                 end
             end
         end
@@ -63,20 +84,19 @@ classdef Analysis < handle
     
     methods (Access = protected, Abstract)
         build(obj)
-        copyEpochParameters(obj, nodes)
-        getFilterParameters(obj)
-        getFeatureGroups(obj, parameter)
+        getFeaureGroupsByProtocol(obj)
+        copyEpochParameters(obj, featureGroups)
     end
-
+    
     methods (Access = private)
-
-        function init(obj)
-            import sa_labs.analysis.*;
-            protocol = obj.analysisProtocol;
-            obj.state = app.AnalysisState.NOT_STARTED;
+        
+        function delegateFeatureExtraction(obj, extractorFunctions, featureGroups)
             
-            obj.featureManager = core.FeatureManager.create(protocol, obj.mode);
-            obj.state = app.AnalysisState.INITIALIZED;
+            for i = 1 : numel(extractorFunctions)
+                func = str2func(extractorFunctions{i});
+                arrayfun(@(featureGroup) func(obj.featureBuilder, featureGroup), featureGroups);
+            end
         end
+        
     end
 end

@@ -20,7 +20,6 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
 
         function setEpochSource(obj, cellData)
             obj.cellData = cellData;
-            obj.featureManager.epochStream = @(indices) obj.cellData.epochs(indices);
         end
     end
     
@@ -35,31 +34,35 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 parameters = obj.analysisProtocol.getSplitParametersByPath(pathIndex);
                 obj.add(obj.DEFAULT_ROOT_ID, epochGroup, parameters);
             end
-            group = obj.featureManager.getFeatureGroups(obj.DEFAULT_ROOT_ID);
+            group = obj.featureBuilder.getFeatureGroups(obj.DEFAULT_ROOT_ID);
             group.setParameters(data.getCellParameterMap());
             group.setParameters(struct('analysisProtocol', obj.analysisProtocol));
         end
-        
-        function p = getFilterParameters(obj)
+
+        function [map, order] = getFeaureGroupsByProtocol(obj)
             p = obj.analysisProtocol.getSplitParameters();
-        end
-        
-        function featureGroups = getFeatureGroups(obj, parameter)
-            featureGroups = obj.featureManager.findFeatureGroup(parameter);
+            map = containers.Map();
+            
+            for i = 1 : numel(p)
+                key = p{i};
+                map(key) = obj.featureBuilder.findFeatureGroup(key);
+            end
+            [~, order] = ismember(p, map.keys);
         end
         
         function copyEpochParameters(obj, featureGroups)
-            
-            if obj.featureManager.isBasicFeatureGroup(featureGroups)
+                    
+            if obj.featureBuilder.isBasicFeatureGroup(featureGroups)
                 obj.setEpochParameters(featureGroups);
             end
             keySet = obj.cellData.getEpochKeysetUnion([featureGroups.epochIndices]);
 
             if isempty(keySet)
-                disp('[WARN] keyset is empty, cannot percolate up epoch parameters');
+                obj.log.warn('keyset is empty, cannot percolate up epoch parameters');
                 return
             end
-            obj.featureManager.copyFeaturesToGroup([featureGroups.id], keySet, keySet);
+            obj.featureBuilder.collect([featureGroups.id], keySet, keySet);
+            obj.log.debug(['collecting epoch parameters ...']); 
         end
     end
     
@@ -73,7 +76,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             splitValues = obj.analysisProtocol.validateSplitValues(splitBy, epochValueMap.keys);
             
             if isempty(splitValues) && length(params) > 1
-                obj.featureManager.removeFeatureGroup(parentId);
+                obj.featureBuilder.removeFeatureGroup(parentId);
             end
             
             for i = 1 : length(splitValues)
@@ -86,7 +89,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 
                 epochGroup = sa_labs.analysis.entity.EpochGroup(epochIndices, filter, splitValue);
                 if ~ isempty(epochGroup)
-                    id = obj.featureManager.addFeatureGroup(parentId, splitBy, splitValue, epochGroup);
+                    id = obj.featureBuilder.addFeatureGroup(parentId, splitBy, splitValue, epochGroup);
                 end
                 
                 if length(params) > 1
@@ -102,10 +105,11 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 [p, v] = data.getUniqueParamValues(featureGroups(i).epochIndices);
                 
                 if isempty(p)
-                    disp(['[WARN] no epoch parameter found for given node ' num2str(featureGroups(i).id)]);
+                    obj.log.warn(['no epoch parameter found for given node ' num2str(featureGroups(i).id)]);
                     continue;
                 end
                 featureGroups(i).setParameters(containers.Map(p, v));
+                obj.log.trace(['setting epoch parameter for ' featureGroups(i).name ]); 
             end
         end
     end

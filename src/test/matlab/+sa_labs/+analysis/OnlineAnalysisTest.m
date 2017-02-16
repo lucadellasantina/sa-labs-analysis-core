@@ -67,14 +67,14 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
                 t = analysis.getResult();
                 % TODO replace this with query manager
                 
-                node = core.FeatureTreeManager(analysis.analysisProtocol, obj.mode, t).findFeatureGroup(['stimTime==' num2str(stimTime)]);
+                node = core.FeatureTreeBuilder('name', 'root', t).findFeatureGroup(['stimTime==' num2str(stimTime)]);
                 obj.verifyEqual(analysis.nodeIdMap('stimTime'), node.id);
             end
             tree = analysis.getResult();
             expectedNumberOfNodes = tree.nnodes;
             
             % TODO replace this with query manager
-            nodes = core.FeatureTreeManager(analysis.analysisProtocol, obj.mode, tree).getImmediateChildrensByName('stimTime==500');
+            nodes = core.FeatureTreeBuilder('name', 'root', tree).getImmediateChildrensByName('stimTime==500');
             expected = tree.findleaves();
             
             disp('analysis tree')
