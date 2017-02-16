@@ -4,6 +4,7 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
         epochStream
         splitParameters
         nodeId
+        runningEpochId
     end
     
     properties (SetAccess = private)
@@ -18,12 +19,18 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
         
         function obj = OnlineAnalysis(analysisProtocol, recordingLabel)
             obj@sa_labs.analysis.core.Analysis(analysisProtocol, recordingLabel);
+            obj.runningEpochId = 0;
         end
         
         function setEpochSource(obj, epoch)
             obj.state = sa_labs.analysis.app.AnalysisState.PROCESSING_STREAMS;
             obj.epochStream = epoch;
-            % obj.featureBuilder.epochStream = epoch;
+            obj.runningEpochId = obj.runningEpochId + 1;
+            obj.log.debug(['started processing epoch stream id [ ' num2str(obj.runningEpochId) ' ]']);
+        end
+
+        function epochs = getEpochs(obj, featureGroup) %#ok
+            epochs = obj.epochStream;
         end
     end
     
@@ -88,9 +95,11 @@ classdef OnlineAnalysis < sa_labs.analysis.core.Analysis
 
             if isempty(nodes(1).parameters)
                 nodes(1).setParameters(obj.epochStream.parameters);
+                nodes(1).appendParameter('runningEpochId', obj.runningEpochId);
                 return
             end 
-            cellfun(@(key) nodes(1).appendParameter(key, obj.epochStream.parameters(key)), keySet);
+            nodes(1).setParameters(obj.epochStream.parameters);
+            obj.log.debug('collecting epoch parameters ...');
         end
     end
     

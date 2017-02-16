@@ -21,6 +21,10 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         function setEpochSource(obj, cellData)
             obj.cellData = cellData;
         end
+
+        function epochs = getEpochs(obj, featureGroup)
+            epochs = obj.cellData.epochs(featureGroup.epochIndices);
+        end
     end
     
     methods (Access = protected)

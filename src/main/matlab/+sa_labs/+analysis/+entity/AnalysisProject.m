@@ -59,6 +59,7 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
 
         function list = getAllresult(obj)
             list = obj.resultMap.values;
+            list = [list{:}];
         end
     end
 end

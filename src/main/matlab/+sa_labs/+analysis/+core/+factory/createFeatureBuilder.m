@@ -1,6 +1,7 @@
 function obj = createFeatureBuilder(varargin)
 
 	ip = inputParser;
+    ip.KeepUnmatched = true;
 	ip.addRequired('name', @ischar);
 	ip.addRequired('value', @ischar);
 	ip.addParameter('class', 'sa_labs.analysis.core.FeatureTreeBuilder', @ischar);
@@ -10,8 +11,8 @@ function obj = createFeatureBuilder(varargin)
 	switch class
 	    
 	    case 'sa_labs.analysis.core.FeatureTreeBuilder'
-	        ip.addOptional('data', tree(), @(x) all(is(x, 'tree')));
-	        ip.addOptional('copyParameters', false, @islogical);
+	        ip.addParameter('data', tree(), @(data) validateTreeData(data));
+	        ip.addParameter('copyParameters', false, @islogical);
 	        
 	        ip.parse(varargin{:});
 	        obj = createFeatureTreeBuilder(ip.Results);
@@ -36,4 +37,8 @@ function obj = createFeatureTreeBuilder(params)
 	for tree = dataTrees
 	    obj.append(tree, params.copyParameters);
 	end
+end
+
+function tf = validateTreeData(data)
+    tf = all( arrayfun(@(t) strcmp(class(t), 'tree'), data));
 end

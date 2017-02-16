@@ -168,8 +168,8 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
                     analysis.setEpochSource(epoch)
                     analysis.service();
                     t = analysis.getResult();
-                    %logTree()
-                    %pause(1);
+                    logTree()
+                    pause(1);
                 end
                 obj.verifyEqual(t.nnodes, expected)
             end

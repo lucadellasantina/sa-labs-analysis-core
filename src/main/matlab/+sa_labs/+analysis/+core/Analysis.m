@@ -69,7 +69,7 @@ classdef Analysis < handle
                 featureGroups = map(parameter);
                 
                 if ~ isempty(featureGroups)
-                    obj.log.debug(['feature extraction for [ ' parameter ' ]']);
+                    obj.log.debug(['feature extraction for [ ' parameter ' featureGroups id ' num2str([featureGroups.id]) ']']);
                     
                     obj.copyEpochParameters(featureGroups);
                     obj.delegateFeatureExtraction(functions, featureGroups);
@@ -94,7 +94,7 @@ classdef Analysis < handle
             
             for i = 1 : numel(extractorFunctions)
                 func = str2func(extractorFunctions{i});
-                arrayfun(@(featureGroup) func(obj.featureBuilder, featureGroup), featureGroups);
+                arrayfun(@(featureGroup) func(obj, featureGroup), featureGroups);
             end
         end
         
