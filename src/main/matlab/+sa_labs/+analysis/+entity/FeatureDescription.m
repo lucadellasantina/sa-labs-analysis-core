@@ -65,24 +65,5 @@ classdef FeatureDescription < dynamicprops
         end
     end
     
-    methods (Static)
-        
-        function descriptionMap = cacheMap(descriptionMap)
-            
-            persistent map;
-            
-            if nargin < 1
-                descriptionMap = map;
-                return
-            end
-            map = descriptionMap;
-        end
-        
-        function tf = isPresent(id)
-            map = sa_labs.analysis.entity.FeatureDescription.cacheMap();
-            tf = isKey(map, id);
-        end
-        
-    end
 end
 

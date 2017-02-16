@@ -31,16 +31,7 @@ classdef FeatureManager < handle
             obj.loadFeatureDescription(analysisProtocol.featureDescriptionFile);
         end
         
-        function delegate(obj, extractorFunctions, featureGroups)
-            
-            for i = 1 : numel(extractorFunctions)
-                func = str2func(extractorFunctions{i});
-                arrayfun(@(featureGroup) func(obj, featureGroup), featureGroups);
-            end
-            featureKeySet = featureGroups.getFeatureKey();
-            obj.copyFeaturesToGroup([featureGroups.id], featureKeySet, featureKeySet);
-        end
-        
+
         function epochs = getEpochs(obj, featureGroup)
             
             if obj.analysisMode.isOnline()
@@ -95,22 +86,24 @@ classdef FeatureManager < handle
         end
     end
     
-    methods (Abstract)
-        copyFeaturesToGroup(obj)
-    end
     
-    methods(Static)
+    methods (Static)
         
-        function featureManager = create(analysisProtocol, analysisMode, dataStore)
+        function descriptionMap = cacheMap(descriptionMap)
             
-            if nargin < 3
-                dataStore = [];
+            persistent map;
+            
+            if nargin < 1
+                descriptionMap = map;
+                return
             end
-            
-            import sa_labs.analysis.*;
-            class = analysisProtocol.featureManagerClazz;
-            constructor = str2func(class);
-            featureManager = constructor(analysisProtocol, analysisMode, dataStore);
+            map = descriptionMap;
         end
+        
+        function tf = isPresent(id)
+            map = sa_labs.analysis.entity.FeatureDescription.cacheMap();
+            tf = isKey(map, id);
+        end
+        
     end
 end
