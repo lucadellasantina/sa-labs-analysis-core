@@ -1,7 +1,8 @@
-classdef FeatureTreeManager < sa_labs.analysis.core.FeatureManager
+classdef FeatureTreeBuilder < handle
     
     properties(Access = protected)
         tree
+        log
     end
     
     properties(Dependent)
@@ -10,16 +11,22 @@ classdef FeatureTreeManager < sa_labs.analysis.core.FeatureManager
     
     methods
         
-        function obj = FeatureTreeManager(analysisProtocol, analysisMode, dataStore)
-            if isempty(dataStore)
-                dataStore = tree();
+        function obj = FeatureTreeBuilder(name, value, dataTree)
+            import sa_labs.analysis.*;
+            
+            if nargin < 3
+                dataTree = tree();
             end
-            obj@sa_labs.analysis.core.FeatureManager(analysisProtocol, analysisMode, dataStore);
-            obj.setRootName(analysisProtocol.type);
+            obj.tree = dataTree;
+            obj.setRootName(name, value);
+            obj.log = logging.getLogger(app.Constants.ANALYSIS_LOGGER);
         end
         
-        function obj = set.dataStore(obj, tree)
-            obj.tree = tree;
+        function setRootName(obj, name, value)
+            import sa_labs.analysis.*;
+            featureGroup = entity.FeatureGroup(name, value);
+            featureGroup.id = 1;
+            obj.setfeatureGroup(featureGroup.id, featureGroup);
         end
         
         % This may be a performance hit
@@ -45,9 +52,10 @@ classdef FeatureTreeManager < sa_labs.analysis.core.FeatureManager
             end
             id = obj.addfeatureGroup(id, featureGroup);
             featureGroup.id = id;
+            obj.log.trace([' feature group [ ' featureGroup.name ' ] is added at the id [ ' num2str(id) ' ]'])
         end
         
-        function copyFeaturesToGroup(obj, featureGroupIds, varargin)
+        function collect(obj, featureGroupIds, varargin)
             
             if length(varargin) == 2 && iscell(varargin{1}) && iscell(varargin{2})
                 inParameters = varargin{1};
@@ -139,13 +147,6 @@ classdef FeatureTreeManager < sa_labs.analysis.core.FeatureManager
     
     methods(Access = private)
         
-        function setRootName(obj, name)
-            
-            import sa_labs.analysis.*;
-            featureGroup = entity.FeatureGroup([], [], name);
-            featureGroup.id = 1;
-            obj.setfeatureGroup(featureGroup.id, featureGroup);
-        end
         
         function percolateUpFeatureGroup(obj, featureGroupId, in , out)
             t = obj.tree;
@@ -155,6 +156,7 @@ classdef FeatureTreeManager < sa_labs.analysis.core.FeatureManager
             
             parentFeatureGroup.update(featureGroup, in, out);
             obj.setfeatureGroup(parent, parentFeatureGroup);
+            obj.log.trace([' feature group [ ' featureGroup.name ' ] is pushed to [ ' parentFeatureGroup.name ' ]'])
         end
         
         function setfeatureGroup(obj, parent, featureGroup)
@@ -169,7 +171,7 @@ classdef FeatureTreeManager < sa_labs.analysis.core.FeatureManager
         function updateDataStoreFeatureGroupId(obj)
             for i = obj.tree.breadthfirstiterator
                 if obj.tree.get(i).id ~= i
-                    % disp(['[INFO] updating datastore index ' num2str(i)]);
+                    obj.log.debug(['updating tree index [ ' num2str(i) ' ]'])
                     obj.tree.get(i).id = i;
                 end
             end
