@@ -1,4 +1,4 @@
-function addEpochAsFeature(manager, featureGroup, varargin)
+function addEpochAsFeature(analysis, featureGroup, varargin)
 
 ip = inputParser;
 ip.addParameter('device', '', @ischar);
@@ -11,7 +11,7 @@ if isempty(device)
     device = featureGroup.splitValue;
 end
 
-for epoch = manager.getEpochs(featureGroup)
+for epoch = analysis.getEpochs(featureGroup)
     data = @() epoch.getResponse(device).quantity;
     featureGroup.createFeature('EPOCH', data);
 end

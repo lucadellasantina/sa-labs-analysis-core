@@ -1,4 +1,4 @@
-function computeIntegralOfPulse(manager, featureGroup, varargin)
+function computeIntegralOfPulse(analysis, featureGroup, varargin)
 
 import  symphony_v1.extractorFunctions.*;
 

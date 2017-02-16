@@ -29,9 +29,8 @@ data %#ok display data
 analysisPreset = struct();
 analysisPreset.type = 'optometer-analysis';
 analysisPreset.buildTreeBy = {'stimTime', 'pulseAmplitude'};
-analysisPreset.featureManager = 'sa_labs.analysis.core.FeatureTreeManager';
-analysisPreset.pulseAmplitude.featureExtractor = {'@(e, f) symphony_v1.extractorFunctions.addEpochAsFeature(e, f, ''device'', ''Optometer'')'};
-analysisPreset.stimTime.featureExtractor = {'@(e, f)symphony_v1.extractorFunctions.computeIntegralOfPulse(e, f)'};
+analysisPreset.pulseAmplitude.featureExtractor = {'@(b, f) symphony_v1.extractorFunctions.addEpochAsFeature(b, f, ''device'', ''Optometer'')'};
+analysisPreset.stimTime.featureExtractor = {'@(b, f)symphony_v1.extractorFunctions.computeIntegralOfPulse(b, f)'};
 
 analysisProtocol = core.AnalysisProtocol(analysisPreset);
 
@@ -40,15 +39,18 @@ project = offlineAnalysisManager.doAnalysis('optometer-calibration', analysisPro
 result = project.getAllresult();
 toc;
 
-treeManager = core.FeatureTreeManager(analysisProtocol, core.AnalysisMode.OFFLINE_ANALYSIS, result{1});
-treeManager.getStructure().tostring()
+%%
 
-treeManager.findFeatureGroup('stimTime==20').parameters
+project = offlineAnalysisManager.initializeProject('optometer-calibration') %#ok
+treeBuilder = core.factory.createFeatureBuilder('project', 'optometer-analysis',...
+ 'data', project.getAllresult());
+treeBuilder.getStructure().tostring() 
+treeBuilder.findFeatureGroup('stimTime==20').parameters
 
 %% step 3) plot the results
 
 figure(1)
-for group = treeManager.findFeatureGroup('pulseAmplitude')
+for group = treeBuilder.findFeatureGroup('pulseAmplitude')
     tic;
     average = group.getFeatureData('EPOCH_AVERAGE');
     toc;
@@ -59,6 +61,6 @@ end
 hold off;
 
 figure(2)
-power = treeManager.findFeatureGroup('stimTime').getFeatureData('TIME_INTEGRAL');
-pulseAmplitude = treeManager.findFeatureGroup('stimTime').getParameter('pulseAmplitude');
+power = treeBuilder.findFeatureGroup('stimTime').getFeatureData('TIME_INTEGRAL');
+pulseAmplitude = treeBuilder.findFeatureGroup('stimTime').getParameter('pulseAmplitude');
 plot(pulseAmplitude, power, 'o--')

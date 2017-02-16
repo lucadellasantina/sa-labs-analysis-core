@@ -8,15 +8,23 @@ function test(package)
     tbUse('mmockito');
     addpath(genpath(fullfile(rootPath, 'src')));
     addpath(genpath(fullfile(rootPath, 'apps')));
-   
-    [log, deleteLogger] = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER, 'path', 'test.log');
-    log.setLogLevel(logging.logging.ALL);
+        
+    initializeLogger();
     suite = matlab.unittest.TestSuite.fromPackage(package, 'IncludingSubpackages', true);
     results = run(suite);
     
     failed = sum([results.Failed]);
-    deleteLogger();
     if failed > 0
         error([num2str(failed) ' test(s) failed!']);
+    end
+    
+    
+    function initializeLogger()
+       
+        [~, deleteLogger] = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER, 'path', 'test.log');
+        deleteLogger();
+        [log, ~] = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER, 'path', 'test.log');
+        log.setLogLevel(logging.logging.ALL);
+        log.setCommandWindowLevel(logging.logging.DEBUG);
     end
 end
