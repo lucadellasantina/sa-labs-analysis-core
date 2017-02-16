@@ -1,14 +1,7 @@
 classdef FeatureManager < handle
     
     properties
-        analysisProtocol
-        analysisMode
         descriptionMap
-        epochStream
-    end
-    
-    properties (Abstract)
-        dataStore
     end
     
     properties (Constant)
@@ -23,24 +16,8 @@ classdef FeatureManager < handle
     
     methods
         
-        function obj = FeatureManager(analysisProtocol, analysisMode, dataStore)
-            obj.analysisProtocol = analysisProtocol;
-            obj.analysisMode = analysisMode;
-            obj.dataStore = dataStore;
-            
-            obj.loadFeatureDescription(analysisProtocol.featureDescriptionFile);
-        end
-        
-
-        function epochs = getEpochs(obj, featureGroup)
-            
-            if obj.analysisMode.isOnline()
-                epochs = obj.epochStream;
-                return
-            end
-            % If the epoch Indices are not present in the EpochGroup it will
-            % throw an error
-            epochs = obj.epochStream(featureGroup.epochIndices);
+        function obj = FeatureManager(descriptionFile)
+             obj.loadFeatureDescription(descriptionFile);
         end
         
         function loadFeatureDescription(obj, descriptionFile)
