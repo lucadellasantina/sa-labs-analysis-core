@@ -15,24 +15,16 @@ classdef OnlineAnalaysisManager < sa_labs.analysis.core.FigureHandlerManager
     
     methods
         
-        function obj = OnlineAnalaysisManager(documentationService)
+        function obj = OnlineAnalaysisManager()
           obj.analysisMap = containers.Map();    
-          obj.documentationService = documentationService;
-
-          obj.addlistener(documentationService, 'BeganEpochGroup', @(h,d) obj.onServiceBeganEpochGroup())
-          obj.addlistener(documentationService, 'EndedEpochGroup', @(h,d) obj.onServiceEndedEpochGroup())
         end
 
         function updateQueue(obj, queue)
             obj.analysisQueue = queue;
         end
 
-        function onServiceBeganEpochGroup(obj, ~, event)
-            obj.recordingLabel = event.data.label;
-        end
-
-        function onServiceEndedEpochGroup(obj, ~, ~)
-            obj.recordingLabel = [];
+        function setRecordingLabel(obj, label)
+            obj.recordingLabel = label;
         end
             
         function createNewAnalysis(obj)
@@ -73,6 +65,7 @@ classdef OnlineAnalaysisManager < sa_labs.analysis.core.FigureHandlerManager
             if ~ obj.isVaildRecordingLabel(obj.recordingLabel)
                obj.createNewAnalysis();
             end
+            
             type = obj.analysisQueue.getActiveProtocolsType();
             identifiers = strcat(type, obj.recordingLabel);
             keys = obj.analysisMap.keys;
