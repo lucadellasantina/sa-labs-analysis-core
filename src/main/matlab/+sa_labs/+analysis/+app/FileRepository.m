@@ -72,7 +72,7 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
         end
         
         function f = get.dateFormat(obj)
-            f = obj.get('dateFormat', @(date)datestr(date, 'mmddyy'));
+            f = obj.get('dateFormat', @(date) datestr(date, 'mmddyy'));
         end
         
         function set.dateFormat(obj, f)
@@ -80,7 +80,7 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
             obj.put('dateFormat', f);
         end
 
-        function f = get.logFile(obj, f)
+        function f = get.logFile(obj)
              f = obj.get('logFile', fullfile(char(java.lang.System.getProperty('user.home')), 'data', 'analysis', 'analysis.log'));
         end
 
