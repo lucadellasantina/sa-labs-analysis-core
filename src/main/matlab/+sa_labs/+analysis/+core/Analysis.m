@@ -54,6 +54,11 @@ classdef Analysis < handle
         function setEpochSource(obj, source) %#ok
             % will be overriden in the subclass
         end
+
+        function featureGroups = find(obj, query)
+            % TODO parse the query if it has multiple conditions
+            featureGroups = obj.featureBuilder.findFeatureGroup(query);
+        end
     end
     
     methods (Access = protected)
