@@ -35,7 +35,9 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
             if ~ any(ismember(obj.cellDataNames, cellName))
                 obj.cellDataNames{end + 1} = cellName;
             end
-            obj.cellDataMap(cellName) = cellData;
+            if nargin == 3
+                obj.cellDataMap(cellName) = cellData;
+            end
         end
         
         function c = getCellData(obj, cellName)

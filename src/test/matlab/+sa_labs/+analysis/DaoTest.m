@@ -127,6 +127,9 @@ classdef DaoTest < matlab.unittest.TestCase
             obj.verifyEmpty(setdiff(obj.cellNames, names));
             names = dao.findCellNames(datestr(busdate(date, 1)));
             obj.verifyEmpty(names);
+            expected = {[datestr(now, 'mmddyy') obj.FILE_PREFIX '2']; [datestr(now, 'mmddyy') obj.FILE_PREFIX '3']};
+            actual = dao.findCellNames(expected);
+            obj.verifyEmpty(setdiff(expected, actual));
         end
         
         function testFindCell(obj)
