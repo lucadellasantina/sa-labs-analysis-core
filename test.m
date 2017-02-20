@@ -22,6 +22,6 @@ function test(package)
     function initializeLogger()
         [log, ~] = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER, 'path', 'test.log');
         log.setLogLevel(logging.logging.ALL);
-        log.setCommandWindowLevel(logging.logging.DEBUG);
+        log.setCommandWindowLevel(logging.logging.INFO);
     end
 end
