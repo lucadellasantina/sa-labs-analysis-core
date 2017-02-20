@@ -54,19 +54,24 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             [~, order] = ismember(p, map.keys);
         end
         
-        function copyEpochParameters(obj, featureGroups)
-                    
-            if obj.featureBuilder.isBasicFeatureGroup(featureGroups)
-                obj.setEpochParameters(featureGroups);
+        function copyEpochParameters(obj, featureGroup)
+            
+            if ~ obj.featureBuilder.isPresent(featureGroup.id)
+                obj.log.info(['FeatureGroup with name [ ' featureGroup.name ' ] does not have childrens']);
+                return 
             end
-            keySet = obj.cellData.getEpochKeysetUnion([featureGroups.epochIndices]);
+            
+            if obj.featureBuilder.isBasicFeatureGroup(featureGroup)
+                obj.setEpochParameters(featureGroup);
+            end
+            keySet = obj.cellData.getEpochKeysetUnion([featureGroup.epochIndices]);
 
             if isempty(keySet)
                 obj.log.warn('keyset is empty, cannot percolate up epoch parameters');
                 return
             end
-            obj.featureBuilder.collect([featureGroups.id], keySet, keySet);
-            obj.log.debug(['collecting epoch parameters ...']); 
+            obj.featureBuilder.collect([featureGroup.id], keySet, keySet);
+            obj.log.trace('collecting epoch parameters ...'); 
         end
     end
     
@@ -93,12 +98,13 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 
                 epochGroup = sa_labs.analysis.entity.EpochGroup(epochIndices, filter, splitValue);
                 if ~ isempty(epochGroup)
-                    id = obj.featureBuilder.addFeatureGroup(parentId, splitBy, splitValue, epochGroup);
+                    [id, featureGroup] = obj.featureBuilder.addFeatureGroup(parentId, splitBy, splitValue, epochGroup);
                 end
                 
                 if length(params) > 1
                     obj.add(id, epochGroup, params(2 : end));
                 end
+                obj.copyEpochParameters(featureGroup);
             end
         end
         

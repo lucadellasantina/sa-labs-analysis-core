@@ -67,7 +67,7 @@ classdef FeatureTreeBuilder < handle
             end
             id = obj.addfeatureGroup(id, featureGroup);
             featureGroup.id = id;
-            obj.log.trace([' feature group [ ' featureGroup.name ' ] is added at the id [ ' num2str(id) ' ]'])
+            obj.log.trace(['feature group [ ' featureGroup.name ' ] is added at the id [ ' num2str(id) ' ]'])
         end
         
         function collect(obj, featureGroupIds, varargin)
@@ -95,6 +95,10 @@ classdef FeatureTreeBuilder < handle
             end
             obj.tree = obj.tree.removenode(id);
             obj.updateDataStoreFeatureGroupId();
+        end
+        
+        function tf = isPresent(obj, id)
+            tf = obj.tree.treefun(@(node) node.id == id).any();
         end
         
         function tree = getStructure(obj)
@@ -188,14 +192,9 @@ classdef FeatureTreeBuilder < handle
             featureGroup = t.get(featureGroupId);
             parent = t.getparent(featureGroupId);
             parentFeatureGroup = t.get(parent);
-            info = ['pushing feature group [ ' featureGroup.name ' ] to parent [ ' parentFeatureGroup.name ' ]'];
-            try
-                parentFeatureGroup.update(featureGroup, in, out);
-            catch exception
-                obj.log.info(info);
-                obj.log.error(exception.message);
-            end
+            parentFeatureGroup.update(featureGroup, in, out);
             obj.setfeatureGroup(parent, parentFeatureGroup);
+            info = ['pushing [ ' in ' ] from feature group [ ' featureGroup.name ' ] to parent [ ' parentFeatureGroup.name ' ]'];
             obj.log.trace(info)
         end
         
