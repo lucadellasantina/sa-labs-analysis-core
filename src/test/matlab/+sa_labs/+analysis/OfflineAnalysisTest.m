@@ -259,8 +259,6 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             offlineAnalysis.setEpochSource(mockedCellData);
             offlineAnalysis.service();
             result = offlineAnalysis.getResult();
-            disp('analysis tree')
-            result.treefun(@(node) node.name).tostring()
             
             leafs = result.findleaves();
             
@@ -304,8 +302,6 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 offlineAnalysis.setEpochSource(mockedCellData);
                 offlineAnalysis.service();
                 t = offlineAnalysis.getResult();
-                disp('analysis tree')
-                t.treefun(@(node) node.name).tostring()
             end
     end
 end

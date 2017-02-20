@@ -40,8 +40,6 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             end
             
             tree = analysis.getResult();
-            disp('analysis tree')
-            tree.treefun(@(node) node.name).tostring()
             
             % Expected tree for below test case :
             %
@@ -76,9 +74,6 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
             % TODO replace this with query manager
             nodes = core.FeatureTreeBuilder('name', 'root', tree).getImmediateChildrensByName('stimTime==500');
             expected = tree.findleaves();
-            
-            disp('analysis tree')
-            tree.treefun(@(node) node.name).tostring()
             
             obj.verifyEqual(numel(nodes), 2)
             obj.verifyEqual(nodes(1).id, expected(end - 1));
@@ -168,8 +163,8 @@ classdef OnlineAnalysisTest < matlab.unittest.TestCase
                     analysis.setEpochSource(epoch)
                     analysis.service();
                     t = analysis.getResult();
-                    logTree()
-                    pause(1);
+                    %logTree()
+                    %pause(1);
                 end
                 obj.verifyEqual(t.nnodes, expected)
             end

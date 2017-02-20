@@ -40,6 +40,7 @@ classdef Analysis < handle
             obj.state = sa_labs.analysis.app.AnalysisState.STARTED;
             obj.log.info('started building analysis ...');
             obj.build();
+            obj.log.debug(obj.featureBuilder.getStructure().tostring());
             obj.log.info('started extracting features ...');
             obj.extractFeatures();
             obj.state = sa_labs.analysis.app.AnalysisState.COMPLETED;

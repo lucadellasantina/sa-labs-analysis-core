@@ -315,7 +315,7 @@ classdef EntityTest < matlab.unittest.TestCase
             newFeatureGroup.update(featureGroup, 'int', 'int');
             obj.verifyEqual(newFeatureGroup.parameters.int, [1, 8]);
             newFeatureGroup.update(featureGroup, 'unknown', 'unknown');
-            obj.verifyEmpty(newFeatureGroup.parameters.unknown);
+            obj.verifyEmpty(newFeatureGroup.getParameter('unknown'));
             
             
             % consistency check for old featureGroup
