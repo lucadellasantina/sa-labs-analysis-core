@@ -20,9 +20,6 @@ function test(package)
     
     
     function initializeLogger()
-       
-        [~, deleteLogger] = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER, 'path', 'test.log');
-        deleteLogger();
         [log, ~] = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER, 'path', 'test.log');
         log.setLogLevel(logging.logging.ALL);
         log.setCommandWindowLevel(logging.logging.DEBUG);

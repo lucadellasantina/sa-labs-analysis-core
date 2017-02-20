@@ -35,8 +35,14 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             dao = obj.analysisDao;
             names = dao.findCellNames(project.cellDataNames);
             if isempty(names)
-                obj.log.debug('no cell data supplied, checking with experiment date')
-                unParsedfiles = project.experimentDate;
+                
+                if isempty(project.cellDataNames)
+                    obj.log.debug(['no cell data present, checking with experiment date [' project.experimentDate ']' ]);
+                    unParsedfiles = {project.experimentDate};
+                else
+                    obj.log.debug(['no cell data present, checking rawDataFolder for fname [ ' char(project.cellDataNames) ' ]' ]);
+                    unParsedfiles = project.cellDataNames;
+                end
                 return
             else
                 foundIndex = ismember(project.cellDataNames, names);
