@@ -135,7 +135,7 @@ classdef AnalysisProtocol < handle
             clazz = sa_labs.analysis.app.Constants.TEMPLATE_FEATURE_BUILDER_CLASS;
             
             if ~ isfield(obj.structure, clazz)
-                e = 'sa_labs.analysis.core.FeatureTreeBuilder'
+                e = 'sa_labs.analysis.core.FeatureTreeBuilder';
                 return
             end
             e = obj.structure.(clazz);

@@ -44,9 +44,9 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
                 value = obj.parameters.(property);
             end
         end
-
+        
         function feature = createFeature(obj, id, data, varargin)
-
+            
             key = varargin(1 : 2 : end);
             value = varargin(2 : 2 : end);
             
@@ -62,23 +62,30 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             feature = sa_labs.analysis.entity.Feature(description, data);
             obj.appendFeature(feature);
         end
-
+        
         function data = getFeatureData(obj, key)
             import sa_labs.analysis.app.*;
-
+            
             data = [];
             if iscellstr(key) && numel(key) > 1
                 throw(Exceptions.MULTIPLE_FEATURE_KEY_PRESENT.create())
             end
             
-            if ~ isKey(obj.featureMap, key)
+            if isKey(obj.featureMap, key)
+                features = obj.featureMap(key);
+            elseif isfield(obj.parameters, key)
+                features = obj.getParameter(key);
+            else
                 Exceptions.FEATURE_KEY_NOT_FOUND.create('warning', true)
-                return 
+                return
             end
-            features = obj.featureMap(key);
-            data = [features.data];
+            try
+                data = [features.data];
+            catch exception
+                data = [features.toCell()];
+            end
         end
-
+        
         function features = getFeatures(obj, keys)
             
             % getFeatures - returns the feature based on FeatureDescription
@@ -97,7 +104,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
                 end
             end
         end
-
+        
         function appendFeature(obj, newFeatures)
             
             for i = 1 : numel(newFeatures)
@@ -110,7 +117,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
                 obj.featureMap = sa_labs.analysis.util.collections.addToMap(obj.featureMap, key, newFeatures(i));
             end
         end
-
+        
         function keySet = getFeatureKey(obj)
             if numel(obj) > 1
                 result = arrayfun(@(ref) ref.featureMap.keys, obj, 'UniformOutput', false);
@@ -119,7 +126,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             end
             keySet = obj.featureMap.keys;
         end
-
+        
         function setParameters(obj, parameters)
             
             % setParameters - Copies from parameters to obj.parameters
@@ -135,7 +142,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
                     obj.addParameter(names{i}, parameters.(names{i}));
                 end
             end
-
+            
             if isa(parameters,'containers.Map')
                 names = parameters.keys;
                 for i = 1 : length(names)
@@ -151,6 +158,9 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             % if it NOT exist
             % @see setParameter
             
+            if isempty(value)
+                return
+            end
             old = obj.getParameter(key);
             
             if isempty(old)
@@ -160,8 +170,10 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             
             new = sa_labs.analysis.util.collections.addToCell(old, value);
             if all(cellfun(@isnumeric, new))
-               new = cell2mat(new);
-            end    
+                new = cell2mat(new);
+            elseif obj.isFeatureEntity(new)
+                new = [new{:}];
+            end
             
             try
                 new = unique(new, 'stable');
@@ -235,7 +247,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             % for unknown in parameters, it creates empty out paramters
             obj.appendParameter(out, featureGroup.getParameter(in));
         end
-
+        
     end
     
     methods(Access = private)
@@ -243,6 +255,10 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
         function addParameter(obj, property, value)
             % setParameters - set property, value pair to parameters
             obj.parameters.(property) = value;
+        end
+        
+        function tf = isFeatureEntity(~, refs)
+            tf = all(cellfun(@(ref) isa(ref, 'sa_labs.analysis.entity.Feature'), refs));
         end
     end
 end

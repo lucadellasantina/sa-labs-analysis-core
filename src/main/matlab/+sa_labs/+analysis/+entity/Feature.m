@@ -56,6 +56,10 @@ classdef Feature < handle & matlab.mixin.Heterogeneous
                 obj.data = [obj.data; value];
             end
         end
+
+        function d = toCell(obj)
+            d = {obj.data};
+        end
     end
     
     methods (Access = private)

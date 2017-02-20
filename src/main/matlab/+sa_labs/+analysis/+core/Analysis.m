@@ -23,7 +23,6 @@ classdef Analysis < handle
             obj.log = logging.getLogger(app.Constants.ANALYSIS_LOGGER);
             
             obj.state = app.AnalysisState.NOT_STARTED;
-            obj.state = app.AnalysisState.INITIALIZED;
             obj.identifier = strcat(protocol.type, '-', recordingLabel);
             obj.analysisProtocol = protocol;
             obj.featureBuilder = core.factory.createFeatureBuilder('class', protocol.featurebuilderClazz,...
@@ -54,11 +53,6 @@ classdef Analysis < handle
         function setEpochSource(obj, source) %#ok
             % will be overriden in the subclass
         end
-
-        function featureGroups = find(obj, query)
-            % TODO parse the query if it has multiple conditions
-            featureGroups = obj.featureBuilder.findFeatureGroup(query);
-        end
     end
     
     methods (Access = protected)
@@ -76,10 +70,10 @@ classdef Analysis < handle
                 if ~ isempty(featureGroups)
                     obj.log.debug(['feature extraction for [ ' parameter ' featureGroups id ' num2str([featureGroups.id]) ']']);
                     
-                    obj.copyEpochParameters(featureGroups);
+                    % obj.copyEpochParameters(featureGroups);
                     obj.delegateFeatureExtraction(functions, featureGroups);
                     
-                    obj.log.debug(['collecting features ...']);
+                    obj.log.debug('collecting features ...');
                     keySet = featureGroups.getFeatureKey();
                     obj.featureBuilder.collect([featureGroups.id], keySet, keySet);
                 end
@@ -95,11 +89,18 @@ classdef Analysis < handle
     
     methods (Access = private)
         
-        function delegateFeatureExtraction(obj, extractorFunctions, featureGroups)
+        function delegateFeatureExtraction(obj, functions, featureGroups)
             
-            for i = 1 : numel(extractorFunctions)
-                func = str2func(extractorFunctions{i});
-                arrayfun(@(featureGroup) func(obj, featureGroup), featureGroups);
+            for i = 1 : numel(functions)
+                func = str2func(functions{i});
+                try 
+                    for group = featureGroups
+                        func(obj, group);
+                    end
+                catch exception
+                    disp(getReport(exception, 'extended', 'hyperlinks', 'on'));
+                    obj.log.error(exception.message);
+                end
             end
         end
         

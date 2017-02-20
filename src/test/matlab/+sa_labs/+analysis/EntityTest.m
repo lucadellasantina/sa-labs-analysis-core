@@ -116,7 +116,7 @@ classdef EntityTest < matlab.unittest.TestCase
             
             for i = 1: numel(actual)
                 key = num2str(actual(i));
-                obj.verifyEqual(map(key), expected(i, :)');
+                obj.verifyEqual(map(key), expected(i, :));
             end
             obj.verifyEqual(description, 'intensity');
             

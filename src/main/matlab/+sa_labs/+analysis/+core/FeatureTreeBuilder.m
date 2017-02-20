@@ -56,7 +56,7 @@ classdef FeatureTreeBuilder < handle
             ds = obj.tree;
         end
         
-        function id = addFeatureGroup(obj, id, splitParameter, spiltValue, epochGroup)
+        function [id, featureGroup] = addFeatureGroup(obj, id, splitParameter, spiltValue, epochGroup)
             
             import sa_labs.analysis.*;
             featureGroup = entity.FeatureGroup(splitParameter, spiltValue);
@@ -111,6 +111,26 @@ classdef FeatureTreeBuilder < handle
         end
         
         % TODO move all find functions to visitor
+
+        function featureGroups = find(obj, name, varargin)
+            ip = inputParser;
+            ip.addParameter('from', []);
+            ip.parse(varargin{:});
+            from = ip.Results.from;
+            
+            featureGroups = []; 
+            if isempty(from)
+                featureGroups = obj.findFeatureGroup(name);
+                return;
+            end
+            
+            for i = obj.tree.findpath(from.id, 1);
+                if regexp(obj.tree.get(i).name, ['\w*' name '\w*' ])
+                    featureGroups = obj.tree.get(i);
+                    break;
+                end
+            end
+        end
         
         function featureGroups = findFeatureGroup(obj, name)
             featureGroups = [];
@@ -168,10 +188,15 @@ classdef FeatureTreeBuilder < handle
             featureGroup = t.get(featureGroupId);
             parent = t.getparent(featureGroupId);
             parentFeatureGroup = t.get(parent);
-            
-            parentFeatureGroup.update(featureGroup, in, out);
+            info = ['pushing feature group [ ' featureGroup.name ' ] to parent [ ' parentFeatureGroup.name ' ]'];
+            try
+                parentFeatureGroup.update(featureGroup, in, out);
+            catch exception
+                obj.log.info(info);
+                obj.log.error(exception.message);
+            end
             obj.setfeatureGroup(parent, parentFeatureGroup);
-            obj.log.trace([' feature group [ ' featureGroup.name ' ] is pushed to [ ' parentFeatureGroup.name ' ]'])
+            obj.log.trace(info)
         end
         
         function setfeatureGroup(obj, parent, featureGroup)

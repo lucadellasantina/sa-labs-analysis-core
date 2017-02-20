@@ -8,7 +8,7 @@ function map  = addToMap(map, key, value)
             old = cellstr(old);
         end
         
-        map(key) = [old; value];
+        map(key) = [old, value];
     else
         map(key) = value;
     end
