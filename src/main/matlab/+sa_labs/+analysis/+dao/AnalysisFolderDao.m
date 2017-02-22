@@ -23,6 +23,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 attr = attributes{i};
                 projectStruct.(attr) = project.(attr);
             end
+            projectStruct.cellDataNames = project.getCellDataNames();
             file = [projectFile 'project.json'];
             projectStruct.file = file;
             project.file = file;
