@@ -8,7 +8,7 @@ classdef DefaultSymphonyParser < sa_labs.analysis.parser.SymphonyParser
     %     |       (DS) background
     %     |      |_ protocolParameters (1) epoch attributes
     %     |      |_ responses (2) epoch data links
-    %     |         |_ Amplifier_Ch1 
+    %     |         |_ Amplifier_Ch1
     %     |      |_ stimuli
     %     |
     %     |_properties (3) # cell data attributes
@@ -25,7 +25,8 @@ classdef DefaultSymphonyParser < sa_labs.analysis.parser.SymphonyParser
             data = entity.CellData();
             [~, data.savedFileName, ~] = fileparts(obj.fname);
             
-            info = h5info(obj.fname, '/');
+            info = hdf5info(obj.fname);
+            info = info.GroupHierarchy(1);
             data.attributes = obj.mapAttributes(info.Groups(1).Groups(3));
             n = length(info.Groups);
             
@@ -88,6 +89,23 @@ classdef DefaultSymphonyParser < sa_labs.analysis.parser.SymphonyParser
             data = obj.cellData;
         end
         
+        function map = mapAttributes(obj, h5group, map)
+            if nargin < 3
+                map = containers.Map();
+            end
+            if ischar(h5group)
+                error('cannot accept character as epoch group for symphony 1 parser');
+            end
+            map = mapAttributes@sa_labs.analysis.parser.SymphonyParser(obj, h5group, map);
+            keys = map.keys;
+            for i = 1 : numel(keys)
+                k = keys{i};
+                if isa(map(k), 'hdf5.h5string')
+                    v = map(k);
+                    map(k) = v.data;
+                end
+            end
+        end
     end
     
 end

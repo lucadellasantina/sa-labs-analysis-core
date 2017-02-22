@@ -38,13 +38,12 @@ classdef Analysis < handle
                 error('analysisProtocol is empty'); %TODO replace with exception
             end
             obj.state = sa_labs.analysis.app.AnalysisState.STARTED;
-            obj.log.info('started building analysis ...');
             obj.build();
             obj.log.debug(obj.featureBuilder.getStructure().tostring());
-            obj.log.info('started extracting features ...');
+            obj.log.debug('started extracting features ...');
             obj.extractFeatures();
             obj.state = sa_labs.analysis.app.AnalysisState.COMPLETED;
-            obj.log.info('completed analysis ...');
+            obj.log.debug('completed analysis ...');
         end
         
         function r = getResult(obj)
@@ -85,7 +84,6 @@ classdef Analysis < handle
     methods (Access = protected, Abstract)
         build(obj)
         getFeaureGroupsByProtocol(obj)
-        copyEpochParameters(obj, featureGroups)
     end
     
     methods (Access = private)

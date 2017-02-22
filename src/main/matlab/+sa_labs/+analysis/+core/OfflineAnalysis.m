@@ -31,7 +31,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         
         function build(obj)
             data = obj.cellData;
-
+            obj.log.debug('started building analysis ...');
             for pathIndex = 1 : obj.analysisProtocol.numberOfPaths()
                 numberOfEpochs = numel(data.epochs);
                 epochGroup = sa_labs.analysis.entity.EpochGroup(1 : numberOfEpochs, data.recordingLabel);

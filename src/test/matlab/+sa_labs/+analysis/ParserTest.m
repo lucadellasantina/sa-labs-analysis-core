@@ -59,26 +59,26 @@ classdef ParserTest < matlab.unittest.TestCase
         function testMapAttributes(obj)
             import sa_labs.analysis.*;
             
+            % version 2 validation          
             fname = [obj.path obj.TEST_FILE];
             h5create(fname ,'/test' , [10 20]);
             h5writeatt(fname, '/', 'version', 2);
             h5writeatt(fname, '/', 'int', 1);
             h5writeatt(fname, '/', 'double', 1.2);
-            h5writeatt(fname, '/test', 'string', 'sample-string');
-            h5writeatt(fname, '/test', 'number', 10);
-            
+            h5writeatt(fname, '/', 'string', 'test');
+
             ref = parser.getInstance(fname);
             map = ref.mapAttributes('/');
-            obj.verifyEqual(sort(map.keys), {'double', 'int', 'version'});
+            obj.verifyEqual(sort(map.keys), {'double', 'int', 'string', 'version'});
+            obj.verifyEqual(map.values, {1.2, 1, 'test', 2});
             
-            % only for int and double values
-            values = map.values;
-            obj.verifyEqual(sort([values{:}]), [1, 1.2, 2]);
-            
-            % for mixed values
-            map = ref.mapAttributes('/test');
-            obj.verifyEqual(sort(map.keys), {'number', 'string'});
-            obj.verifyEqual(map.values, {10, 'sample-string'});
+            % version 1 validation
+            h5writeatt(fname, '/', 'version', 1);
+            ref = parser.getInstance(fname);
+            info = hdf5info(fname);
+            map = ref.mapAttributes(info.GroupHierarchy(1));
+            obj.verifyEqual(sort(map.keys), {'double', 'int', 'string', 'version'});
+            obj.verifyEqual(map.values, {1.2, 1, 'test', 1});
             
         end
         
