@@ -99,12 +99,16 @@ classdef DaoTest < matlab.unittest.TestCase
                 'analysisDate', datestr(now, 'dd.mm.yyyy'),...
                 'performedBy', 'Sathish');
             expected.cellDataNames = obj.cellNames';
+            
             dao = obj.beanFactory.getBean('analysisDao');
             project = dao.findProjects('test-project-1');
+            expected = rmfield(expected, 'cellDataNames');
             attributes = fields(expected);
             validate(project, attributes);
+            obj.verifyEqual(project.getCellDataNames(),  obj.cellNames');
             
             expected.identifier = 'test-project-2';
+            expected.cellDataNames = obj.cellNames';
             project = entity.AnalysisProject(expected);
             dao.saveProject(project);
             projects = dao.findProjects({'test-project-1', 'test-project-2'});

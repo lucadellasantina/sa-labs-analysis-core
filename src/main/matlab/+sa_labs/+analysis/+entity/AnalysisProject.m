@@ -2,7 +2,6 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
     
     properties
         identifier
-        cellDataNames
         analysisResultNames
         description
         analysisDate
@@ -14,6 +13,7 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
     properties(Access = private)
         cellDataMap
         resultMap
+        cellDataNames
     end
     
     methods
@@ -62,6 +62,14 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
         function list = getAllresult(obj)
             list = obj.resultMap.values;
             list = [list{:}];
+        end
+
+        function names = getCellDataNames(obj)
+            names = obj.cellDataNames;
+
+            if isempty(names)
+                names = {datestr(obj.experimentDate, 'mmddyy')};
+            end
         end
     end
 end
