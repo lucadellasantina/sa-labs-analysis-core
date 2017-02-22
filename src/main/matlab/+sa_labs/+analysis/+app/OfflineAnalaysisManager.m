@@ -13,18 +13,20 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             obj.log = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER);
         end
         
-        function cellData = parseSymphonyFiles(obj, date)
+        function cellDataArray = parseSymphonyFiles(obj, date)
+            import sa_labs.analysis.*;
             files = obj.analysisDao.findRawDataFiles(date);
-            
             if isempty(files)
                 error('h5 file not found'); %TODO replace it with exception
             end
+            n = numel(files);
+            cellDataArray = entity.CellData.empty(0, n);
             
-            for i = 1 : numel(files)
-                obj.log.info(['parsing h5 file [ ' strrep(files{i}, '\', '/') ' ]' ]);
-                parser = sa_labs.analysis.parser.getInstance(files{i});
-                cellData = parser.parse().getResult();
-                obj.analysisDao.saveCell(cellData);
+            for i = 1 : n
+                obj.log.info(['parsing ' num2str(i) '/' num2str(n) ' h5 file [ ' strrep(files{i}, '\', '/') ' ]' ]);
+                parser = parser.getInstance(files{i});
+                cellDataArray(i) = parser.parse().getResult();
+                obj.analysisDao.saveCell(cellDataArray(i));
                 obj.log.info('saving data set ...' );
             end
         end
@@ -40,7 +42,14 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             foundIndex = ismember(cellNames, names);
             parsedFiles = cellNames(foundIndex);
             unParsedfiles = cellNames(~ foundIndex);
-
+            
+            if isempty(parsedFiles)
+                parsedFiles = {};
+            end
+            
+            if isempty(unParsedfiles)
+                unParsedfiles = {};
+            end
             obj.log.debug(['list of parsed files [ ' char(parsedFiles) ' ] unParsedfiles [ ' char(unParsedfiles) ' ]']);
         end
         
@@ -56,9 +65,9 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             [unParsedfiles, parsedFiles] = obj.getParsedAndUnParsedFiles(project);
             
             for i = 1 : numel(unParsedfiles)
-                cellData = obj.parseSymphonyFiles(unParsedfiles{i});
-                obj.preProcess(cellData, preProcessors);
-                project.addCellData(cellData.savedFileName, cellData);
+                cellDataArray = obj.parseSymphonyFiles(unParsedfiles{i});
+                obj.preProcess(cellDataArray, preProcessors);
+                parsedFiles = { parsedFiles{:}, cellDataArray.savedFileName };
             end
             
             for i = 1 : numel(parsedFiles)
@@ -72,9 +81,9 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
         function project = initializeProject(obj, name)
             dao = obj.analysisDao;
             project = dao.findProjects(name);
-            
-            for i = 1 : numel(project.cellDataNames)
-                cellName = project.cellDataNames{i};
+            cellNames = project.getCellDataNames();
+            for i = 1 : numel(cellNames)
+                cellName = cellNames{i};
                 cellData = dao.findCell(cellName);
                 project.addCellData(cellName, cellData);
                 file = dao.findRawDataFiles(cellData.experimentDate);
