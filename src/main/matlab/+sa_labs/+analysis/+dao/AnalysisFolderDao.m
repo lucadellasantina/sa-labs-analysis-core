@@ -78,7 +78,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             end
             if ~ iscellstr(pattern)
                 pattern = obj.repository.dateFormat(pattern);
-                pattern = {[pattern '*c*']}; 
+                pattern = {[pattern '*c']}; 
             end
             
             for i = 1 : numel(pattern)
