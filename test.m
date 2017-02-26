@@ -3,13 +3,14 @@ function test(package)
         package = 'sa_labs.analysis';
     end
     
+    tbUse('mmockito');
     rootPath = fileparts(mfilename('fullpath'));
     addpath(genpath(fullfile(rootPath, 'lib')));
-    tbUse('mmockito');
     addpath(genpath(fullfile(rootPath, 'src')));
     addpath(genpath(fullfile(rootPath, 'apps')));
-        
-    initializeLogger();
+    rmpath(genpath(fullfile(rootPath, 'fxitures')));        
+    
+    initializeTestLogger();
     suite = matlab.unittest.TestSuite.fromPackage(package, 'IncludingSubpackages', true);
     results = run(suite);
     
@@ -19,7 +20,7 @@ function test(package)
     end
     
     
-    function initializeLogger()
+    function initializeTestLogger()
         [log, ~] = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER, 'path', 'test.log');
         log.setLogLevel(logging.logging.ALL);
         log.setCommandWindowLevel(logging.logging.INFO);

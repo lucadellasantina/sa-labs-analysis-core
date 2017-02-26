@@ -1,4 +1,4 @@
-classdef OnlineAnalaysisManager < sa_labs.analysis.core.FigureHandlerManager
+classdef OnlineAnalaysisManager < handle
     
     events
         AnalysisStopped

@@ -14,7 +14,6 @@ classdef PreferenceDao < handle & mdepin.Bean
         FILE_CELL_TAGS = 'CellTags.txt'
         FILE_CELL_TYPE_NAMES = 'cellTypeNames.txt'
         FILE_EPOCH_TAGS = 'EpochTags.txt'
-        FILE_MERGED_CELLS = 'MergedCells.txt'
     end
     
     methods
@@ -31,12 +30,9 @@ classdef PreferenceDao < handle & mdepin.Bean
             folder = obj.repository.preferenceFolder;
             obj.cellTypeNames = importdata([folder filesep obj.FILE_CELL_TYPE_NAMES], '\n');
             obj.cellTags = file.readTextToMap([folder filesep obj.FILE_CELL_TAGS]);
-            obj.epochTags = file.readTextToMap([folder filesep obj.FILE_MERGED_CELLS]);
+            obj.epochTags = file.readTextToMap([folder filesep obj.FILE_EPOCH_TAGS]);
         end
         
-        function names = mergeCellNames(obj, names)
-            %TODO merge cell name implementation
-        end
     end
 end
 
