@@ -6,8 +6,8 @@ It uses [ToolboxToolbox](https://github.com/ToolboxHub/ToolboxToolbox) for depen
 
 1. Download and install ToolboxToolbox from above link
 2. Download the [startup.m](https://gist.github.com/ragavsathish/e4e58150c8a6c8ffe95b0ef632715fbe) and save it in MATLAB user path.
-3. clone `git clone https://github.com/Schwartz-AlaLaurila-Labs/sa-labs-analysis-core.git` into `<userpath>\projects\sa-labs-analysis-core` folder 
-4. To update `tbUseProject('data-acquisition')`
+3. `git clone https://github.com/Schwartz-AlaLaurila-Labs/sa-labs-analysis-core.git` into `<userpath>\projects\sa-labs-analysis-core` folder 
+4. open the matlab command window and run `tbUseProject('sa-labs-analysis-core')`
 
 ### Folder organization
 
