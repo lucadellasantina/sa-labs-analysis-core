@@ -68,7 +68,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             if ~ exist(dir, 'dir')
                 mkdir(dir);
             end
-            save([dir cellData.savedFileName], 'cellData');
+            save([dir cellData.recordingLabel], 'cellData');
         end
         
         function names = findCellNames(obj, pattern)

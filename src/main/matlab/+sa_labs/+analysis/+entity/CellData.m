@@ -243,6 +243,18 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
            map('cellType') = obj.cellType;
            map('recordingLabel') = obj.recordingLabel;
         end
+        
+        function l = get.recordingLabel(obj)
+            l = obj.savedFileName;
+            if  isKey(obj.attributes, 'label')
+                label = obj.attributes('label');
+                
+                if iscell(label)
+                    label = [label{:}];
+                end
+                l = [obj.savedFileName '-' label];
+            end
+        end
     end
     
     methods(Access = protected)

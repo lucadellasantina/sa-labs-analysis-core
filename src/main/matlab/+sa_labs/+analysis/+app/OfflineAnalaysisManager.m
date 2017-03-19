@@ -20,14 +20,17 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 error('h5 file not found'); %TODO replace it with exception
             end
             n = numel(files);
-            cellDataArray = entity.CellData.empty(0, n);
+            cellDataArray = [];
             
             for i = 1 : n
                 obj.log.info(['parsing ' num2str(i) '/' num2str(n) ' h5 file [ ' strrep(files{i}, '\', '/') ' ]' ]);
                 parser = parser.getInstance(files{i});
-                cellDataArray(i) = parser.parse().getResult();
-                obj.analysisDao.saveCell(cellDataArray(i));
-                obj.log.info('saving data set ...' );
+                results = parser.parse().getResult();
+                for j = 1 : numel(results)
+                    obj.analysisDao.saveCell(results(j));
+                    obj.log.info(['saving data set [ ' results(j).recordingLabel ' ]']);
+                end
+                cellDataArray = [results, cellDataArray]; %#ok
             end
         end
         
@@ -67,12 +70,12 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             for i = 1 : numel(unParsedfiles)
                 cellDataArray = obj.parseSymphonyFiles(unParsedfiles{i});
                 obj.preProcess(cellDataArray, preProcessors);
-                parsedFiles = { parsedFiles{:}, cellDataArray.savedFileName };
+                parsedFiles = { parsedFiles{:}, cellDataArray.recordingLabel };
             end
             
             for i = 1 : numel(parsedFiles)
                 cellData = dao.findCell(parsedFiles{i});
-                project.addCellData(cellData.savedFileName,cellData);
+                project.addCellData(cellData.recordingLabel, cellData);
             end
             dao.saveProject(project);
             obj.log.info(['Project created under location [ ' strrep(project.file, '\', '/') ' ]' ]);
@@ -112,7 +115,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             for i = 1 : n
                 if enabled(i)
                     fun = functions{i};
-                    obj.log.info(['pre processing data [ ' cellData.savedFileName ' ] for function [ ' char(fun) ' ] ']);
+                    obj.log.info(['pre processing data [ ' cellData.recordingLabel ' ] for function [ ' char(fun) ' ] ']);
                     fun(cellData);
                 end
             end
@@ -131,7 +134,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 
                 for j = 1 : numel(protocols)
                     protocol = protocols(j);
-                    analysis = core.OfflineAnalysis(protocol, cellData.savedFileName);
+                    analysis = core.OfflineAnalysis(protocol, cellData.recordingLabel);
                     analysis.setEpochSource(cellData);
                     analysis.service();
                     result = analysis.getResult();
