@@ -55,7 +55,9 @@ classdef EpochData < handle & matlab.mixin.CustomDisplay
             % definition
             
             if ~ isKey(obj.dataLinks, device)
-                error('device:notfound', ['device name [ ' device ' ] not found in the h5 response']);
+                devices = cellstr(obj.dataLinks.keys);
+                message = ['device name [ ' device ' ] not found in the h5 response. Available device [' [devices{:}] ']'];
+                error('device:notfound', message);
             end
             
             path = obj.dataLinks(device);
