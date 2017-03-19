@@ -82,6 +82,13 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             data = obj.cellData;
 
             [epochValueMap, filter] = data.getEpochValuesMap(splitBy, epochGroup.epochIndices);
+            
+            if isempty(epochValueMap)
+                obj.log.warn([' splitBy paramter [ ' splitBy ' ] is not found; ignoring ' [params{2 : end}] ]);
+                obj.featureBuilder.removeFeatureGroup(parentId);
+                return;
+            end
+            
             splitValues = obj.analysisProtocol.validateSplitValues(splitBy, epochValueMap.keys);
             
             if isempty(splitValues) && length(params) > 1

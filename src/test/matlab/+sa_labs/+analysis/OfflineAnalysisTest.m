@@ -289,6 +289,8 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             obj.verifyEqual(result.get(leafs(17)).epochIndices, rstarMeanBarAngle30(0.1));
             obj.verifyEqual(result.get(leafs(18)).epochIndices, rstarMeanBarAngle30(0.2));
             
+            disp('analysis tree')
+            result.treefun(@(node) strcat(node.name, [' ( ' num2str(node.id), ' ) '])).tostring()
         end
     end
     
