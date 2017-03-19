@@ -42,7 +42,7 @@ classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
                 cells(i) = obj.buildCellData(labels{i}, h5epochs);
                 cells(i).attributes = obj.getSourceAttributes(sourceTree, labels{i}, cells(i).attributes);
 
-                if isKey(cells(i).attributes, 'eye')
+                if  all(isKey(cells(i).attributes, {'eye', 'location'}))
                     cells(i).location = [cells(i).attributes('location'), obj.getEyeIndex(cells(i).attributes('eye'))];
                 end
                 
@@ -87,9 +87,18 @@ classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
                     name = strsplit(name, '.');
                     name = obj.convertDisplayName(name{end});
                     parameterMap('displayName') = name;
+                    
+                    % add epoch group properties to current prtoocol
+                    % parameters
+                    group = h5Epochs(index).Name;
+                    endOffSet = strfind(group, '/epochBlocks');
+                    try
+                        parameterMap = obj.buildAttributes([group(1 : endOffSet) 'properties'], parameterMap);
+                    catch e
+                        disp('properties not found in epoch group');
+                    end
                 end
                 lastProtocolId = protocolId;
-                
                 parameterMap = obj.buildAttributes(h5Epochs(index).Groups(2), parameterMap);
                 parameterMap('epochNum') = i;
                 parameterMap('epochStartTime') = sortedEpochTime(i);
@@ -107,6 +116,7 @@ classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
             cell.attributes('Nepochs') = numel(h5Epochs);
             cell.attributes('symphonyVersion') = 2.0;
             cell.attributes('fname') = obj.getFileName(label);
+            cell.savedFileName = cell.attributes('fname');
         end
         
         function epochGroupMap = getEpochsByCellLabel(obj, epochGroups)
@@ -116,7 +126,7 @@ classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
             for i = 1 : numel(epochGroups)
                 h5Epochs = flattenByProtocol(epochGroups(i).Groups(1).Groups);
                 label = obj.getSourceLabel(epochGroups(i));
-                epochGroupMap = addToMap(epochGroupMap, label, h5Epochs);
+                epochGroupMap = addToMap(epochGroupMap, label, h5Epochs');
             end
             
             function epochs = flattenByProtocol(protocols)
@@ -127,15 +137,20 @@ classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
         end
         
         function label = getSourceLabel(obj, epochGroup)
+            
             % check if it is h5 Groups
             % if not present it should be in links
-            
             if numel(epochGroup.Groups) >= 4
                 source = epochGroup.Groups(end).Name;
             else
                 source = epochGroup.Links(2).Value{:};
             end
-            label = h5readatt(obj.fname, source, 'label');
+            try 
+                label = h5readatt(obj.fname, source, 'label');
+            catch
+                source = epochGroup.Links(2).Value{:};
+                label = h5readatt(obj.fname, source, 'label');
+            end
         end
         
         function fname = getFileName(obj, label)

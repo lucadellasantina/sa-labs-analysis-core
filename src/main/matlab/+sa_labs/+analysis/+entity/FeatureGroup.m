@@ -254,6 +254,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
         
         function addParameter(obj, property, value)
             % setParameters - set property, value pair to parameters
+            property = strtrim(property);
             obj.parameters.(property) = value;
         end
         
