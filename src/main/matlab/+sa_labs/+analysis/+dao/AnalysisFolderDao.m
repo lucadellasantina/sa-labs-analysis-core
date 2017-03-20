@@ -74,11 +74,11 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         function names = findCellNames(obj, pattern)
             names = [];
             if isempty(pattern)
-                return; 
+                return;
             end
             if ~ iscellstr(pattern)
                 pattern = obj.repository.dateFormat(pattern);
-                pattern = {[pattern '*c']}; 
+                pattern = {[pattern '*c']};
             end
             
             for i = 1 : numel(pattern)
@@ -102,6 +102,23 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             end
             save([dir resultId], 'result');
             savejson('', protocol, [dir resultId '.json']);
+        end
+        
+        function names = findAnalysisResultNames(obj, pattern)
+            names = [];
+            if isempty(pattern)
+                return;
+            end
+            if ~ iscellstr(pattern)
+                pattern = obj.repository.dateFormat(pattern);
+            end
+            
+            for i = 1 : numel(pattern)
+                p = pattern{i};
+                info = dir([obj.repository.analysisFolder filesep 'analysisTrees' filesep '*' char(p) '*.mat']);
+                fnames = arrayfun(@(d) {d.name(1 : end-4)}, info);
+                names = [fnames; names];
+            end
         end
         
         function result = findAnalysisResult(obj, resultId)
