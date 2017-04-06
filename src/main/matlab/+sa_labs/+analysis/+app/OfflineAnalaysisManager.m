@@ -56,7 +56,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             obj.log.debug(['list of parsed files [ ' char(parsedFiles) ' ] unParsedfiles [ ' char(unParsedfiles) ' ]']);
         end
         
-        function createProject(obj, project, preProcessors)
+        function project = createProject(obj, project, preProcessors)
             import sa_labs.analysis.constants.*;
             
             if nargin < 3
@@ -73,6 +73,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 parsedFiles = { parsedFiles{:}, cellDataArray.recordingLabel };
             end
             
+            project.clearCellDataMap();            
             for i = 1 : numel(parsedFiles)
                 cellData = dao.findCell(parsedFiles{i});
                 project.addCellData(cellData.recordingLabel, cellData);

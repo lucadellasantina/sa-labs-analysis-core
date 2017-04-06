@@ -71,5 +71,10 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
                 names = {datestr(obj.experimentDate, 'mmddyy')};
             end
         end
+        
+        function clearCellDataMap(obj)
+            obj.cellDataMap = containers.Map();
+            obj.cellDataNames = {};
+        end
     end
 end
