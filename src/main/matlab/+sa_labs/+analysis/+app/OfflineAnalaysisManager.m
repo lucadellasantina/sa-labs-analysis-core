@@ -39,6 +39,11 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             dao = obj.analysisDao;
             cellNames = project.getCellDataNames();
             names = dao.findCellNames(cellNames);
+            if ~ isempty(names)
+                parsedFiles = names;
+                unParsedfiles = {};
+                return;
+            end
             if isempty(names)
                 names = {};
             end
