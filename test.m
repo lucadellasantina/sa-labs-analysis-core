@@ -19,6 +19,8 @@ function test(package)
         error([num2str(failed) ' test(s) failed!']);
     end
     
+    logging.clearLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER);
+    logging.clearLogger('test-logger');
     
     function initializeTestLogger()
         [log, ~] = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER, 'path', 'test.log');

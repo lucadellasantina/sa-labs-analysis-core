@@ -143,12 +143,14 @@ classdef EntityTest < matlab.unittest.TestCase
             
             [params, values] = cellData.getUniqueNonMatchingParamValues({'intensity'} ,1 : 5 : 100);
             obj.verifyEqual(params, {'stimTime'});
-            % unique stim time @see prepareEpochData
-            obj.verifyLength(values{1}, 10);
+            
+            obj.verifyLength(values{1}, 20);
             % get the first element (value corresponds to 'stimTime') from cell array
-            actual = sort(unique(values{1}));
-            expected = arrayfun(@(i)cellstr([num2str(20 * i) 'ms' ]), 1: 10);
-            obj.verifyEqual(actual, sort(expected));
+            actual = values{1};
+            id = repmat(1: 1: 10, 2, 1);
+            
+            expected = arrayfun(@(i)cellstr([num2str(20 * i) 'ms' ]), id(:)');
+            obj.verifyEqual(actual, expected);
             
             [params, values] = cellData.getUniqueNonMatchingParamValues({'intensity', 'stimTime'});
             obj.verifyEmpty(params);
@@ -163,13 +165,12 @@ classdef EntityTest < matlab.unittest.TestCase
             
             function verify()
                 obj.verifyEqual(params, {'intensity', 'stimTime'});
-                obj.verifyLength(values{1}, 10);
-                obj.verifyLength(values{2}, 10);
+                obj.verifyLength(values{1}, 20);
+                obj.verifyLength(values{2}, 20);
                 % test intensity values
-                obj.verifyEqual(values{1}, (10 * [1: 10]))
+                obj.verifyEqual(values{1}, (10 * id(:)'))
                 % test again stimTime values
-                actualValue = sort(unique(values{2}));
-                obj.verifyEqual(actualValue, sort(expected));
+                obj.verifyEqual(values{2}, expected);
             end
             
             [params, values] = cellData.getUniqueParamValues(1 : 5 : 100);
