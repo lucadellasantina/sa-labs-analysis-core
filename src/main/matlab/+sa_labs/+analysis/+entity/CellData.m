@@ -159,7 +159,11 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
                 if iscell(values) && ~ iscellstr(values)
                     values = [values{:}];
                 end
-                map(key) =  unique(values, 'stable');
+                newValues =  unique(values, 'stable');
+                if numel(newValues) == 1
+                   values = newValues;
+                end
+                map(key) = values;
             end
             params = map.keys;
             vals = map.values;

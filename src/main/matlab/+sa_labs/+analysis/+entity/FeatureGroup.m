@@ -176,7 +176,10 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             end
             
             try
-                new = unique(new, 'stable');
+                newValues = unique(new, 'stable');
+                if numel(newValues) == 1
+                    new = newValues;
+                end
             catch e
                 warning('mixedType:parameters', e.message);
             end
