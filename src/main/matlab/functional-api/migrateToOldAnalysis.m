@@ -32,7 +32,7 @@ for i = 1 : n
     e.parentCell = oldCellData;
     
     if isKey(e.attributes, 'SPIKES')
-        e.attributes('spike_ch1') =  e.attributes('SPIKES').data;
+        e.attributes('spikes_ch1') =  e.attributes('SPIKES').data';
         remove(e.attributes, 'SPIKES');
     end
     if isKey(e.dataLinks, 'Amp1')
