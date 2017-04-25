@@ -8,7 +8,8 @@ function analysisTree = getAnalysisTree(identifier, varargin)
     import sa_labs.analysis.*;
 
     if ~ isExperiment
-        project  = getAnalysisManager().initializeProject(identifier);
+        manager = getAnalysisManager();
+        project  = manager.initializeProject(identifier);
         analysisTree = core.factory.createFeatureBuilder('project', identifier,...
             'data', project.getAllresult());
     else

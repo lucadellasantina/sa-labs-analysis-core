@@ -125,7 +125,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                     fun(cellData);
                 end
             end
-            obj.analysisDao.saveCell(cellData);
+            arrayfun(@(d) obj.analysisDao.saveCell(d), cellData);
         end
         
         
