@@ -13,16 +13,18 @@ parent.expand();
 build(id, parent);
 
     function build(id, node)
-        for child = analysisTree.getchildren(id)
+        childs = analysisTree.getchildren(id);
+        for i =  1 : numel(childs)
             import uiextras.jTree.*
+            child = childs(i);
             if analysisTree.isleaf(child)
                 TreeNode('Name', analysisTree.get(child), 'Parent', node);
                 node.expand();
-                return
+            else
+                childNode = TreeNode('Name', analysisTree.get(child), 'Parent', node);
+                node.expand();
+                build(child, childNode);
             end
-            childNode = TreeNode('Name', analysisTree.get(child), 'Parent', node);
-            node.expand();
-            build(child, childNode);
         end
     end
 
