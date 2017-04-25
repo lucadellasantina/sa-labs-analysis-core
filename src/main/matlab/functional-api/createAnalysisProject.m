@@ -3,7 +3,7 @@ function [project, offlineAnalysisManager] = createAnalysisProject(experiment, n
     if nargin < 2
         name = matlab.lang.makeValidName(char(datetime));
     end
-    experimentDate = datenum(experiment, 'mmddyy');
+    experimentDate = datenum(experiment, 'yyyymmdd');
     
     import sa_labs.analysis.*;
     
@@ -11,7 +11,7 @@ function [project, offlineAnalysisManager] = createAnalysisProject(experiment, n
     project = entity.AnalysisProject();
     project.identifier = name;
     project.analysisDate = datestr(now, 'dd.mm.yyyy');
-    project.experimentDate = datestr(experimentDate, 'mmddyy');
+    project.experimentDate = datestr(experimentDate, 'yyyymmdd');
     project.performedBy = getenv('username');
     project.addCellData(experiment);
 
