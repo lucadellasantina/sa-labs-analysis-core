@@ -122,9 +122,13 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             obj.verifyEqual(tree.get(leafs(3)).epochIndices, 51:100);
             obj.verifyEqual(tree.get(leafs(4)).epochIndices, 51:100);
             
-            expected = struct('stimTime', 20, 'rstars', [0.01, 0.1, 1]);
+            expected = struct('stimTime', 20, 'rstars', [0.01, 0.1, 1, 0.01, 0.1, 1]);
             expected.deviceStream = {'Amplifier_Ch1', 'Amplifier_Ch2'};
-            expected.ndfs = {'A1A', 'A2A', 'A3A', 'B1A'};
+            % tree will have all the epoch parameters in the same epoch
+            % order 
+            % exception - if there is no variation it just gets the unique
+            % parameter
+            expected.ndfs = {'A1A', 'A2A', 'A3A', 'B1A', 'A2A', 'A3A'};
 
             actualParameters = tree.get(tree.getparent(leafs(1))).parameters;
             obj.verifyEqual(actualParameters, expected);
@@ -132,8 +136,12 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             obj.verifyEqual(actualParameters, expected);
             
             expected.stimTime = 500;
-            expected.rstars = [10, 5, 100];
-            expected.ndfs = {'Empty', 'A2A', 'A3A', 'A1A'};
+            expected.rstars = [10, 5, 100, 10, 5, 100];
+            % tree will have all the epoch parameters in the same epoch
+            % order
+            % exception - if there is no variation it just gets the unique
+            % parameter
+            expected.ndfs = {'Empty', 'A2A', 'A3A', 'A1A', 'A2A', 'A3A'};
             actualParameters = tree.get(tree.getparent(leafs(4))).parameters;
             obj.verifyEqual(actualParameters, expected);
         end
