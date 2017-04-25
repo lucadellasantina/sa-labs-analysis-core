@@ -128,7 +128,7 @@ classdef FeatureTreeBuilder < handle
                 return;
             end
             
-            for i = obj.tree.findpath(from.id, 1);
+            for i = obj.tree.findpath(from.id, 1)
                 if regexp(obj.tree.get(i).name, ['\w*' name '\w*' ])
                     featureGroups = obj.tree.get(i);
                     break;

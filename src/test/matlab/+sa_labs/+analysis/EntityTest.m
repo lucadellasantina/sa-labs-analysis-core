@@ -231,6 +231,12 @@ classdef EntityTest < matlab.unittest.TestCase
             handle = @()featureGroup.appendParameter('epochId', '5');
             obj.verifyWarning(handle, 'mixedType:parameters');
             obj.verifyEqual(featureGroup.getParameter('epochId'), {[1, 2, 3], '5'});
+            
+            % Testing 1d array in parameters
+            featureGroup.appendParameter('array1d', 1 : 10);
+            featureGroup.appendParameter('array1d', 11 : 30);
+            featureGroup.appendParameter('array1d', 31 : 40);
+            obj.verifyEqual(featureGroup.getParameter('array1d'), 1 : 40);
         end
         
         function testFeature(obj)
@@ -318,12 +324,22 @@ classdef EntityTest < matlab.unittest.TestCase
             newFeatureGroup.update(featureGroup, 'unknown', 'unknown');
             obj.verifyEmpty(newFeatureGroup.getParameter('unknown'));
             
+            % case 5 parameter with 1d-array
+            featureGroup.appendParameter('array1d', 1 : 30);
+            newFeatureGroup.update(featureGroup, 'array1d', 'array1d');
             
+            featureGroup2 = FeatureGroup('Child2', 'param2');
+            featureGroup2.appendParameter('array1d', 31 : 40);
+            
+            newFeatureGroup.update(featureGroup2, 'array1d', 'array1d'); 
+            obj.verifyEqual(newFeatureGroup.getParameter('array1d'), 1 : 40);
+             
             % consistency check for old featureGroup
             obj.verifyEqual(featureGroup.featureMap.keys, {'TEST_FIRST', 'TEST_SECOND'});
             features = featureGroup.featureMap.values;
             features = [features{:}];
             obj.verifyEqual([features(:).data], [(1 : 1000)', ones(1000, 1)]);
+            
             
             obj.verifyError(@()newFeatureGroup.update(featureGroup, 'name', 'name'),'MATLAB:class:SetProhibited');
             obj.verifyError(@()newFeatureGroup.update(featureGroup, 'splitParameter', 'splitParameter'),'MATLAB:class:SetProhibited');
