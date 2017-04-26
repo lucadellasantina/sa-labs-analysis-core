@@ -41,11 +41,6 @@ classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
                 h5epochs =  epochsByCellMap(labels{i});
                 cells(i) = obj.buildCellData(labels{i}, h5epochs);
                 cells(i).attributes = obj.getSourceAttributes(sourceTree, labels{i}, cells(i).attributes);
-
-                if  all(isKey(cells(i).attributes, {'eye', 'location'}))
-                    cells(i).location = [cells(i).attributes('location'), obj.getEyeIndex(cells(i).attributes('eye'))];
-                end
-                
             end
             obj.cellDataArray = cells;
         end
@@ -115,8 +110,8 @@ classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
             cell.epochs = epochData;
             cell.attributes('Nepochs') = numel(h5Epochs);
             cell.attributes('symphonyVersion') = 2.0;
-            cell.attributes('fname') = obj.getFileName(label);
-            cell.savedFileName = cell.attributes('fname');
+            cell.attributes('h5File') = obj.fname;
+            cell.attributes('recordingLabel') =  ['c' char(regexp(label, '[0-9]+', 'match'))];
         end
         
         function epochGroupMap = getEpochsByCellLabel(obj, epochGroups)
@@ -150,21 +145,6 @@ classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
             catch
                 source = epochGroup.Links(2).Value{:};
                 label = h5readatt(obj.fname, source, 'label');
-            end
-        end
-        
-        function fname = getFileName(obj, label)
-            [~, file, ~] = fileparts(obj.fname);
-            index = regexp(label, '[0-9]+');
-            
-            if index == 1
-                fname = [file 'c' label];
-            elseif index == 2
-                fname = [file 'c' label(2:end)];
-            elseif index == 3
-                fname = [file 'c' label(3:end)];
-            else
-                fname = file;
             end
         end
         

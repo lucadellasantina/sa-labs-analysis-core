@@ -1,30 +1,20 @@
 classdef CellData < handle & matlab.mixin.CustomDisplay
     
     properties
-        recordingLabel                      % recording cluster label
-        attributes                          % Map for attributes from data file (h5group root attributes + Nepochs)
-        epochs                              % Array of sa_labs.analysis.core.entity.EpochData
-        savedEpochGroups                    % Saved Data Sets
-        epochGroups                         % TODO
-        tags                                % TODO
-        savedFileName = ''                  % Current H5 file name without extension
-        cellType = ''                       % CellType will be assignment from LabDataGUI
-        somaSize = []                       % TODO
-        imageFile = ''                      % Cell image
-        notes = ''                          % Unstructured text field for adding notes
-        location = []                       % [X, Y, whichEye] (X,Y in microns; whichEye is -1 for left eye and +1 for right eye)
+        attributes                      
+        epochs
     end
     
     properties (Dependent)
         experimentDate
+        h5File
+        recordingLabel
     end
     
     methods
         
         function obj = CellData()
             obj.attributes = containers.Map();
-            obj.savedEpochGroups = containers.Map();
-            obj.tags = containers.Map();
         end
         
         function [values, parameterDescription] = getEpochValues(obj, parameter, epochIndices)
@@ -191,11 +181,6 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             % Tags take precedence over attributes
             
             val = [];
-            if obj.tags.isKey(paramName)
-                val = obj.tags(paramName);
-                return
-            end
-            
             if obj.attributes.isKey(paramName)
                 val = obj.attributes(paramName);
             end
@@ -238,34 +223,36 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
             tf = functionHandle(obj);
         end
         
-        function d = get.experimentDate(obj)
-            d = obj.savedFileName(1 : 6);
-        end
-
-        function map = getCellParameterMap(obj)
-           map = obj.attributes;
-           map('cellType') = obj.cellType;
-           map('recordingLabel') = obj.recordingLabel;
+        function map = getPropertyMap(obj)
+            map = obj.attributes;
         end
         
-        function l = get.recordingLabel(obj)
-            l = obj.savedFileName;
-            if  isKey(obj.attributes, 'label')
-                label = obj.attributes('label');
-                
-                if iscell(label)
-                    label = [label{:}];
-                end
-                l = [obj.savedFileName '-' label];
+        function set.h5File(obj, value)
+            obj.attributes('h5File') = value;
+        end
+        
+        function fname = get.h5File(obj)
+            
+            fname = obj.get('h5File');
+            if ~ isempty(fname)
+                [~ , fname] = fileparts(fname);
             end
         end
+        
+        function set.recordingLabel(obj, value)
+            obj.attributes('recordingLabel') = value;
+        end
+        
+        function label = get.recordingLabel(obj)
+            label = strcat(obj.h5File, obj.get('recordingLabel'));
+        end            
     end
     
     methods(Access = protected)
         
         function header = getHeader(obj)
             try
-                type = obj.cellType;
+                type = obj.get('cellType');
                 if isempty(type)
                     type = 'unassigned';
                 end
@@ -278,21 +265,17 @@ classdef CellData < handle & matlab.mixin.CustomDisplay
         function groups = getPropertyGroups(obj)
             try
                 attrKeys = obj.attributes.keys;
-                EpochGroupKeys = obj.savedEpochGroups.keys;
                 groups = matlab.mixin.util.PropertyGroup.empty(0, 2);
                 
                 display = struct();
                 for i = 1 : numel(attrKeys)
                     display.(attrKeys{i}) = obj.attributes(attrKeys{i});
                 end
-                
                 groups(1) = display;
-                groups(2) = EpochGroupKeys;
             catch
                 groups = getPropertyGroups@matlab.mixin.CustomDisplay(obj);
             end
         end
-        
     end
     
 end

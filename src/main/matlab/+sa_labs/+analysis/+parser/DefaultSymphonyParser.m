@@ -23,7 +23,7 @@ classdef DefaultSymphonyParser < sa_labs.analysis.parser.SymphonyParser
             import sa_labs.analysis.*;
             
             data = entity.CellData();
-            [~, data.savedFileName, ~] = fileparts(obj.fname);
+            data.h5File = obj.fname;
             
             info = hdf5info(obj.fname);
             info = info.GroupHierarchy(1);

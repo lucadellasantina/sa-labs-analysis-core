@@ -72,7 +72,7 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
         end
         
         function f = get.dateFormat(obj)
-            f = obj.get('dateFormat', @(date) datestr(date, 'mmddyy'));
+            f = obj.get('dateFormat', @(date) datestr(date, 'yyyymmdd'));
         end
         
         function set.dateFormat(obj, f)
