@@ -146,6 +146,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             obj.verifyEqual(actualParameters, expected);
         end
         
+        
         function testBuildTreeComplex(obj)
             import sa_labs.analysis.*;
             
@@ -204,7 +205,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             obj.verifyEqual(tree.get(leafs(9)).epochIndices, leafGroupFive(0.01));
             obj.verifyEqual(tree.get(leafs(10)).epochIndices, leafGroupFive(0.02));
         end
-        
+     
         function testBuildTreeWithGroupedBranches(obj)
             import sa_labs.analysis.*;
             
@@ -300,8 +301,8 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             disp('analysis tree')
             result.treefun(@(node) strcat(node.name, [' ( ' num2str(node.id), ' ) '])).tostring()
         end
-        
-        function testBuildTreeWithDifferentParameters(obj)
+  
+        function testBuildTreeWithMissingEpochParameter(obj)
             import sa_labs.analysis.*;
             
             % analysis template structure
@@ -343,12 +344,75 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             result = offlineAnalysis.getResult();
             
             leafs = result.findleaves();
-            
             disp('analysis tree')
             result.treefun(@(node) strcat(node.name, [' ( ' num2str(node.id), ' ) '])).tostring()
             
+            obj.verifyLength(leafs, 8);
+            obj.verifyEqual(result.get(leafs(1)).epochIndices, rstarMeanBar(0.1));
+            obj.verifyEqual(result.get(leafs(2)).epochIndices, rstarMeanBar(0.2));
+            
+            obj.verifyEqual(result.get(leafs(3)).epochIndices, driftingGratingAngle(10));
+            obj.verifyEqual(result.get(leafs(4)).epochIndices, driftingGratingAngle(20));
+            obj.verifyEqual(result.get(leafs(5)).epochIndices, driftingGratingAngle(30));
+            
+            obj.verifyEqual(result.get(leafs(6)).epochIndices, driftingTextureAngle(10));
+            obj.verifyEqual(result.get(leafs(7)).epochIndices, driftingTextureAngle(20));
+            obj.verifyEqual(result.get(leafs(8)).epochIndices, driftingTextureAngle(30));
         end
         
+        function testBuildTreeWithMissingEpochParameterValues(obj)
+            import sa_labs.analysis.*;
+            
+            % analysis template structure
+            s = struct();
+            s.type = 'complex-analysis';
+            s.featureManager = 'sa_labs.analysis.core.FeatureTreeManager';
+            s.buildTreeBy = {'protocol', 'RstarMean', 'textureAngle'};
+            s.protocol.splitValue = {'unknown'}; 
+            s.textureAngle.splitValue = {'10'};
+            % mocked cell data
+            protocols = containers.Map({'01MovingBar', '02DriftingGrating', '03DrifitngTexture'}, {1 : 50, 51 : 100, 101: 150});
+            
+            % level two
+            rstarMeanBar= containers.Map({0.1, 0.2}, {1 : 10,  11 : 15});
+            rstarMeanDriftingGrating =  containers.Map({0.5}, {51 : 100});
+            rstarMeanDriftingTexture = containers.Map({0.1}, {101 : 150});
+            
+            % level three only for drifting texture
+            driftingGratingAngle = containers.Map({'10', '20', '30'}, {51 : 65,  66 : 80, 81 : 100});
+            driftingTextureAngle = containers.Map({'10', '20', '30'}, {101 : 115,  116 : 130, 131 : 150});
+            
+            mockedCellData = Mock(entity.CellData());
+            mockedCellData.when.getEpochValuesMap(AnyArgs())...
+                .thenReturn(protocols, 'protocol')...
+                .thenReturn(rstarMeanBar, 'RstarMean')... % start of moving bar
+                .thenReturn(containers.Map(), 'textureAngle')... % empty for moving bar
+                .thenReturn(containers.Map(), 'textureAngle')... % empty for moving bar
+                .thenReturn(rstarMeanDriftingGrating, 'RstarMean')... % start of drifting grating
+                .thenReturn(driftingGratingAngle, 'textureAngle')...
+                .thenReturn(rstarMeanDriftingTexture, 'RstarMean')... % start of drifting texture
+                .thenReturn(driftingTextureAngle, 'textureAngle');
+            
+            mockedCellData.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
+            mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
+            
+            analysisProtocol = core.AnalysisProtocol(s);
+            offlineAnalysis = core.OfflineAnalysis(analysisProtocol, obj.recordingLabel);
+            offlineAnalysis.setEpochSource(mockedCellData);
+            offlineAnalysis.service();
+            result = offlineAnalysis.getResult();
+            
+            leafs = result.findleaves();
+            disp('analysis tree')
+            result.treefun(@(node) strcat(node.name, [' ( ' num2str(node.id), ' ) '])).tostring()
+            
+            obj.verifyLength(leafs, 4);
+            obj.verifyEqual(result.get(leafs(1)).epochIndices, rstarMeanBar(0.1));
+            obj.verifyEqual(result.get(leafs(2)).epochIndices, rstarMeanBar(0.2));
+            
+            obj.verifyEqual(result.get(leafs(3)).epochIndices, driftingGratingAngle('10'));
+            obj.verifyEqual(result.get(leafs(4)).epochIndices, driftingTextureAngle('10'));
+        end
     end
     
     methods

@@ -65,7 +65,9 @@ classdef AnalysisProtocol < handle
             found = ismember(templateValues, values);
             
             if sum(found) == 0
-                throw(sa_labs.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.create());
+                message = strcat('[ ', parameter,  ' =  ', char(templateValues), ' ] not found ');
+                message = strjoin(cellstr(message));
+                throw(sa_labs.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.create('message', message));
             end
             values = templateValues(found);
         end

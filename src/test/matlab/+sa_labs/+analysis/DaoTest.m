@@ -7,8 +7,9 @@ classdef DaoTest < matlab.unittest.TestCase
     end
     
     properties(Constant)
-        FILE_PREFIX = 'c_test';
+        FILE_PREFIX = 'c';
         NO_OF_FILES = 10;
+        DATE_FORMAT = 'yyyymmdd'
     end
     
     methods (TestClassSetup)
@@ -32,15 +33,15 @@ classdef DaoTest < matlab.unittest.TestCase
             obj.cellNames = cell(obj.NO_OF_FILES, 1);
             
             for i = 1 : obj.NO_OF_FILES
-                name = [datestr(now, 'mmddyy') obj.FILE_PREFIX num2str(i)];
+                name = [datestr(now, obj.DATE_FORMAT) obj.FILE_PREFIX num2str(i)];
                 path = [repository.rawDataFolder filesep  name '.h5'];
                 h5create(path ,'/ds' , [10 20]);
                 h5writeatt(path, '/','version', 1);
                 cellData = sa_labs.analysis.entity.CellData();
-                cellData.savedFileName = name;
-                
+                cellData.h5File = path;
+                cellData.recordingLabel = '';
                 obj.testCellDatas(i) = cellData;
-                obj.cellNames{i} = name;
+                obj.cellNames{i} = cellData.recordingLabel;
             end
         end
     end
@@ -51,13 +52,13 @@ classdef DaoTest < matlab.unittest.TestCase
         
         function testFindRawDataFiles(obj)
             dao = obj.beanFactory.getBean('analysisDao');
-            files = dao.findRawDataFiles(datestr(date, 'mmddyy'));
+            files = dao.findRawDataFiles(datestr(date, obj.DATE_FORMAT));
             obj.verifyEqual(numel(files), obj.NO_OF_FILES);
             
             for i = 1 : numel(files)
                 obj.verifyEqual(exist(files{i}, 'file'), 2);
             end
-            files = dao.findRawDataFiles(datestr(busdate(date, 1), 'mmddyy'));
+            files = dao.findRawDataFiles(datestr(busdate(date, 1), obj.DATE_FORMAT));
             obj.verifyEmpty(files);
         end
         
@@ -131,16 +132,16 @@ classdef DaoTest < matlab.unittest.TestCase
             obj.verifyEmpty(setdiff(obj.cellNames, names));
             names = dao.findCellNames(datestr(busdate(date, 1)));
             obj.verifyEmpty(names);
-            expected = {[datestr(now, 'mmddyy') obj.FILE_PREFIX '2']; [datestr(now, 'mmddyy') obj.FILE_PREFIX '3']};
+            expected = {[datestr(now, obj.DATE_FORMAT) obj.FILE_PREFIX '2']; [datestr(now, obj.DATE_FORMAT) obj.FILE_PREFIX '3']};
             actual = dao.findCellNames(expected);
             obj.verifyEmpty(setdiff(expected, actual));
         end
         
         function testFindCell(obj)
             dao = obj.beanFactory.getBean('analysisDao');
-            fname = [datestr(now, 'mmddyy') obj.FILE_PREFIX '1'];
+            fname = [datestr(now, obj.DATE_FORMAT) obj.FILE_PREFIX '1'];
             data = dao.findCell(fname);
-            obj.verifyEqual(data.savedFileName, fname);
+            obj.verifyEqual(data.h5File, fname);
             
             dataHandle = @()dao.findCell('unknown');
             obj.verifyError(dataHandle, 'MATLAB:load:couldNotReadFile');

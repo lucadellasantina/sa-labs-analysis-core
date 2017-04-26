@@ -31,7 +31,8 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         
         function build(obj)
             data = obj.cellData;
-            obj.log.debug('started building analysis ...');
+            
+            obj.log.info(['started building analysis for cell [ ' data.recordingLabel ' ]']);
             
             for pathIndex = 1 : obj.analysisProtocol.numberOfPaths()
                 numberOfEpochs = numel(data.epochs);
@@ -42,7 +43,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             obj.featureBuilder.curateDataStore();
             
             group = obj.featureBuilder.getFeatureGroups(obj.DEFAULT_ROOT_ID);
-            group.setParameters(data.getCellParameterMap());
+            group.setParameters(data.getPropertyMap());
             group.setParameters(struct('analysisProtocol', obj.analysisProtocol));
         end
         
@@ -90,15 +91,14 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 obj.log.warn([' splitBy paramter [ ' splitBy ' ] is not found !']);
                 return
             end
-            
-            splitValues = obj.analysisProtocol.validateSplitValues(splitBy, epochValueMap.keys);
-
+            splitValues = obj.getSplitValues(epochValueMap, splitBy);
+                        
             % If it is the last node to be processed and has no (or)
-            % matching split values to construct the further branches, 
-            % then there is no point in having it in tree.             
+            % matching split values to construct the further branches,
+            % then there is no point in having it in tree.
             % delete the parent node !
-
-            if isempty(splitValues) && length(params) > 1
+            
+            if isempty(splitValues) && length(params) > 1 && parentId > obj.DEFAULT_ROOT_ID
                 obj.featureBuilder.removeFeatureGroup(parentId);
             end
             
@@ -133,7 +133,23 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                     continue;
                 end
                 featureGroups(i).setParameters(containers.Map(p, v));
+                featureGroups(i).setParameters(data.getPropertyMap());
                 obj.log.trace(['setting epoch parameter for ' featureGroups(i).name ]);
+            end
+        end
+        
+        function splitValues = getSplitValues(obj, epochValueMap, splitByParam)
+            
+            try
+                splitValues = obj.analysisProtocol.validateSplitValues(splitByParam, epochValueMap.keys);
+            catch exception
+                identifier = sa_labs.analysis.app.Exceptions.SPLIT_VALUE_NOT_FOUND.msgId;
+                if ~ strcmp(exception.identifier, identifier)
+                    rethrow(exception);
+                end
+                obj.log.warn(exception.message);
+                obj.log.info(['procceeding with default values for key = [' splitByParam ']']);
+                splitValues = epochValueMap.keys;
             end
         end
     end

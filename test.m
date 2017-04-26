@@ -3,7 +3,7 @@ function test(package)
         package = 'sa_labs.analysis';
     end
     
-    tbUse('mmockito');
+    tbUse('mmockito', 'online', false);
     rootPath = fileparts(mfilename('fullpath'));
     addpath(genpath(fullfile(rootPath, 'lib')));
     addpath(genpath(fullfile(rootPath, 'src')));
@@ -18,11 +18,11 @@ function test(package)
     if failed > 0
         error([num2str(failed) ' test(s) failed!']);
     end
-    
     logging.clearLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER);
     logging.clearLogger('test-logger');
-    
+            
     function initializeTestLogger()
+        
         [log, ~] = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER, 'path', 'test.log');
         log.setLogLevel(logging.logging.ALL);
         log.setCommandWindowLevel(logging.logging.INFO);

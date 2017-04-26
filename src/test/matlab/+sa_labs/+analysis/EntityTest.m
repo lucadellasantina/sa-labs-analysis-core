@@ -180,10 +180,7 @@ classdef EntityTest < matlab.unittest.TestCase
         function testGet(obj)
             import sa_labs.analysis.entity.*;
             cellData = CellData();
-            cellData.attributes = containers.Map({'other', 'string'}, {'bla', 'test'});
-            cellData.tags = containers.Map('other', 'tag');
-            
-            obj.verifyEqual(cellData.get('other'), 'tag');
+            cellData.attributes = containers.Map({'other', 'string'}, {'bla', 'test'});            
             obj.verifyEqual(cellData.get('string'), 'test');
             obj.verifyEmpty(cellData.get('unknown'));
             obj.verifyEmpty(cellData.get([]));
