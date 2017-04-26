@@ -3,7 +3,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
     properties (Access = private)
         cellData
     end
-
+    
     properties
         mode = sa_labs.analysis.core.AnalysisMode.OFFLINE_ANALYSIS;
     end
@@ -17,11 +17,11 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         function obj = OfflineAnalysis(analysisProtocol, recordingLabel)
             obj@sa_labs.analysis.core.Analysis(analysisProtocol, recordingLabel);
         end
-
+        
         function setEpochSource(obj, cellData)
             obj.cellData = cellData;
         end
-
+        
         function epochs = getEpochs(obj, featureGroup)
             epochs = obj.cellData.epochs(featureGroup.epochIndices);
         end
@@ -32,17 +32,20 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         function build(obj)
             data = obj.cellData;
             obj.log.debug('started building analysis ...');
+            
             for pathIndex = 1 : obj.analysisProtocol.numberOfPaths()
                 numberOfEpochs = numel(data.epochs);
                 epochGroup = sa_labs.analysis.entity.EpochGroup(1 : numberOfEpochs, data.recordingLabel);
                 parameters = obj.analysisProtocol.getSplitParametersByPath(pathIndex);
                 obj.add(obj.DEFAULT_ROOT_ID, epochGroup, parameters);
             end
+            obj.featureBuilder.curateDataStore();
+            
             group = obj.featureBuilder.getFeatureGroups(obj.DEFAULT_ROOT_ID);
             group.setParameters(data.getCellParameterMap());
             group.setParameters(struct('analysisProtocol', obj.analysisProtocol));
         end
-
+        
         function [map, order] = getFeaureGroupsByProtocol(obj)
             p = obj.analysisProtocol.getSplitParameters();
             map = containers.Map();
@@ -58,20 +61,20 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             
             if ~ obj.featureBuilder.isPresent(featureGroup.id)
                 obj.log.info(['FeatureGroup with name [ ' featureGroup.name ' ] does not have childrens']);
-                return 
+                return
             end
             
             if obj.featureBuilder.isBasicFeatureGroup(featureGroup)
                 obj.setEpochParameters(featureGroup);
             end
             keySet = obj.cellData.getEpochKeysetUnion([featureGroup.epochIndices]);
-
+            
             if isempty(keySet)
                 obj.log.warn('keyset is empty, cannot percolate up epoch parameters');
                 return
             end
             obj.featureBuilder.collect([featureGroup.id], keySet, keySet);
-            obj.log.trace('collecting epoch parameters ...'); 
+            obj.log.trace('collecting epoch parameters ...');
         end
     end
     
@@ -80,17 +83,21 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         function add(obj, parentId, epochGroup, params)
             splitBy = params{1};
             data = obj.cellData;
-
+            
             [epochValueMap, filter] = data.getEpochValuesMap(splitBy, epochGroup.epochIndices);
             
             if isempty(epochValueMap)
-                obj.log.warn([' splitBy paramter [ ' splitBy ' ] is not found; ignoring ' [params{2 : end}] ]);
-                obj.featureBuilder.removeFeatureGroup(parentId);
-                return;
+                obj.log.warn([' splitBy paramter [ ' splitBy ' ] is not found !']);
+                return
             end
             
             splitValues = obj.analysisProtocol.validateSplitValues(splitBy, epochValueMap.keys);
-            
+
+            % If it is the last node to be processed and has no (or)
+            % matching split values to construct the further branches, 
+            % then there is no point in having it in tree.             
+            % delete the parent node !
+
             if isempty(splitValues) && length(params) > 1
                 obj.featureBuilder.removeFeatureGroup(parentId);
             end
@@ -126,7 +133,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                     continue;
                 end
                 featureGroups(i).setParameters(containers.Map(p, v));
-                obj.log.trace(['setting epoch parameter for ' featureGroups(i).name ]); 
+                obj.log.trace(['setting epoch parameter for ' featureGroups(i).name ]);
             end
         end
     end

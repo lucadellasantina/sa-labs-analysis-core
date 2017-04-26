@@ -97,6 +97,28 @@ classdef FeatureTreeBuilder < handle
             obj.updateDataStoreFeatureGroupId();
         end
         
+        % TODO pending test
+        function curateDataStore(obj)
+            ids = obj.tree.treefun(@(node) obj.isFeatureGroupAlreadyPresent(node.id)).find();
+            
+            while ~ isempty(ids)
+                id = ids(1);
+                obj.tree = obj.tree.removenode(id);
+                obj.updateDataStoreFeatureGroupId();
+                ids = obj.tree.treefun(@(node) obj.isFeatureGroupAlreadyPresent(node.id)).find();
+            end
+        end
+        
+        % TODO pending test
+        function tf = isFeatureGroupAlreadyPresent(obj, sourceId)
+            siblings = obj.tree.getsiblings(sourceId);
+            ids = siblings(siblings ~= sourceId);
+            sourceGroup = obj.getFeatureGroups(sourceId);
+            tf = ~ isempty(ids) &&...
+                any(arrayfun(@(id) strcmp(obj.getFeatureGroups(id).name, sourceGroup.name), ids))...
+                && obj.isBasicFeatureGroup(sourceGroup);
+        end
+        
         function tf = isPresent(obj, id)
             tf = obj.tree.treefun(@(node) node.id == id).any();
         end
