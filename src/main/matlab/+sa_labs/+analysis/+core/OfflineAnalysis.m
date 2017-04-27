@@ -76,6 +76,11 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             end
             obj.featureBuilder.collect([featureGroup.id], keySet, keySet);
             obj.log.trace('collecting epoch parameters ...');
+            
+            obj.log.trace('collecting cell parameters ...');
+            cellKeySet = obj.cellData.getPropertyMap().keys;
+            obj.featureBuilder.collect([featureGroup.id], cellKeySet, cellKeySet);
+             
         end
     end
     
@@ -148,8 +153,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                     rethrow(exception);
                 end
                 obj.log.warn(exception.message);
-                obj.log.info(['procceeding with default values for key = [' splitByParam ']']);
-                splitValues = epochValueMap.keys;
+                splitValues = [];
             end
         end
     end

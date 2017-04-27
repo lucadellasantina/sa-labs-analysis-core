@@ -95,7 +95,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 cellName = cellNames{i};
                 cellData = dao.findCell(cellName);
                 project.addCellData(cellName, cellData);
-                file = dao.findRawDataFiles(cellData.experimentDate);
+                file = dao.findRawDataFiles(cellData.h5File);
                 
                 if isempty(file)
                     % TODO check and synchronize from server

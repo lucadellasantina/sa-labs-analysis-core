@@ -22,21 +22,23 @@ end
 
 function obj = createFeatureTreeBuilder(params)
 
-	class = params.class;
-	name = params.name;
-	value = params.value;
-	dataTrees = params.data;
-	constructor = str2func(class);
+    class = params.class;
+    name = params.name;
+    value = params.value;
+    dataTrees = params.data;
+    constructor = str2func(class);
 
-	if numel(dataTrees) == 1
-	    obj = constructor(name, value, dataTrees);
-	    return
-	end
+    if numel(dataTrees) == 1
+        obj = constructor(name, value, dataTrees);
+        return
+    end
 
-	obj = constructor(name, value);
-	for tree = dataTrees
-	    obj.append(tree, params.copyParameters);
-	end
+    obj = constructor(name, value);
+    for tree = dataTrees
+        if tree.depth > 0
+            obj.append(tree, params.copyParameters);
+        end
+    end
 end
 
 function tf = validateTreeData(data)
