@@ -22,28 +22,39 @@ classdef EpochData < handle & matlab.mixin.CustomDisplay
             
             value = [];
             if obj.attributes.isKey(name)
-               
                 value = obj.attributes(name);
             end
         end
         
-        function modes = getMode(obj, modeType)
-            % getMode - Returns the available amplifer mode for given
+        function [keys, values] = getParameters(obj, pattern)
+            % keys - Returns the matched parameter for given
             % search string
             %
-            % Pattern matches all the attributes for given modeType.
+            % values - Returns the available parameter values for given
+            % search string
+            %
+            % Pattern matches all the attributes from epoch and  celldata.
             % If found returns the equivalent value
             %
             % usage :
-            %       getMode('mode')
-            %       getMode('Amp2Mode')
+            %       getParameters('chan1')
+            %       getParameters('chan1Mode')
             
-            parameters = regexpi(obj.attributes.keys, ['\w*' modeType '\w*'], 'match');
+            parameters = regexpi(obj.attributes.keys, ['\w*' pattern '\w*'], 'match');
             parameters = [parameters{:}];
-            modes = cell(0, numel(parameters));
+            values = cell(0, numel(parameters));
+            keys = cell(0, numel(parameters));
             
             for i = 1 : numel(parameters)
-                modes{i} = obj.attributes(parameters{i});
+                keys{i} = parameters{i};
+                values{i} = obj.attributes(parameters{i});
+            end
+            
+            parameters = regexpi(obj.parentCell.attributes.keys, ['\w*' pattern '\w*'], 'match');
+            parameters = [parameters{:}];
+            for i = 1 : numel(parameters)
+                keys{end + i} = parameters{i};
+                values{end + i} = obj.parentCell.attributes(parameters{i});
             end
         end
         

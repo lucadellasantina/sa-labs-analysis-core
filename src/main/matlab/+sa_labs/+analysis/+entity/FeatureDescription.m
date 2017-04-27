@@ -57,7 +57,10 @@ classdef FeatureDescription < dynamicprops
                         addprop(obj, var);
                     end
                     % TODO check for data type of v and convert to appropriate
-                    obj.(var) = strtrim(v);
+                    if ischar(v)
+                        v = strtrim(v);
+                    end
+                    obj.(var) = v;
                 end
             catch exception
                 warning(exception.identifier, exception.message)

@@ -152,10 +152,7 @@ classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
             if nargin < 3
                 map = containers.Map();
             end
-            
-            map = obj.mapAttributes(h5group, map);
-            attrs = cellfun(@(key) obj.getMappedAttribute(key), map.keys, 'UniformOutput', false);
-            attributeMap = containers.Map(attrs, map.values);
+            attributeMap = obj.mapAttributes(h5group, map);
         end
         
         function sourceTree = buildSourceTree(obj, sourceLink, sourceTree, level)
@@ -226,20 +223,6 @@ classdef Symphony2Parser < sa_labs.analysis.parser.SymphonyParser
             end
         end
         
-        function mappedAttr = getMappedAttribute(~, name)
-            switch name
-                case 'chan1Mode'
-                    mappedAttr = 'ampMode';
-                case 'chan2Mode'
-                    mappedAttr = 'amp2Mode';
-                case 'chan1Hold'
-                    mappedAttr = 'ampHoldSignal';
-                case 'chan2Hold'
-                    mappedAttr = 'amp2HoldSignal';
-                otherwise
-                    mappedAttr = name;
-            end
-        end
     end
     
 end

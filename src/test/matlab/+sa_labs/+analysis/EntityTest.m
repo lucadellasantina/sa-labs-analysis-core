@@ -53,14 +53,16 @@ classdef EntityTest < matlab.unittest.TestCase
             obj.verifyEmpty(epochData.get('unknown'));
             
             % test for epoch data behaviour
-            obj.verifyEmpty(epochData.getMode('mode'));
+            obj.verifyEmpty(epochData.getParameters('mode'));
             obj.verifyEqual(epochData.getResponse('Amp1'), 'response1-data');
             obj.verifyError(@() epochData.getResponse('unknown'), 'device:notfound');
             
-            keys = {'ampMode', 'amp2Mode', 'amp3Mode'};
+            keys = {'chanMode', 'chan1Mode', 'chan2Mode'};
             values = {'cell-attached', 'cell-attached', 'whole-cell'};
             epochData.attributes = containers.Map(keys, values);
-            obj.verifyEqual(sort(epochData.getMode('mode')), values);
+            [actualKeys, actualValues] = epochData.getParameters('mode');
+            obj.verifyEmpty(setdiff(actualKeys, keys));
+            obj.verifyEmpty(setdiff(actualValues, values));
             keys{end + 1} = 'unqiue';
             
             obj.verifyEqual(epochData.unionAttributeKeys(keys), sort(keys));
