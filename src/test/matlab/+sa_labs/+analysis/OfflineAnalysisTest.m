@@ -205,7 +205,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             obj.verifyEqual(tree.get(leafs(9)).epochIndices, leafGroupFive(0.01));
             obj.verifyEqual(tree.get(leafs(10)).epochIndices, leafGroupFive(0.02));
         end
-     
+        
         function testBuildTreeWithGroupedBranches(obj)
             import sa_labs.analysis.*;
             
@@ -301,7 +301,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             disp('analysis tree')
             result.treefun(@(node) strcat(node.name, [' ( ' num2str(node.id), ' ) '])).tostring()
         end
-  
+        
         function testBuildTreeWithMissingEpochParameter(obj)
             import sa_labs.analysis.*;
             
@@ -337,12 +337,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             mockedCellData.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
             mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
             
-            analysisProtocol = core.AnalysisProtocol(s);
-            offlineAnalysis = core.OfflineAnalysis(analysisProtocol, obj.recordingLabel);
-            offlineAnalysis.setEpochSource(mockedCellData);
-            offlineAnalysis.service();
-            result = offlineAnalysis.getResult();
-            
+            result = obj.testAnalyze(s, mockedCellData);
             leafs = result.findleaves();
             disp('analysis tree')
             result.treefun(@(node) strcat(node.name, [' ( ' num2str(node.id), ' ) '])).tostring()
@@ -364,13 +359,14 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             import sa_labs.analysis.*;
             
             % analysis template structure
+            % case (1)
             s = struct();
             s.type = 'complex-analysis';
             s.featureManager = 'sa_labs.analysis.core.FeatureTreeManager';
             s.buildTreeBy = {'protocol', 'RstarMean', 'textureAngle'};
-            s.protocol.splitValue = {'01MovingBar', '04WhiteNoiseFlicker'}; 
+            s.protocol.splitValue = {'01MovingBar', '04WhiteNoiseFlicker'};
             s.textureAngle.splitValue = {'10'};
-            % mocked cell data
+          
             protocols = containers.Map({'01MovingBar', '02DriftingGrating', '03DrifitngTexture'}, {1 : 50, 51 : 100, 101: 150});
             
             % level two
@@ -382,36 +378,46 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             driftingGratingAngle = containers.Map({'10', '20', '30'}, {51 : 65,  66 : 80, 81 : 100});
             driftingTextureAngle = containers.Map({'10', '20', '30'}, {101 : 115,  116 : 130, 131 : 150});
             
-            mockedCellData = Mock(entity.CellData());
-            mockedCellData.when.getEpochValuesMap(AnyArgs())...
-                .thenReturn(protocols, 'protocol')...
-                .thenReturn(rstarMeanBar, 'RstarMean')... % start of moving bar
-                .thenReturn(containers.Map(), 'textureAngle')... % empty for moving bar
-                .thenReturn(containers.Map(), 'textureAngle')... % empty for moving bar
-                .thenReturn(rstarMeanDriftingGrating, 'RstarMean')... % start of drifting grating
-                .thenReturn(driftingGratingAngle, 'textureAngle')...
-                .thenReturn(rstarMeanDriftingTexture, 'RstarMean')... % start of drifting texture
-                .thenReturn(driftingTextureAngle, 'textureAngle');
-            
-            mockedCellData.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
-            mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
-            
-            analysisProtocol = core.AnalysisProtocol(s);
-            offlineAnalysis = core.OfflineAnalysis(analysisProtocol, obj.recordingLabel);
-            offlineAnalysis.setEpochSource(mockedCellData);
-            offlineAnalysis.service();
-            result = offlineAnalysis.getResult();
+            mockedCellData = createMockedData();
+            result = obj.testAnalyze(s, mockedCellData);
             
             leafs = result.findleaves();
             disp('analysis tree')
             result.treefun(@(node) strcat(node.name, [' ( ' num2str(node.id), ' ) '])).tostring()
             
-            obj.verifyLength(leafs, 4);
+            obj.verifyLength(leafs, 2);
             obj.verifyEqual(result.get(leafs(1)).epochIndices, rstarMeanBar(0.1));
             obj.verifyEqual(result.get(leafs(2)).epochIndices, rstarMeanBar(0.2));
             
-            obj.verifyEqual(result.get(leafs(3)).epochIndices, driftingGratingAngle('10'));
-            obj.verifyEqual(result.get(leafs(4)).epochIndices, driftingTextureAngle('10'));
+            % case (2)
+            s = struct();
+            s.type = 'complex-analysis';
+            s.featureManager = 'sa_labs.analysis.core.FeatureTreeManager';
+            s.buildTreeBy = {'protocol', 'RstarMean', 'textureAngle'};
+            s.protocol.splitValue = {'04WhiteNoiseFlicker'};
+            s.textureAngle.splitValue = {'10'};
+            
+            mockedCellData = createMockedData();           
+            result = obj.testAnalyze(s, mockedCellData);
+            
+            obj.verifyLength(result.findleaves(), 1);
+            
+            function mock = createMockedData()
+                
+                mock = Mock(sa_labs.analysis.entity.CellData());
+                mock.when.getEpochValuesMap(AnyArgs())...
+                    .thenReturn(protocols, 'protocol')...
+                    .thenReturn(rstarMeanBar, 'RstarMean')... % start of moving bar
+                    .thenReturn(containers.Map(), 'textureAngle')... % empty for moving bar
+                    .thenReturn(containers.Map(), 'textureAngle')... % empty for moving bar
+                    .thenReturn(rstarMeanDriftingGrating, 'RstarMean')... % start of drifting grating
+                    .thenReturn(driftingGratingAngle, 'textureAngle')...
+                    .thenReturn(rstarMeanDriftingTexture, 'RstarMean')... % start of drifting texture
+                    .thenReturn(driftingTextureAngle, 'textureAngle');
+                mock.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
+                mock.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
+            end
+            
         end
     end
     
