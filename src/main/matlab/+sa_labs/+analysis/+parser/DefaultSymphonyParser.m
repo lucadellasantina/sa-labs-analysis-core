@@ -23,8 +23,7 @@ classdef DefaultSymphonyParser < sa_labs.analysis.parser.SymphonyParser
             import sa_labs.analysis.*;
             
             data = entity.CellData();
-            data.h5File = obj.fname;
-            
+
             info = hdf5info(obj.fname);
             info = info.GroupHierarchy(1);
             data.attributes = obj.mapAttributes(info.Groups(1).Groups(3));
@@ -69,6 +68,7 @@ classdef DefaultSymphonyParser < sa_labs.analysis.parser.SymphonyParser
                 data.epochs(i) = epoch;
             end
             data.attributes('Nepochs') = nEpochs;
+            data.h5File = obj.fname;
             obj.cellData = data;
         end
         
