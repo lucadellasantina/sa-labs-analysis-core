@@ -18,7 +18,7 @@ classdef AnalysisProtocolTest < matlab.unittest.TestCase
     end
     
     methods(Test)
-
+        
         function testGetSplitParametersByPath(obj)
             protocol = struct();
             protocol.type = 'test-analysis';
@@ -29,13 +29,13 @@ classdef AnalysisProtocolTest < matlab.unittest.TestCase
             obj.log.info(p.toTree().tostring());
             
             obj.verifyEqual(p.numberOfPaths(), 18);
-
+            
             v = p.getSplitParametersByPath(1);
             obj.verifyEqual(v, {'a', 'b', 'e', 'g'});
             v = p.getSplitParametersByPath(18);
             obj.verifyEqual(v, {'a', 'd', 'f', 'i'});
         end
-       
+        
         function testValidateSplitValues(obj)
             protocol = sa_labs.analysis.core.AnalysisProtocol(obj.lightStepStructure);
             obj.verifyEmpty(protocol.getSplitValue('unkown'));
@@ -73,21 +73,56 @@ classdef AnalysisProtocolTest < matlab.unittest.TestCase
             obj.verifyEqual(values, 2:3);
         end
         
+        function testExtractorFunctions(obj)
+            import sa_labs.analysis.*;
+            protocol = struct();
+            protocol.type = 'test-analysis';
+            protocol.buildTreeBy = {'a', 'b, c, d', 'e, f', 'g, h, i'};
+            
+            protocol.a.featureExtractor = {@(a) disp(a), @(a) mean(a)};
+            protocol.b.featureExtractor = {'@(a) disp(a)', '@(a) mean(a)'};
+            protocol.c.featureExtractor = {@(a) disp(a), '@(a)mean(a)'};
+            p = sa_labs.analysis.core.AnalysisProtocol(protocol);
+            
+            expected = {'@(a)disp(a)', '@(a)mean(a)'};
+            
+            obj.verifyEqual(p.getExtractorFunctions('a'), expected);
+            obj.verifyEqual(p.getExtractorFunctions('b'), expected);
+            obj.verifyEqual(p.getExtractorFunctions('c'), expected);
+        end
+        
+        function testAddExtractorFunctions(obj)
+            protocol = struct();
+            protocol.type = 'test-analysis';
+            protocol.buildTreeBy = {'a', 'b', 'c'};
+            p = sa_labs.analysis.core.AnalysisProtocol(protocol);
+            
+            p.addExtractorFunctions('a', @(a)disp(a));
+            obj.verifyEqual(p.getExtractorFunctions('a'), {'@(a)disp(a)'});
+            
+            p.addExtractorFunctions('a', @(a)mean(a));
+            expected = {'@(a)disp(a)', '@(a)mean(a)'};
+            obj.verifyEqual(p.getExtractorFunctions('a'), expected);
+            
+            p.addExtractorFunctions('a',  @(a) disp(a));
+            obj.verifyEqual(p.getExtractorFunctions('a'), expected);
+        end
+        
         function testProtocols(obj)
             import sa_labs.analysis.*;
-
+            
             % Light step analysis json
-
+            
             protocol = core.AnalysisProtocol(obj.lightStepStructure);
             obj.verifyEqual(protocol.getExtractorFunctions('rstarMean'), {'MeanExtractor', 'spikeAmplitudeExtractor'});
             obj.verifyEmpty(protocol.getExtractorFunctions('unknown'));
             obj.verifyEqual(protocol.copyParameters, {'ndf', 'etc'});
             obj.verifyEqual(protocol.featurebuilderClazz, 'FeatureBuilder');
             obj.verifyEqual(protocol.getSplitParameters(), {'EpochGroup', 'deviceStream', 'grpEpochs', 'rstarMean', 'epochId'});
-
+            
             % standard analysis json
             
-            protocol = core.AnalysisProtocol(obj.standardAnalysis);           
+            protocol = core.AnalysisProtocol(obj.standardAnalysis);
             [p, v] = protocol.getSplitParameters();
             obj.verifyEqual(p, {'displayName', 'textureAngle', 'RstarMean', 'barAngle', 'curSpotSize'});
             obj.verifyEqual(v, [1, 2, 2, 2, 2]);

@@ -8,10 +8,10 @@ classdef Exceptions < handle
         SPLIT_VALUE_NOT_FOUND('validateLevel:splitValueNotFound', @(msg) ['No matching split value; ' msg ' while building the tree' ])
 
         MULTIPLE_FEATURE_KEY_PRESENT('getFeatureData:multipleFeatureIdErr', @(msg) 'cannot fetch features. Supplied feature ids are different')
-        FEATURE_KEY_NOT_FOUND('getFeatureData:featureIdNotPresent', @(msg)['Feature Id ' msg ' is not found in the feature map']);
+        FEATURE_KEY_NOT_FOUND('getFeatureData:featureIdNotPresent', @(msg)['Feature Id ' msg ' is not found in the feature map'])
 
-        INVALID_PROPERTY_PAIR('properties:invalid', @(msg) 'properties deos not have valid param value pair');
-        
+        INVALID_PROPERTY_PAIR('properties:invalid', @(msg) 'properties deos not have valid param value pair')
+        OVERWRIDING_FEATURE('overriding:oldfeature', @(msg) ['overriding old feature with new one for key [ ' msg ' ]']);
     end
     
     properties

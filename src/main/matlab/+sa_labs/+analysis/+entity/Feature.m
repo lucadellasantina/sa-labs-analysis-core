@@ -13,15 +13,21 @@ classdef Feature < handle & matlab.mixin.Heterogeneous
         data
     end
     
+    properties (Hidden)
+        uuid
+    end
+    
     methods
         
-        function obj = Feature(desc, dataHandler)
+        function obj = Feature(desc,dataHandler)
             if nargin < 2
                 dataHandler = [];
             end
+            
             obj.description = desc;
             obj.dataHandler = dataHandler;
             obj.downSampled = false;
+            obj.uuid = char(java.util.UUID.randomUUID); 
         end
         
         function d = get.data(obj)

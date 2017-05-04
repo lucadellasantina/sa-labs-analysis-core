@@ -13,6 +13,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
     
     properties(SetAccess = private)
         parameters          % Matlab structure to store other properties and value (types are scalar or cell arrays)
+        uuid
     end
     
     properties
@@ -31,6 +32,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             obj.name = name;
             obj.splitParameter = splitParameter;
             obj.splitValue = splitValue;
+            obj.uuid = char(java.util.UUID.randomUUID); 
         end
         
         function value = getParameter(obj, property)
@@ -46,6 +48,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
         end
         
         function feature = createFeature(obj, id, data, varargin)
+            import sa_labs.analysis.*;
             
             key = varargin(1 : 2 : end);
             value = varargin(2 : 2 : end);
@@ -56,11 +59,17 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
                 propertyMap = containers.Map();
             end
             propertyMap('id') = id;
-            description = sa_labs.analysis.entity.FeatureDescription(propertyMap);
+            description = entity.FeatureDescription(propertyMap);
             description.id = id;
             
-            feature = sa_labs.analysis.entity.Feature(description, data);
-            obj.appendFeature(feature);
+            oldFeature = obj.getFeatures(id);
+            feature = entity.Feature(description, data);
+            
+            if ~ isempty(oldFeature)
+                feature.uuid = oldFeature.uuid;
+                app.Exceptions.OVERWRIDING_FEATURE.create('warning', true, 'message', strcat(id, ' for  node ', obj.name));
+            end
+            obj.featureMap(id) = feature;
         end
         
         function data = getFeatureData(obj, key)
@@ -111,7 +120,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
                 key = newFeatures(i).description.id;
                 
                 f = obj.getFeatures(key);
-                if f == newFeatures(i)
+                if ~ isempty(f) && ismember({newFeatures(i).uuid}, {f.uuid})
                     continue;
                 end
                 obj.featureMap = sa_labs.analysis.util.collections.addToMap(obj.featureMap, key, newFeatures(i));

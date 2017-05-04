@@ -28,11 +28,6 @@ function obj = createFeatureTreeBuilder(params)
     dataTrees = params.data;
     constructor = str2func(class);
 
-    if numel(dataTrees) == 1
-        obj = constructor(name, value, dataTrees);
-        return
-    end
-
     obj = constructor(name, value);
     for tree = dataTrees
         if tree.depth > 0

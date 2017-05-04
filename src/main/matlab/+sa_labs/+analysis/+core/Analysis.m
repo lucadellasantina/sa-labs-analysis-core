@@ -53,6 +53,31 @@ classdef Analysis < handle
         function setEpochSource(obj, source) %#ok
             % will be overriden in the subclass
         end
+        
+        function addFeaturesToGroup(obj, groups, functions)
+            [map, order] = obj.getFeaureGroupsByProtocol();
+            keys = map.keys();
+            parameters = keys(order);
+            
+            for i = numel(parameters) : -1 : 1
+                parameter = parameters{i};
+                featureGroups = map(parameter);
+                [valid, index] = ismember({groups.uuid}, {featureGroups.uuid});
+
+                if any(valid)
+                    featureGroups = featureGroups(index);
+                    functionsStr = obj.analysisProtocol.addExtractorFunctions(parameter, functions);
+                else
+                    functionsStr = [];
+                end
+                
+                if ~ isempty(featureGroups)
+                    obj.log.debug(['feature extraction for [ ' parameter ' featureGroups id ' num2str([featureGroups.id]) ']']);
+                    obj.delegateFeatureExtraction(functionsStr, featureGroups);
+                end
+            end
+            
+        end
     end
     
     methods (Access = protected)
@@ -69,13 +94,7 @@ classdef Analysis < handle
                 
                 if ~ isempty(featureGroups)
                     obj.log.debug(['feature extraction for [ ' parameter ' featureGroups id ' num2str([featureGroups.id]) ']']);
-                    
-                    % obj.copyEpochParameters(featureGroups);
                     obj.delegateFeatureExtraction(functions, featureGroups);
-                    
-                    obj.log.debug('collecting features ...');
-                    keySet = featureGroups.getFeatureKey();
-                    obj.featureBuilder.collect([featureGroups.id], keySet, keySet);
                 end
             end
         end
@@ -92,16 +111,25 @@ classdef Analysis < handle
             
             for i = 1 : numel(functions)
                 func = str2func(functions{i});
-                try 
+                try
                     for group = featureGroups
                         func(obj, group);
                     end
+                    
+                    obj.log.debug(['collecting features for function [ ' char(functions{i}) ' ]']);
+                    keySet = featureGroups.getFeatureKey();
+                    obj.featureBuilder.collect([featureGroups.id], keySet, keySet);
                 catch exception
                     disp(getReport(exception, 'extended', 'hyperlinks', 'on'));
                     obj.log.error(exception.message);
                 end
             end
+            
+            if isempty(functions)
+                obj.log.debug('collecting child features as feature extractor functions are empty !');
+                keySet = featureGroups.getFeatureKey();
+                obj.featureBuilder.collect([featureGroups.id], keySet, keySet);
+            end
         end
-        
     end
 end

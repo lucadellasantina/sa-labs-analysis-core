@@ -376,8 +376,10 @@ classdef EntityTest < matlab.unittest.TestCase
             obj.verifyError(@() featureGroup.getFeatureData({'none', 'other'}), app.Exceptions.MULTIPLE_FEATURE_KEY_PRESENT.msgId);
             
             featureGroup.createFeature('TEST_FIRST', 1 : 1000, 'properties', []);
-            featureGroup.createFeature('TEST_FIRST', ones(1000, 1), 'properties', []);
-            obj.verifyEqual(featureGroup.getFeatureData('TEST_FIRST'), [(1 : 1000)', ones(1000, 1)]);
+            obj.verifyEqual(featureGroup.getFeatureData('TEST_FIRST'),(1 : 1000)');
+            
+            handle = @() featureGroup.createFeature('TEST_FIRST', ones(1000, 1), 'properties', []);
+            obj.verifyWarning(handle, app.Exceptions.OVERWRIDING_FEATURE.msgId);
         end
     end
     

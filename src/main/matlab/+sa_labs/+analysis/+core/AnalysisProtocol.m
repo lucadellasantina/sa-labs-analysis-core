@@ -18,7 +18,7 @@ classdef AnalysisProtocol < handle
     properties
         structure               % Structure from user interface or json
     end
-
+    
     methods
         
         function obj = AnalysisProtocol(structure)
@@ -26,14 +26,14 @@ classdef AnalysisProtocol < handle
             obj.populateFunctionContext();
             obj.buildTree();
         end
-
+        
         function parameters = getSplitParametersByPath(obj, index)
             leafs = obj.protocolTree.findleaves();
             path =  sort(obj.protocolTree.pathtoroot(leafs(index)));
             parameters = arrayfun(@(id) obj.protocolTree.get(id), path, 'UniformOutput', false);
             parameters = parameters(2 : end);
         end
-
+        
         function [parameters, levels] = getSplitParameters(obj)
             buildBy = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_BUILD_TREE_BY);
             parameters = {};
@@ -45,7 +45,7 @@ classdef AnalysisProtocol < handle
                 levels = [levels, i * ones(1, numel(branches))]; %#ok
             end
         end
-
+        
         function values = validateSplitValues(obj, parameter, values)
             
             % Description - Takes the tree level, split parameter and split
@@ -73,7 +73,7 @@ classdef AnalysisProtocol < handle
             end
             values = templateValues(found);
         end
-
+        
         function v = getSplitValue(obj, parameter)
             
             % returns - array / cell array of split values for given split parameter
@@ -102,7 +102,7 @@ classdef AnalysisProtocol < handle
         end
         
         function f = getExtractorFunctions(obj, parameter)
-
+            
             % returns - extractor function for given parameter if parameter
             % not found returns empty
             
@@ -128,13 +128,13 @@ classdef AnalysisProtocol < handle
             import sa_labs.analysis.*;
             
             f = app.App.getResource(app.Constants.FEATURE_DESC_FILE_NAME);
-            descriptionFile = app.Constants.TEMPLATE_FEATURE_DESC_FILE;   
+            descriptionFile = app.Constants.TEMPLATE_FEATURE_DESC_FILE;
             
             if isfield(obj.structure, descriptionFile)
                 f = obj.structure.(descriptionFile);
             end
         end
-
+        
         function e = get.featurebuilderClazz(obj)
             clazz = sa_labs.analysis.app.Constants.TEMPLATE_FEATURE_BUILDER_CLASS;
             
@@ -152,6 +152,31 @@ classdef AnalysisProtocol < handle
         function t = toTree(obj)
             t = obj.protocolTree;
         end
+        
+        function functions = addExtractorFunctions(obj, parameter, functions)
+            
+            if ~ iscell(functions)
+                functions = {functions};
+            end
+            
+            values = {};
+            if isKey(obj.functionContext, parameter)
+                values =  obj.functionContext(parameter);
+            end
+            
+            for i = 1 : numel(functions)
+                f = obj.stripSpace(functions{i});
+                % TODO check for function name alone rather function
+                % arguments
+                if ~ any(ismember(values, f))
+                    values(end + 1) = {f}; %#ok <AGROW>
+                end
+                functions{i} = f;
+            end
+            desc = sa_labs.analysis.app.Constants.TEMPLATE_FEATURE_EXTRACTOR;
+            obj.structure.(parameter).(desc) = values;
+            obj.functionContext(parameter) = values;
+        end
     end
     
     methods (Access = private)
@@ -164,7 +189,13 @@ classdef AnalysisProtocol < handle
             for i = 1 : numel(parameters)
                 p = parameters{i};
                 if isfield(obj.structure, p) && isfield(obj.structure.(p), desc)
-                    obj.functionContext(p) = obj.structure.(p).(desc);
+                    values = obj.structure.(p).(desc);
+                    
+                    for j = 1 : numel(values)
+                        values{j} = obj.stripSpace(values{j});
+                    end
+                    obj.functionContext(p) = values;
+                    obj.structure.(p).(desc) = values;
                 end
             end
         end
@@ -187,6 +218,10 @@ classdef AnalysisProtocol < handle
                 end
             end
             obj.protocolTree = t;
+        end
+        
+        function value = stripSpace(~, value)
+            value = strrep(char(value), ' ', '');
         end
     end
 end

@@ -45,6 +45,8 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             group = obj.featureBuilder.getFeatureGroups(obj.DEFAULT_ROOT_ID);
             group.setParameters(data.getPropertyMap());
             group.setParameters(struct('analysisProtocol', obj.analysisProtocol));
+            
+            obj.log.info(['End building analysis for cell [ ' data.recordingLabel ' ]']);
         end
         
         function [map, order] = getFeaureGroupsByProtocol(obj)

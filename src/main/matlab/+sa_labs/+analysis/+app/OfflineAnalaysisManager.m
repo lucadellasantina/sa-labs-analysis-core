@@ -78,7 +78,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 parsedFiles = { parsedFiles{:}, cellDataArray.recordingLabel };
             end
             
-            project.clearCellDataMap();            
+            project.clearCellDataMap();
             for i = 1 : numel(parsedFiles)
                 cellData = dao.findCell(parsedFiles{i});
                 project.addCellData(cellData.recordingLabel, cellData);
@@ -129,7 +129,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
         end
         
         
-        function project = doAnalysis(obj, projectName, protocols)
+        function project = buildAnalysis(obj, projectName, presets)
             import sa_labs.analysis.*;
             
             project = obj.initializeProject(projectName);
@@ -138,8 +138,8 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             for i = 1 : numel(cellDataList)
                 cellData = cellDataList{i};
                 
-                for j = 1 : numel(protocols)
-                    protocol = protocols(j);
+                for j = 1 : numel(presets)
+                    protocol = core.AnalysisProtocol(presets(j));
                     analysis = core.OfflineAnalysis(protocol, cellData.recordingLabel);
                     analysis.setEpochSource(cellData);
                     analysis.service();
@@ -149,6 +149,45 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 end
                 obj.analysisDao.saveProject(project);
             end
+        end
+        
+        function builder = getFeatureBuilder(obj, projectName, results)
+            import sa_labs.analysis.*;
+            
+            if nargin < 3
+                project = obj.initializeProject(projectName);
+                results =  project.getAllresult();
+            end
+            builder = core.factory.createFeatureBuilder('project', projectName,...
+                'data', results);
+        end
+        
+        function featureBuilder = applyAnalysis(obj, featureBuilder, featureGroup, functions)
+            import sa_labs.analysis.*;
+            
+            groups = featureBuilder.findFeatureGroup('analysis');
+            project = featureBuilder.findFeatureGroup('project').splitValue;
+            dao = obj.analysisDao;
+            results = tree.empty(0, numel(groups));
+            index = 1;
+            for group = groups
+                resultIdArray = strsplit(group.splitValue, '-');
+                cellData = dao.findCell(resultIdArray{end});
+                
+                protocol = group.parameters.analysisProtocol;
+                analysis = core.OfflineAnalysis(protocol, cellData.recordingLabel);
+                analysis.setEpochSource(cellData);
+                analysis.featureBuilder.dataStore = dao.findAnalysisResult(group.splitValue);
+                
+                analysis.addFeaturesToGroup(featureGroup, functions);
+                
+                result = analysis.getResult();
+                dao.saveAnalysisResults(analysis.identifier, result, protocol);
+                results(index) = result;
+                index = index + 1;
+            end
+            featureBuilder = core.factory.createFeatureBuilder('project', project,...
+                'data', results);
         end
     end
 end

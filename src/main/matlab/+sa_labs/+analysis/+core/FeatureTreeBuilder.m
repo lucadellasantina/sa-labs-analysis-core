@@ -55,6 +55,10 @@ classdef FeatureTreeBuilder < handle
         function ds = get.dataStore(obj)
             ds = obj.tree;
         end
+
+        function obj = set.dataStore(obj, dataTree)
+            obj.tree = dataTree;
+        end
         
         function [id, featureGroup] = addFeatureGroup(obj, id, splitParameter, spiltValue, epochGroup)
             
@@ -140,17 +144,17 @@ classdef FeatureTreeBuilder < handle
 
         function featureGroups = find(obj, name, varargin)
             ip = inputParser;
-            ip.addParameter('from', []);
+            ip.addParameter('has', []);
             ip.parse(varargin{:});
-            from = ip.Results.from;
+            has = ip.Results.has;
             
             featureGroups = []; 
-            if isempty(from)
+            if isempty(has)
                 featureGroups = obj.findFeatureGroup(name);
                 return;
             end
             
-            for i = obj.tree.findpath(from.id, 1)
+            for i = obj.tree.findpath(has.id, 1)
                 if regexp(obj.tree.get(i).name, ['\w*' name '\w*' ])
                     featureGroups = obj.tree.get(i);
                     break;
