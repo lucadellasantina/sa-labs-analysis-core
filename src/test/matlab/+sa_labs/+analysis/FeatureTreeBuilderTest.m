@@ -37,6 +37,41 @@ classdef FeatureTreeBuilderTest < matlab.unittest.TestCase
 
     methods (Test)
         
+        function testAppend(obj)
+            % TODO implement the test case
+        end
+
+        function testCollect(obj)
+            childNodes = obj.builder.findFeatureGroup('rstar');
+            % prepare child nodes for additional parameters
+            parameters = struct();
+            parameters.ndf = {'a1a', 'a2a'};
+            parameters.array = 1:5;
+            for i = 1 : numel(childNodes)
+                childNodes(i).setParameters(parameters);
+            end
+            % get amplifier nodes
+            amp1LightstepsNodes = obj.builder.findFeatureGroup('Light_Step_20');
+            amp1Lightstep = amp1LightstepsNodes(1);
+            obj.builder.collect([childNodes(:).id], 'splitValue', 'rstar_from_child')
+            
+            obj.verifyEqual(amp1Lightstep.getParameter('rstar_from_child'), {'0.01', '0.1'});
+            handle = @()obj.builder.collect([childNodes(:).id], 'splitValue', 'splitValue');
+            obj.verifyError(handle,'MATLAB:class:SetProhibited');
+        end
+
+        function testRemoveFeatureGroup(obj)
+             % TODO implement the test case
+        end
+
+        function testCurateDataStore(obj)
+             % TODO implement the test case
+        end
+
+        function testIsFeatureGroupAlreadyPresent(obj)
+             % TODO implement the test case
+        end
+
         function testFindFeatureGroup(obj)
             
             % Root node check
@@ -83,25 +118,6 @@ classdef FeatureTreeBuilderTest < matlab.unittest.TestCase
             obj.verifyEmpty(nodes);
             nodes = obj.builder.findFeatureGroup([]);
             obj.verifyEmpty(nodes);
-        end
-        
-        function testCollect(obj)
-            childNodes = obj.builder.findFeatureGroup('rstar');
-            % prepare child nodes for additional parameters
-            parameters = struct();
-            parameters.ndf = {'a1a', 'a2a'};
-            parameters.array = 1:5;
-            for i = 1 : numel(childNodes)
-                childNodes(i).setParameters(parameters);
-            end
-            % get amplifier nodes
-            amp1LightstepsNodes = obj.builder.findFeatureGroup('Light_Step_20');
-            amp1Lightstep = amp1LightstepsNodes(1);
-            obj.builder.collect([childNodes(:).id], 'splitValue', 'rstar_from_child')
-            
-            obj.verifyEqual(amp1Lightstep.getParameter('rstar_from_child'), {'0.01', '0.1'});
-            handle = @()obj.builder.collect([childNodes(:).id], 'splitValue', 'splitValue');
-            obj.verifyError(handle,'MATLAB:class:SetProhibited');
         end
         
         function testGetFeatureGroups(obj)

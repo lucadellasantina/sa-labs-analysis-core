@@ -128,6 +128,6 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             result = r.result;
         end
     end
-    
+
 end
 

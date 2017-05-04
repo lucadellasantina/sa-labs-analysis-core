@@ -146,6 +146,14 @@ classdef DaoTest < matlab.unittest.TestCase
             dataHandle = @()dao.findCell('unknown');
             obj.verifyError(dataHandle, 'MATLAB:load:couldNotReadFile');
         end
+
+        function testSaveAnalysisResults(obj)
+            % TODO implement the test case
+        end
+
+        function testFindAnalysisResult(obj)
+            % TODO implement the test case
+        end
     end
     
     methods(Test)

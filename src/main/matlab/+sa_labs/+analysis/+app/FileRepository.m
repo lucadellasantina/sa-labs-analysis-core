@@ -81,7 +81,7 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
         end
 
         function f = get.logFile(obj)
-             f = obj.get('logFile', fullfile(char(java.lang.System.getProperty('user.home')), 'data', 'analysis', [char(date) '-analysis.log']));
+             f = obj.get('logFile', fullfile(obj.analysisFolder, [char(date) '-analysis.log']));
         end
 
         function set.logFile(obj, f)

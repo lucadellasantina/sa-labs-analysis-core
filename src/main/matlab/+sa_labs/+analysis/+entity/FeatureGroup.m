@@ -11,7 +11,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
         splitValue          % Defines the branch of tree
     end
     
-    properties(SetAccess = private)
+    properties(SetAccess = private, Hidden)
         parameters          % Matlab structure to store other properties and value (types are scalar or cell arrays)
         uuid
     end
@@ -91,7 +91,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             try
                 data = [features.data];
             catch exception
-                data = [features.toCell()];
+                data = {features.data};
             end
         end
         

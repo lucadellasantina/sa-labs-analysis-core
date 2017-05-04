@@ -100,8 +100,8 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             end
             splitValues = obj.getSplitValues(epochValueMap, splitBy);
                         
-            % If it is the last node to be processed and has no (or)
-            % matching split values to construct the further branches,
+            % If it is the last node to be processed and it has no (or)
+            % matching split values for constructing further branches,
             % then there is no point in having it in tree.
             % delete the parent node !
             
@@ -114,6 +114,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 epochIndices = epochValueMap(splitValue);
                 
                 if isempty(epochIndices)
+                    obj.log.debug(['no epoch found for [ ' filter ' ]' ]);
                     continue
                 end
                 

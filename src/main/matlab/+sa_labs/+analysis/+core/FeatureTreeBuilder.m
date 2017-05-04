@@ -28,15 +28,23 @@ classdef FeatureTreeBuilder < handle
             featureGroup.id = 1;
             obj.setfeatureGroup(featureGroup.id, featureGroup);
         end
+
+        function obj = set.dataStore(obj, dataTree)
+            obj.tree = dataTree;
+        end
         
-        % This may be a performance hit
-        % Think of merging a tree in an alternative way.
-        
+        function ds = get.dataStore(obj)
+            ds = obj.tree;
+        end
+
         function append(obj, dataTree, copyEnabled)
 
             if nargin < 3
                 copyEnabled = false;
             end
+
+            % This may be a performance hit
+            % Think of merging a tree in an alternative way.
 
             obj.tree = obj.tree.graft(1, dataTree);
             childrens = obj.tree.getchildren(1);
@@ -51,14 +59,7 @@ classdef FeatureTreeBuilder < handle
                 parent.setParameters(group.parameters);
             end
         end
-        
-        function ds = get.dataStore(obj)
-            ds = obj.tree;
-        end
 
-        function obj = set.dataStore(obj, dataTree)
-            obj.tree = dataTree;
-        end
         
         function [id, featureGroup] = addFeatureGroup(obj, id, splitParameter, spiltValue, epochGroup)
             
@@ -101,7 +102,6 @@ classdef FeatureTreeBuilder < handle
             obj.updateDataStoreFeatureGroupId();
         end
         
-        % TODO pending test
         function curateDataStore(obj)
             ids = obj.tree.treefun(@(node) obj.isFeatureGroupAlreadyPresent(node.id)).find();
             
@@ -113,11 +113,11 @@ classdef FeatureTreeBuilder < handle
             end
         end
         
-        % TODO pending test
         function tf = isFeatureGroupAlreadyPresent(obj, sourceId)
             siblings = obj.tree.getsiblings(sourceId);
             ids = siblings(siblings ~= sourceId);
             sourceGroup = obj.getFeatureGroups(sourceId);
+           
             tf = ~ isempty(ids) &&...
                 any(arrayfun(@(id) strcmp(obj.getFeatureGroups(id).name, sourceGroup.name), ids))...
                 && obj.isBasicFeatureGroup(sourceGroup);
@@ -125,6 +125,10 @@ classdef FeatureTreeBuilder < handle
         
         function tf = isPresent(obj, id)
             tf = obj.tree.treefun(@(node) node.id == id).any();
+        end
+
+        function tf = isBasicFeatureGroup(obj, featureGroups)
+            tf = ~ isempty(featureGroups) && all(ismember([featureGroups.id], obj.tree.findleaves)) == 1;
         end
         
         function tree = getStructure(obj)
@@ -135,11 +139,7 @@ classdef FeatureTreeBuilder < handle
             featureGroups = arrayfun(@(index) obj.tree.get(index), ids, 'UniformOutput', false);
             featureGroups = [featureGroups{:}];
         end
-        
-        function tf = isBasicFeatureGroup(obj, featureGroups)
-            tf = ~ isempty(featureGroups) && all(ismember([featureGroups.id], obj.tree.findleaves)) == 1;
-        end
-        
+                
         % TODO move all find functions to visitor
 
         function featureGroups = find(obj, name, varargin)

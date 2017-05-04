@@ -380,6 +380,8 @@ classdef EntityTest < matlab.unittest.TestCase
             
             handle = @() featureGroup.createFeature('TEST_FIRST', ones(1000, 1), 'properties', []);
             obj.verifyWarning(handle, app.Exceptions.OVERWRIDING_FEATURE.msgId);
+
+            % TODO - test feature present as a parameter property
         end
     end
     
@@ -407,6 +409,7 @@ classdef EntityTest < matlab.unittest.TestCase
             obj.verifyEqual(description.param1, 'value2');
 
         end
+
 
         function testFeatureInstance(obj)
             import sa_labs.analysis.*;
@@ -440,4 +443,6 @@ classdef EntityTest < matlab.unittest.TestCase
         end
 
     end 
+
+    % TODO Test methods for Analysis project and Epoch Group
 end
