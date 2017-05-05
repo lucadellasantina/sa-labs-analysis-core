@@ -32,7 +32,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
         function build(obj)
             data = obj.cellData;
             
-            obj.log.info(['started building analysis for cell [ ' data.recordingLabel ' ]']);
+            obj.log.info(['started building analysis for cell [ ' data.recordingLabel ' ] using  [ ' obj.identifier ' ]']);
             
             for pathIndex = 1 : obj.analysisProtocol.numberOfPaths()
                 numberOfEpochs = numel(data.epochs);

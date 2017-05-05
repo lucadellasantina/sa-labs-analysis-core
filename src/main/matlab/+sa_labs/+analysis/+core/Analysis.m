@@ -62,10 +62,10 @@ classdef Analysis < handle
             for i = numel(parameters) : -1 : 1
                 parameter = parameters{i};
                 featureGroups = map(parameter);
-                [valid, index] = ismember({groups.uuid}, {featureGroups.uuid});
+                valid = ismember({featureGroups.uuid}, {groups.uuid});
 
                 if any(valid)
-                    featureGroups = featureGroups(index);
+                    featureGroups = featureGroups(valid);
                     functionsStr = obj.analysisProtocol.addExtractorFunctions(parameter, functions);
                 else
                     functionsStr = [];
