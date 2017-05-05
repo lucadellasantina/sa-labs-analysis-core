@@ -2,7 +2,6 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
     
     properties
         analysisDao
-        preferenceDao
         parserFactory
         log
     end
@@ -14,14 +13,33 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             obj.log = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER);
         end
         
-        function cellDataArray = parseSymphonyFiles(obj, date)
+        function cellDataArray = parseSymphonyFiles(obj, pattern)
+
+            % parseSymphonyFiles - parses h5 files from raw data folder based on 
+            % input pattern and returns the cell data as array
+            %
+            % If the input pattern is not valid (or)
+            % no files were found in the raw data folder then throws
+            % no raw data found exception. 
+            %
+            % In case of that excpetion, make sure to check the rawDataFolder
+            % whether it has the valid h5 file. If not copy that from the 
+            % server and trigger the parsing again
+            % 
+            % On successful parsing the cell data will be saved in the 
+            % analysis folder
+            %
+            % usage : obj.parseSymphonyFiles('20170505A')
+            %         obj.parseSymphonyFiles('201705')
+            %         obj.parseSymphonyFiles(date)  
+
+
             import sa_labs.analysis.*;
-            
             dao = obj.analysisDao;
-            files = dao.findRawDataFiles(date);
+            files = dao.findRawDataFiles(pattern);
 
             if isempty(files)
-                 throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(date)));
+                 throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(pattern)));
             end
             n = numel(files);
             cellDataArray = [];
@@ -31,42 +49,32 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 parser =  obj.parserFactory.getInstance(files{i});
                 results = parser.parse().getResult();
 
-                for j = 1 : numel(results)
-                    dao.saveCell(results(j));
-                    obj.log.info(['saving data set [ ' results(j).recordingLabel ' ]']);
+                for result = each(results)
+                    dao.saveCell(result);
+                    obj.log.info(['saving data set [ ' result.recordingLabel ' ]']);
                 end
                 cellDataArray = [results, cellDataArray]; %#ok
             end
         end
         
-        function [unParsedfiles, parsedFiles] = getParsedAndUnParsedFiles(obj, project)
+        function [parsedExperiments, unParsedExperiments] = getParsedAndUnParsedFiles(obj, experiments)
             
-            dao = obj.analysisDao;
-            cellNames = project.getCellDataNames();
-            names = dao.findCellNames(cellNames);
-            if ~ isempty(names)
-                parsedFiles = names;
-                unParsedfiles = {};
-                return;
+            unParsedExperiments = {};
+            parsedExperiments = {};
+
+            for experiment = each(experiments)
+                names = obj.analysisDao.findCellNames(experiment);
+
+                if isempty(names)
+                    unParsedExperiments{end + 1} = experiment; %#ok 
+                else
+                    parsedExperiments{end + 1} = experiment; %#ok
+                end    
             end
-            if isempty(names)
-                names = {};
-            end
-            foundIndex = ismember(cellNames, names);
-            parsedFiles = cellNames(foundIndex);
-            unParsedfiles = cellNames(~ foundIndex);
-            
-            if isempty(parsedFiles)
-                parsedFiles = {};
-            end
-            
-            if isempty(unParsedfiles)
-                unParsedfiles = {};
-            end
-            obj.log.debug(['list of parsed files [ ' char(parsedFiles) ' ] unParsedfiles [ ' char(unParsedfiles) ' ]']);
+            obj.log.debug(['list of parsed files [ ' [parsedExperiments{:}] ' ] unParsed files [ ' [unParsedExperiments{:}] ' ]']);
         end
         
-        function project = createProject(obj, project, preProcessors)
+        function obj = createProject(obj, project, preProcessors)
             import sa_labs.analysis.constants.*;
             
             if nargin < 3
@@ -75,44 +83,46 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             
             obj.log.info(['creating project [ ' project.identifier ' ]' ]);
             dao = obj.analysisDao;
-            [unParsedfiles, parsedFiles] = obj.getParsedAndUnParsedFiles(project);
+            [unParsedfiles, parsedFiles] = obj.getParsedAndUnParsedFiles(project.experimentList);
             
-            for i = 1 : numel(unParsedfiles)
-                cellDataArray = obj.parseSymphonyFiles(unParsedfiles{i});
-                obj.preProcess(cellDataArray, preProcessors);
-                parsedFiles = { parsedFiles{:}, cellDataArray.recordingLabel };
+            for unParsedFile = each(unParsedfiles)
+                cellDataArray = obj.parseSymphonyFiles(unParsedFile);
+                parsedFiles = {parsedFiles{:}, cellDataArray.recordingLabel};
             end
-            
-            project.clearCellDataMap();
-            for i = 1 : numel(parsedFiles)
-                cellData = dao.findCell(parsedFiles{i});
+            project.clearCellData();
+
+            for parsedFile = each(parsedFiles)
+                cellData = dao.findCell(parsedFile);
                 project.addCellData(cellData.recordingLabel, cellData);
+                file = dao.findRawDataFiles(cellData.h5File);
+
+                if isempty(file)
+                    throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(file)));
+                end
             end
+
             dao.saveProject(project);
             obj.log.info(['Project created under location [ ' strrep(project.file, '\', '/') ' ]' ]);
+            arrayfun(@(d) obj.preProcess(d, preProcessors), project.getCellDataArray());
         end
         
         function project = initializeProject(obj, name)
-            dao = obj.analysisDao;
+            
+            dao = obj.analysisDao;  
             project = dao.findProjects(name);
-            cellNames = project.getCellDataNames();
-            for i = 1 : numel(cellNames)
-                cellName = cellNames{i};
+
+            for cellName = each(project.cellDataList)
                 cellData = dao.findCell(cellName);
                 project.addCellData(cellName, cellData);
                 file = dao.findRawDataFiles(cellData.h5File);
                 
                 if isempty(file)
-                    % TODO check and synchronize from server
-                    error('h5 file not found in the rawDataFolder')
+                    throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(file)));
                 end
             end
             
-            for i = 1 : numel(project.analysisResultNames)
-                resultId = project.analysisResultNames{i};
-                result = dao.findAnalysisResult(resultId);
-                project.addResult(resultId, result);
-            end
+            cellfun(@(id) project.addResult(id, dao.findAnalysisResult(id), project.analysisResultNames));
+            obj.log.info(['project [ ' project.identifier ' ] initialized ']);
         end
         
         function preProcess(obj, cellData, functions, varargin)
@@ -123,28 +133,25 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             ip.parse(varargin{:});
             enabled = ip.Results.enabled;
             
-            for i = 1 : n
-                if enabled(i)
-                    fun = functions{i};
+            for data = each(cellData)
+
+                for fun = each(functions(enabled))
                     obj.log.info(['pre processing data [ ' cellData.recordingLabel ' ] for function [ ' char(fun) ' ] ']);
                     fun(cellData);
                 end
+                obj.analysisDao.saveCell(data);
             end
-            arrayfun(@(d) obj.analysisDao.saveCell(d), cellData);
         end
-        
         
         function project = buildAnalysis(obj, projectName, presets)
             import sa_labs.analysis.*;
             
             project = obj.initializeProject(projectName);
-            cellDataList = project.getCellDataList();
             
-            for i = 1 : numel(cellDataList)
-                cellData = cellDataList{i};
-                
-                for j = 1 : numel(presets)
-                    protocol = core.AnalysisProtocol(presets(j));
+            for cellData = each(project.getCellDataArray())
+
+                for preset = each(presets)
+                    protocol = core.AnalysisProtocol(preset);
                     analysis = core.OfflineAnalysis(protocol, cellData.recordingLabel);
                     analysis.setEpochSource(cellData);
                     analysis.service();
@@ -152,10 +159,12 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                     obj.analysisDao.saveAnalysisResults(analysis.identifier, result, protocol);
                     project.addResult(analysis.identifier, result);
                 end
-                obj.analysisDao.saveProject(project);
             end
+            obj.analysisDao.saveProject(project);
         end
         
+        % TODO optimize
+
         function builder = getFeatureBuilder(obj, projectName, results)
             import sa_labs.analysis.*;
             
