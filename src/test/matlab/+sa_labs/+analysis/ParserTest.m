@@ -50,9 +50,9 @@ classdef ParserTest < matlab.unittest.TestCase
             end
             import sa_labs.analysis.*;
             
-            ref = parser.getInstance([obj.path obj.SYMPHONY_V1_FILE]);
+            ref = parser.ParserFactory.getInstance([obj.path obj.SYMPHONY_V1_FILE]);
             obj.verifyClass(ref, ?sa_labs.analysis.parser.DefaultSymphonyParser);
-            ref = parser.getInstance([obj.path obj.SYMPHONY_V2_FILE]);
+            ref = parser.ParserFactory.getInstance([obj.path obj.SYMPHONY_V2_FILE]);
             obj.verifyClass(ref, ?sa_labs.analysis.parser.Symphony2Parser);
         end
         
@@ -67,14 +67,14 @@ classdef ParserTest < matlab.unittest.TestCase
             h5writeatt(fname, '/', 'double', 1.2);
             h5writeatt(fname, '/', 'string', 'test');
 
-            ref = parser.getInstance(fname);
+            ref = parser.ParserFactory.getInstance(fname);
             map = ref.mapAttributes('/');
             obj.verifyEqual(sort(map.keys), {'double', 'int', 'string', 'version'});
             obj.verifyEqual(map.values, {1.2, 1, 'test', 2});
             
             % version 1 validation
             h5writeatt(fname, '/', 'version', 1);
-            ref = parser.getInstance(fname);
+            ref = parser.ParserFactory.getInstance(fname);
             info = hdf5info(fname);
             map = ref.mapAttributes(info.GroupHierarchy(1));
             obj.verifyEqual(sort(map.keys), {'double', 'int', 'string', 'version'});
@@ -91,7 +91,7 @@ classdef ParserTest < matlab.unittest.TestCase
             
             % Parse symphony_v2 file and validate
             fname = [obj.path obj.SYMPHONY_V2_FILE];
-            ref = parser.getInstance(fname);
+            ref = parser.ParserFactory.getInstance(fname);
             info = h5info(fname);
             epochValues = ref.getEpochsByCellLabel(info.Groups(1).Groups(2).Groups).values;
             epochs = epochValues{:};
@@ -109,7 +109,7 @@ classdef ParserTest < matlab.unittest.TestCase
             
             % Parse symphony_v1 file and validate
             fname = [obj.path obj.SYMPHONY_V1_FILE];
-            ref = parser.getInstance(fname);
+            ref = parser.ParserFactory.getInstance(fname);
             validate('Amplifier_Ch1');
             
             

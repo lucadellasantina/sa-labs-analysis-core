@@ -3,6 +3,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
     properties
         analysisDao
         preferenceDao
+        parserFactory
         log
     end
     
@@ -15,19 +16,23 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
         
         function cellDataArray = parseSymphonyFiles(obj, date)
             import sa_labs.analysis.*;
-            files = obj.analysisDao.findRawDataFiles(date);
+            
+            dao = obj.analysisDao;
+            files = dao.findRawDataFiles(date);
+
             if isempty(files)
-                error('h5 file not found'); %TODO replace it with exception
+                 throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(date)));
             end
             n = numel(files);
             cellDataArray = [];
             
             for i = 1 : n
                 obj.log.info(['parsing ' num2str(i) '/' num2str(n) ' h5 file [ ' strrep(files{i}, '\', '/') ' ]' ]);
-                parser = parser.getInstance(files{i});
+                parser =  obj.parserFactory.getInstance(files{i});
                 results = parser.parse().getResult();
+
                 for j = 1 : numel(results)
-                    obj.analysisDao.saveCell(results(j));
+                    dao.saveCell(results(j));
                     obj.log.info(['saving data set [ ' results(j).recordingLabel ' ]']);
                 end
                 cellDataArray = [results, cellDataArray]; %#ok
