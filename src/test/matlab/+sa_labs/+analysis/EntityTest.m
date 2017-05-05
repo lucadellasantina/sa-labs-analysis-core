@@ -454,7 +454,7 @@ classdef EntityTest < matlab.unittest.TestCase
             p = entity.AnalysisProject();
             
             obj.verifyEmpty(p.experimentList);
-            obj.verifyEmpty(p.cellDataList);
+            obj.verifyEmpty(p.cellDataIdList);
             obj.verifyEmpty(p.analysisResultIdList);
 
             p.addExperiments('20170325');
@@ -468,7 +468,7 @@ classdef EntityTest < matlab.unittest.TestCase
             p.addCellData('20170324Ac2', Mock(entity.CellData()));
             p.addCellData('20170325Ac1', Mock(entity.CellData()));
             
-            obj.verifyEmpty(setdiff(p.cellDataList, {'20170325Ac1', '20170324Ac2'}));
+            obj.verifyEmpty(setdiff(p.cellDataIdList, {'20170325Ac1', '20170324Ac2'}));
             obj.verifyLength(p.getCellDataArray(), 2);
             
             p.addResult('example-analysis-20170325Ac1', tree.example());

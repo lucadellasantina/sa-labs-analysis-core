@@ -81,21 +81,21 @@ classdef DaoTest < matlab.unittest.TestCase
                 'analysisDate', datestr(busdate(date, 1), obj.DATE_FORMAT),...
                 'performedBy', 'Sathish');
             
-            expected.cellDataList = obj.cellNames(1 : end -1)';
+            expected.cellDataIdList = obj.cellNames(1 : end -1)';
             project = entity.AnalysisProject(expected);
             dao = obj.beanFactory.getBean('analysisDao');
             project = dao.saveProject(project);
             
             obj.verifyNotEmpty(project.file);
             
-            expected.cellDataList = obj.cellNames';
+            expected.cellDataIdList = obj.cellNames';
             project = entity.AnalysisProject(expected);
             project = dao.saveProject(project);
 
             obj.verifyEqual(project.identifier, expected.identifier);
             obj.verifyEqual(project.description, expected.description);
             obj.verifyEqual(project.experimentList, cellstr(datestr(now, obj.DATE_FORMAT)));
-            obj.verifyEmpty(setdiff(project.cellDataList, expected.cellDataList));            
+            obj.verifyEmpty(setdiff(project.cellDataIdList, expected.cellDataIdList));            
             obj.verifyEqual(project.analysisDate, expected.analysisDate);
             obj.verifyEmpty(project.analysisResultIdList);
             obj.verifyEqual(project.performedBy, expected.performedBy);
@@ -109,7 +109,7 @@ classdef DaoTest < matlab.unittest.TestCase
                 'experimentList', cellstr(datestr(now,  obj.DATE_FORMAT)),...
                 'analysisDate', datestr(busdate(date, 1),  obj.DATE_FORMAT),...
                 'performedBy', 'Sathish');
-            expected.cellDataList = obj.cellNames';
+            expected.cellDataIdList = obj.cellNames';
             
             % for some weird reason cellstr is not working in structure
             % hack to set it to cell array of strings
@@ -122,7 +122,7 @@ classdef DaoTest < matlab.unittest.TestCase
             validate(project, attributes);
             
             expected.identifier = 'test-project-2';
-            expected.cellDataList = obj.cellNames';
+            expected.cellDataIdList = obj.cellNames';
             project = entity.AnalysisProject(expected);
             dao.saveProject(project);
             

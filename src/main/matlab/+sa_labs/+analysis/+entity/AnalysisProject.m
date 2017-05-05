@@ -4,7 +4,7 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
         identifier              % project identifier
         description             % Brief description about the project
         experimentList          % List of experiment hdf5 files which are part of project
-        cellDataList            % List of cell-cluster (or) cell data parsed from experiment hdf5 file
+        cellDataIdList          % List of cell-cluster id (or) cell data id parsed from experiment hdf5 file
         analysisDate            % Latest analysis date 
         analysisResultIdList    % List of analysis results of format ( analysis protocol name - cell data name i.e. 'Example-Analysis-20170325Dc1')
         performedBy             % Who performed the analysis
@@ -46,12 +46,12 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
         end
 
         function addCellData(obj, cellName, cellData)
-            obj.addToList('cellDataList', cellName);
+            obj.addToList('cellDataIdList', cellName);
             obj.cellDataMap(cellName) = cellData;
         end
 
-        function list = get.cellDataList(obj)
-            list = cellstr(obj.cellDataList);
+        function list = get.cellDataIdList(obj)
+            list = cellstr(obj.cellDataIdList);
         end
         
         function c = getCellData(obj, cellName)
@@ -82,7 +82,7 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
         end
         
         function clearCellData(obj)
-            obj.cellDataList = {};
+            obj.cellDataIdList = {};
             obj.cellDataMap = containers.Map();
         end
 
