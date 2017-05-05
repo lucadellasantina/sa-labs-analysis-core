@@ -23,7 +23,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 attr = attributes{i};
                 projectStruct.(attr) = project.(attr);
             end
-            projectStruct.cellDataNames = project.getCellDataNames();
+            
             file = [projectFile 'project.json'];
             projectStruct.file = file;
             project.file = file;
@@ -51,13 +51,9 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         function fnames = findRawDataFiles(obj, date)
             
             if ~ ischar(date)
-                try
-                    date = obj.repository.dateFormat(date);
-                catch exception
-                    disp(exception.message);
-                    date = [];
-                end
+                date = obj.repository.dateFormat(date);
             end
+            
             path = [obj.repository.rawDataFolder filesep];
             info = dir([path date '*.h5']);
             fnames = arrayfun(@(d) [path d.name], info, 'UniformOutput', false);

@@ -77,18 +77,28 @@ classdef DaoTest < matlab.unittest.TestCase
             import sa_labs.analysis.*;
             expected = struct('identifier', 'test-project-1',...
                 'description', 'matlab-unit-test',...
-                'experimentDate',  datestr(now, 'dd.mm.yyyy'),...
-                'analysisDate', datestr(now, 'dd.mm.yyyy'),...
+                'experimentList',  datestr(now, obj.DATE_FORMAT),...
+                'analysisDate', datestr(busdate(date, 1), obj.DATE_FORMAT),...
                 'performedBy', 'Sathish');
-            expected.cellDataNames = obj.cellNames(1 : end -1)';
+            
+            expected.cellDataList = obj.cellNames(1 : end -1)';
             project = entity.AnalysisProject(expected);
             dao = obj.beanFactory.getBean('analysisDao');
             project = dao.saveProject(project);
+            
             obj.verifyNotEmpty(project.file);
             
-            expected.cellDataNames = obj.cellNames';
+            expected.cellDataList = obj.cellNames';
             project = entity.AnalysisProject(expected);
             project = dao.saveProject(project);
+
+            obj.verifyEqual(project.identifier, expected.identifier);
+            obj.verifyEqual(project.description, expected.description);
+            obj.verifyEqual(project.experimentList, cellstr(datestr(now, obj.DATE_FORMAT)));
+            obj.verifyEmpty(setdiff(project.cellDataList, expected.cellDataList));            
+            obj.verifyEqual(project.analysisDate, expected.analysisDate);
+            obj.verifyEmpty(project.analysisResultIdList);
+            obj.verifyEqual(project.performedBy, expected.performedBy);
             obj.verifyNotEmpty(project.file);
         end
         
@@ -96,22 +106,26 @@ classdef DaoTest < matlab.unittest.TestCase
             import sa_labs.analysis.*;
             expected = struct('identifier', 'test-project-1',...
                 'description', 'matlab-unit-test',...
-                'experimentDate',  datestr(now, 'dd.mm.yyyy'),...
-                'analysisDate', datestr(now, 'dd.mm.yyyy'),...
+                'experimentList', cellstr(datestr(now,  obj.DATE_FORMAT)),...
+                'analysisDate', datestr(busdate(date, 1),  obj.DATE_FORMAT),...
                 'performedBy', 'Sathish');
-            expected.cellDataNames = obj.cellNames';
+            expected.cellDataList = obj.cellNames';
+            
+            % for some weird reason cellstr is not working in structure
+            % hack to set it to cell array of strings
+            expected.experimentList =  {expected.experimentList};
             
             dao = obj.beanFactory.getBean('analysisDao');
             project = dao.findProjects('test-project-1');
-            expected = rmfield(expected, 'cellDataNames');
             attributes = fields(expected);
+
             validate(project, attributes);
-            obj.verifyEqual(project.getCellDataNames(),  obj.cellNames');
             
             expected.identifier = 'test-project-2';
-            expected.cellDataNames = obj.cellNames';
+            expected.cellDataList = obj.cellNames';
             project = entity.AnalysisProject(expected);
             dao.saveProject(project);
+            
             projects = dao.findProjects({'test-project-1', 'test-project-2'});
             obj.verifyEqual({projects.identifier}, {'test-project-1', 'test-project-2'});
             
