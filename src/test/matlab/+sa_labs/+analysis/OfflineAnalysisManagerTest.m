@@ -20,18 +20,10 @@ classdef OfflineAnalysisManagerTest < matlab.unittest.TestCase
 
         function setUpParserFactory(obj)
 
-            % not mocking the cell data since arrays of mock wont work
-            cellData(1) = sa_labs.analysis.entity.CellData();
-            cellData(1).recordingLabel = 'one';
-
-            cellData(2) = sa_labs.analysis.entity.CellData();
-            cellData(2).recordingLabel = 'two';
-
             parserMock = Mock();
             parserFactory = Mock();
             parserFactory.when.getInstance(AnyArgs()).thenReturn(parserMock).times(100);
-            parserMock.when.parse(AnyArgs()).thenReturn(cellData).times(100);
-
+            parserMock.when.parse(AnyArgs()).thenReturn(obj.mockedCellData('test.h5', {'c1', 'c2'})).times(100);
             obj.parserFactoryMock = parserFactory;
         end
     end
@@ -51,11 +43,11 @@ classdef OfflineAnalysisManagerTest < matlab.unittest.TestCase
             actual = obj.manager.parseSymphonyFiles('20170505A');
             
             obj.verifyLength(actual, 2);
-            obj.verifyEmpty(setdiff({actual.recordingLabel}, {'one', 'two'}));
+            obj.verifyEmpty(setdiff({actual.recordingLabel}, {'testc1', 'testc2'}));
             
             actual = obj.manager.parseSymphonyFiles('201705');
             obj.verifyLength(actual, 4);
-            obj.verifyEmpty(setdiff({actual.recordingLabel},  {'one', 'two'}));
+            obj.verifyEmpty(setdiff({actual.recordingLabel},  {'testc1', 'testc2'}));
 
             handle = @() obj.manager.parseSymphonyFiles('unknown');
             obj.verifyError(handle, sa_labs.analysis.app.Exceptions.NO_RAW_DATA_FOUND.msgId);
@@ -98,16 +90,6 @@ classdef OfflineAnalysisManagerTest < matlab.unittest.TestCase
 
         function testCreateProject(obj)
 
-            function cellDatas = mockedCellData(file, labels)
-                n = numel(labels);
-                cellDatas = sa_labs.analysis.entity.CellData.empty(0, n);
-                for i = 1 : n
-                    cellDatas(i) = sa_labs.analysis.entity.CellData();
-                    cellDatas(i).h5File = file;
-                    cellDatas(i).recordingLabel = labels{i};
-                end
-            end
-
             dao = Mock();
             dao.when.findRawDataFiles(AnyArgs()).thenReturn({'20170505A.h5'})... % coz of parse symphony files
                                                 .thenReturn({'20170504A.h5'}).times(3)... % coz of create project loop for parsed file
@@ -116,8 +98,8 @@ classdef OfflineAnalysisManagerTest < matlab.unittest.TestCase
             dao.when.findCellNames(AnyArgs()).thenReturn({'20170504Ac1', '20170504Ac2', '20170504Ac3'})...
                                                 .thenReturn([]);
             
-            dao.when.findCell(AnyArgs()).thenReturn(mockedCellData('20170504A.h5', {'c1', 'c2', 'c3'}))... % belongs to already parsed file
-                                        .thenReturn(mockedCellData('20170505A.h5', {'c1', 'c2'})); % belongs to newly parsed file
+            dao.when.findCell(AnyArgs()).thenReturn(obj.mockedCellData('20170504A.h5', {'c1', 'c2', 'c3'}))... % belongs to already parsed file
+                                        .thenReturn(obj.mockedCellData('20170505A.h5', {'c1', 'c2'})); % belongs to newly parsed file
 
             experiments = {'20170504A', '20170505A'};
             expectedCellIdList =  [strcat({'20170504A'}, {'c1' , 'c2', 'c3'}), strcat({'20170505A'}, {'c1', 'c2'})];
@@ -127,32 +109,78 @@ classdef OfflineAnalysisManagerTest < matlab.unittest.TestCase
             obj.manager.parserFactory = obj.parserFactoryMock; 
 
             % create a simple project
-            p = sa_labs.analysis.entity.AnalysisProject();
-            p.identifier = 'test-project';
-            p.experimentList = experiments;
-            p.analysisDate = datestr(now, obj.DATE_FORMAT);
-            p.performedBy = 'sathish';
-            p.description = 'Test project';
-            p.file = 'test';
+            p = createProjectEntity(experiments);
             m = obj.manager.createProject(p);
 
             obj.verifyNotEmpty(m);
             obj.verifyEmpty(setdiff(p.cellDataIdList, expectedCellIdList));
             obj.verifyLength(p.getCellDataArray(), 5);
-            p %#ok
 
-            % TODO test the exceptional scenarios
-        end
+            % Test the exceptional scenarios - celldata is present and h5 not
+            % found
+            
+            dao = Mock();
+            dao.when.findCellNames(AnyArgs()).thenReturn({'20170504Ac1'});
+            dao.when.findRawDataFiles(AnyArgs()).thenReturn({});
+            dao.when.findCell(AnyArgs()).thenReturn(obj.mockedCellData('20170504A.h5', {'c1'}));
+            % Inject the mocks
+            obj.manager.analysisDao = dao; 
 
-        function testInitializeProject(obj)
+            p = createProjectEntity({'20170504A'});
+            handle = @() obj.manager.createProject(p);
+            obj.verifyError(handle, sa_labs.analysis.app.Exceptions.NO_RAW_DATA_FOUND.msgId);
+
+            function p = createProjectEntity(exp)
+                p = sa_labs.analysis.entity.AnalysisProject();
+                p.identifier = 'test-project';
+                p.experimentList = exp;
+                p.analysisDate = datestr(now, obj.DATE_FORMAT);
+                p.performedBy = 'sathish';
+                p.description = 'Test project';
+                p.file = 'test';
+            end           
         end
 
         function testPreprocess(obj)
+            cellDatas = obj.mockedCellData('test.h5', {'c1', 'c2'});
+            obj.manager.preProcess(cellDatas, {@(d) preProcessor1(d), @(d) preProcessor2(d)}, 'enabled', [true, false]);
+
+            obj.verifyEqual(cellDatas(1).attributes('test-p1'), 'test');
+            obj.verifyEqual(cellDatas(2).attributes('test-p1'), 'test');
+            
+            obj.manager.preProcess(cellDatas, {@(d) preProcessor1(d), @(d) preProcessor2(d)}, 'enabled', [true, true]);
+
+            obj.verifyEqual(cellDatas(1).attributes('test-p1'), 'test');
+            obj.verifyEqual(cellDatas(1).attributes('test-p2'), 'test');
+
+            obj.verifyEqual(cellDatas(2).attributes('test-p1'), 'test');
+            obj.verifyEqual(cellDatas(2).attributes('test-p2'), 'test');
+
+            function preProcessor1(d)
+                d.attributes('test-p1') = 'test';
+            end
+
+            function preProcessor2(d)
+                d.attributes('test-p2') = 'test';
+            end
         end
 
         function testBuildAnalysis(obj)
         end
         
+    end
+
+    methods
+
+        function cellDatas = mockedCellData(obj, file, labels)
+            n = numel(labels);
+            cellDatas = sa_labs.analysis.entity.CellData.empty(0, n);
+            for i = 1 : n
+                cellDatas(i) = sa_labs.analysis.entity.CellData();
+                cellDatas(i).h5File = file;
+                cellDatas(i).recordingLabel = labels{i};
+            end
+        end 
     end
     
 end
