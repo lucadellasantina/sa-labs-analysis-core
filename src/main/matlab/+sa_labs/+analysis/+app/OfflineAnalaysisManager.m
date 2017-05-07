@@ -69,7 +69,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             obj.log.info(['list of parsed files [ ' strjoin(parsedExperiments) ' ] unParsed files [ ' strjoin(unParsedExperiments) ' ]']);
         end
         
-        function obj = createProject(obj, project, preProcessors)
+        function obj = createProject(obj, project)
 
             % createProject - creates a new analysis project from project.experimentList.
             % If its already present, then it simply loads the project.
@@ -84,70 +84,62 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             %
             % usage : obj.createProject(analysisProject)
 
-            import sa_labs.analysis.constants.*;
-            
-            if nargin < 3
-                preProcessors = [];
-            end
-            
+            import sa_labs.analysis.*;
+
             obj.log.info(['creating project [ ' project.identifier ' ]' ]);
             dao = obj.analysisDao;
-            [unParsedExperiments, parsedExperiments] = obj.getParsedAndUnParsedFiles(project.experimentList);
+            [parsedExperiments, unParsedExperiments] = obj.getParsedAndUnParsedFiles(project.experimentList);
             
             for unParsedExp = each(unParsedExperiments)
                 obj.parseSymphonyFiles(unParsedExp);
                 parsedExperiments{end + 1} = unParsedExp; %#ok <AGROW>
             end
+            
             project.clearCellData();
-
-            for exp = each(parsedExperiments)
-                for cellData = dao.findCell(exp)
-                    project.addCellData(cellData.recordingLabel, cellData);
-                    file = dao.findRawDataFiles(cellData.h5File);
-                    
-                    if isempty(file)
-                        throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(file)));
-                    end
-                end
-            end
+            cellfun(@(id) obj.addCellDataToProject(project, id), parsedExperiments);
 
             dao.saveProject(project);
             obj.log.info(['Project created under location [ ' strrep(project.file, '\', '/') ' ]' ]);
-            arrayfun(@(d) obj.preProcess(d, preProcessors), project.getCellDataArray());
         end
         
         function project = initializeProject(obj, name)
             
-            dao = obj.analysisDao;  
-            project = dao.findProjects(name);
+            dao = obj.analysisDao; 
 
-            for cellName = each(project.cellDataList)
-                cellData = dao.findCell(cellName);
-                project.addCellData(cellName, cellData);
-                file = dao.findRawDataFiles(cellData.h5File);
-                
-                if isempty(file)
-                    throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(file)));
-                end
-            end
-            
+            cellfun(@(id) obj.addCellDataToProject(project, id), project.cellDataIdList);
             cellfun(@(id) project.addResult(id, dao.findAnalysisResult(id), project.analysisResultNames));
+            
             obj.log.info(['project [ ' project.identifier ' ] initialized ']);
         end
         
-        function preProcess(obj, cellData, functions, varargin)
+        function preProcess(obj, cellDatas, functions, varargin)
             
+            % preproces - apply list of functions to list of cellDatas
+            % and serializes the results to disk for later lookup
+            % 
+            % One can control the list of functions to be applied by 
+            % using boolean array parameter 'enabled' @see usage 
+            %
+            % usage : obj.preProcess(cellData,{@(d) fun1(d), @(d) fun2(d) })
+            %         obj.preProcess(cellData,{@(d) fun1(d), @(d) fun2(d) }, 'enabled', [true, true])
+            %
+
             n = numel(functions);
             ip = inputParser;
             ip.addParameter('enabled', ones(1, n), @islogical);
             ip.parse(varargin{:});
             enabled = ip.Results.enabled;
             
-            for data = each(cellData)
+            for data = each(cellDatas)
 
                 for fun = each(functions(enabled))
-                    obj.log.info(['pre processing data [ ' cellData.recordingLabel ' ] for function [ ' char(fun) ' ] ']);
-                    fun(cellData);
+                    obj.log.info(['pre processing data [ ' data.recordingLabel ' ] for function [ ' char(fun) ' ] ']);
+                    try
+                        fun(data);
+                    catch exception
+                        disp(getReport(exception, 'extended', 'hyperlinks', 'on'));
+                        obj.log.error(exception.message);
+                    end 
                 end
                 obj.analysisDao.saveCell(data);
             end
@@ -213,6 +205,26 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             featureBuilder = core.factory.createFeatureBuilder('project', project,...
                 'data', results);
         end
+    end
+
+    methods (Access = private)
+
+        function addCellDataToProject(obj, project, cellName)
+            import sa_labs.analysis.*;
+            dao = obj.analysisDao;
+            
+            for cellData = each(dao.findCell(cellName))
+
+                project.addCellData(cellData.recordingLabel, cellData);
+                file = dao.findRawDataFiles(cellData.h5File);
+
+                if isempty(file)
+                    obj.log.error(['raw data file [ ' char(cellData.h5File) ' ] not found']);
+                    throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(file)));
+                end
+            end
+        end
+
     end
 end
 
