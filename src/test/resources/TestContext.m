@@ -9,6 +9,3 @@ ctx.preferenceDao.repository = 'fileRepository';
 ctx.fileRepository.class = 'sa_labs.analysis.app.FileRepository';
 
 ctx.offlineAnalaysisManager.class = 'sa_labs.analysis.app.OfflineAnalaysisManager';
-ctx.offlineAnalaysisManager.analysisDao = Mock();
-ctx.offlineAnalaysisManager.parserFactory = Mock();
-

@@ -59,22 +59,31 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
         
         function [parsedExperiments, unParsedExperiments] = getParsedAndUnParsedFiles(obj, experiments)
             
-            unParsedExperiments = {};
-            parsedExperiments = {};
+            % A simple utility function to get parsed and un-parsed files 
+            % by experiment name (i.e date)
 
-            for experiment = each(experiments)
-                names = obj.analysisDao.findCellNames(experiment);
-
-                if isempty(names)
-                    unParsedExperiments{end + 1} = experiment; %#ok 
-                else
-                    parsedExperiments{end + 1} = experiment; %#ok
-                end    
-            end
-            obj.log.debug(['list of parsed files [ ' [parsedExperiments{:}] ' ] unParsed files [ ' [unParsedExperiments{:}] ' ]']);
+            index = cellfun(@(e) isempty(obj.analysisDao.findCellNames(e)), experiments);
+            unParsedExperiments = experiments(index);
+            parsedExperiments = experiments(~ index);
+            
+            obj.log.info(['list of parsed files [ ' strjoin(parsedExperiments) ' ] unParsed files [ ' strjoin(unParsedExperiments) ' ]']);
         end
         
         function obj = createProject(obj, project, preProcessors)
+
+            % createProject - creates a new analysis project from project.experimentList.
+            % If its already present, then it simply loads the project.
+            %
+            % returns the manager obj and cell data injected project instance 
+            %
+            % While creating new project, it checks whether it has 
+            % the required cell data files. If not it attempts to parse the
+            % raw data file (h5) and generates the cell data. For the existing celldata
+            % it simply finds the serialized object from the dao and saves
+            % to the project file
+            %
+            % usage : obj.createProject(analysisProject)
+
             import sa_labs.analysis.constants.*;
             
             if nargin < 3
@@ -83,21 +92,22 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             
             obj.log.info(['creating project [ ' project.identifier ' ]' ]);
             dao = obj.analysisDao;
-            [unParsedfiles, parsedFiles] = obj.getParsedAndUnParsedFiles(project.experimentList);
+            [unParsedExperiments, parsedExperiments] = obj.getParsedAndUnParsedFiles(project.experimentList);
             
-            for unParsedFile = each(unParsedfiles)
-                cellDataArray = obj.parseSymphonyFiles(unParsedFile);
-                parsedFiles = {parsedFiles{:}, cellDataArray.recordingLabel};
+            for unParsedExp = each(unParsedExperiments)
+                obj.parseSymphonyFiles(unParsedExp);
+                parsedExperiments{end + 1} = unParsedExp; %#ok <AGROW>
             end
             project.clearCellData();
 
-            for parsedFile = each(parsedFiles)
-                cellData = dao.findCell(parsedFile);
-                project.addCellData(cellData.recordingLabel, cellData);
-                file = dao.findRawDataFiles(cellData.h5File);
-
-                if isempty(file)
-                    throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(file)));
+            for exp = each(parsedExperiments)
+                for cellData = dao.findCell(exp)
+                    project.addCellData(cellData.recordingLabel, cellData);
+                    file = dao.findRawDataFiles(cellData.h5File);
+                    
+                    if isempty(file)
+                        throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(file)));
+                    end
                 end
             end
 
