@@ -150,7 +150,7 @@ classdef FeatureTreeBuilderTest < matlab.unittest.TestCase
             expecteLastLeaf = obj.builder.getFeatureGroups(obj.treeIndices.ds4_rstar_0_1);
             n = obj.builder.dataStore.nnodes;
 
-            b = core.factory.createFeatureBuilder('cell', 'ac2');
+            b = factory.AnalysisFactory.createFeatureBuilder('cell', 'ac2');
             b.addFeatureGroup(1, 'Amp', 'Amplifier_ch3', entity.EpochGroup(1:500, 'none'));
             b.addFeatureGroup(1, 'Amp', 'Amplifier_ch4', entity.EpochGroup(1:500, 'none'));
             % validate leaf
@@ -173,7 +173,7 @@ classdef FeatureTreeBuilderTest < matlab.unittest.TestCase
         
         function testBasicFeatureGroup(obj)
             import sa_labs.analysis.*;
-             b = core.factory.createFeatureBuilder('cell', 'ac2');
+             b = factory.AnalysisFactory.createFeatureBuilder('cell', 'ac2');
             % empty check
             obj.verifyFalse(b.isBasicFeatureGroup([]));
             id = b.addFeatureGroup(1, 'Amp', 'Amplifier_ch3', entity.EpochGroup(1:500, 'none'));
