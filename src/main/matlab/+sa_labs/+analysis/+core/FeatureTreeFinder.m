@@ -29,22 +29,25 @@ classdef FeatureTreeFinder < handle
             featureGroups = [featureGroups{:}];
         end
         
-        function featureGroups = find(obj, name, varargin)
+        function query = find(obj, name, varargin)
             ip = inputParser;
-            ip.addParameter('has', []);
+            ip.addParameter('hasParent', []);
             ip.parse(varargin{:});
-            has = ip.Results.has;
+            hasParent = ip.Results.hasParent;
             
             featureGroups = [];
-            parentGroups = obj.findFeatureGroup(has);
+            parentGroups = obj.findFeatureGroup(hasParent);
 
             if all(isempty(parentGroups))
-                featureGroups = obj.findFeatureGroup(name);
+                query = linq(obj.findFeatureGroup(name));
                 return;
             end
-            
-            indices = obj.findFeatureGroupId(name, parentGroups(1).id);
+            indices = [];
+            for id = [parentGroups(:).id]
+                indices = [indices, obj.findFeatureGroupId(name, id)]; %#ok;
+            end
             featureGroups = obj.getFeatureGroups(indices);
+            query = linq(featureGroups);
         end
         
         function featureGroups = findFeatureGroup(obj, name)
