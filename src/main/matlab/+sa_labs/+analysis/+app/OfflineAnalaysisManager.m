@@ -215,18 +215,17 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             
             project = obj.initializeProject(name);
             
-            condn = ['(\w*' strtrim(analysisType) '\w*' strtrim(cellData) '\w*)'];
-            msg = strrep(condn, '\w', ' ');
+            condn = ['(.*' strtrim(analysisType) '.*' strtrim(cellData) '.*)'];
             
-            obj.log.debug(['Applying filter [ ' msg ' ]' ]);
+            obj.log.debug(['Applying filter [ ' condn ' ]' ]);
             indices = regexpi(project.analysisResultIdList, condn);
             
             results = project.getAnalysisResultArray();
             results = results(logical([indices{:}]));
             
             if isempty(results)
-                obj.log.error(['Analysis result not found for cond [ ' msg ' ]']);
-                throw(app.Exceptions.NO_ANALYSIS_RESULTS_FOUND.create('message', msg));
+                obj.log.error(['Analysis result not found for cond [ ' condn ' ]']);
+                throw(app.Exceptions.NO_ANALYSIS_RESULTS_FOUND.create('message', condn));
             end
             
             finder = obj.analysisFactory.createFeatureFinder('project', name,...
