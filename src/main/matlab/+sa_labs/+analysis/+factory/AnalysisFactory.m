@@ -50,6 +50,7 @@ classdef AnalysisFactory < handle & mdepin.Bean
         function obj = createFeatureFinder(varargin)
             obj = sa_labs.analysis.factory.AnalysisFactory.createFeatureBuilder(varargin{:});
             classes = superclasses(obj);
+            parent = classes{1};
             
             if strcmp(parent, 'handle')
                 % assume the builder has all the finder functions
