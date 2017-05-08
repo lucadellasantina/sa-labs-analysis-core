@@ -1,5 +1,12 @@
-classdef ParserFactory < handle
+classdef ParserFactory < handle & mdepin.Bean
     
+    methods
+      
+      function obj = ParserFactory(config)
+            obj = obj@mdepin.Bean(config);
+        end
+    end 
+
     methods (Static)
         
         function obj = getInstance(fname)

@@ -4,6 +4,7 @@ classdef Exceptions < handle
         NO_CELL_DATA('createProject:nocellData', @(msg) [ msg ' not found. Please run parser and try again '])
         NO_PROJECT('findProject:noProjectFound', @(msg) [ msg ' not found. check the project name and try again '])
         NO_RAW_DATA_FOUND('parseSymphonyFiles:h5fileNotFound', @(msg) [ msg ' not found. check the raw data folder try again '])
+        NO_ANALYSIS_RESULTS_FOUND('anaylsisResult:notFound',  @(msg) [ msg ' not found. Try building analysis'])
 
         NO_DATA_SET_FOUND('buildTree:noEpochGroup', @(msg) ['No data set found for split value = ' msg ])
         SPLIT_VALUE_NOT_FOUND('validateLevel:splitValueNotFound', @(msg) ['No matching split value; ' msg ' while building the tree' ])

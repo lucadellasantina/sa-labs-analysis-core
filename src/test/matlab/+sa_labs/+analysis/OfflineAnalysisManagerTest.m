@@ -96,10 +96,16 @@ classdef OfflineAnalysisManagerTest < matlab.unittest.TestCase
                                                 .thenReturn({'20170505A.h5'}).times(2); % coz of create project loop for un-parsed file
 
             dao.when.findCellNames(AnyArgs()).thenReturn({'20170504Ac1', '20170504Ac2', '20170504Ac3'})...
-                                                .thenReturn([]);
+                                                .thenReturn([])...
+                                                .thenReturn({'20170504Ac1', '20170504Ac2', '20170504Ac3', '20170505Ac1', '20170505Ac2'});
             
-            dao.when.findCell(AnyArgs()).thenReturn(obj.mockedCellData('20170504A.h5', {'c1', 'c2', 'c3'}))... % belongs to already parsed file
-                                        .thenReturn(obj.mockedCellData('20170505A.h5', {'c1', 'c2'})); % belongs to newly parsed file
+            celldatas1 = obj.mockedCellData('20170504A.h5', {'c1', 'c2', 'c3'});
+            celldatas2 = obj.mockedCellData('20170505A.h5', {'c1', 'c2'});
+            dao.when.findCell(AnyArgs()).thenReturn(celldatas1(1))... % belongs to already parsed file
+                                        .thenReturn(celldatas1(2))...
+                                        .thenReturn(celldatas1(3))...
+                                        .thenReturn(celldatas2(1))... % belongs to un-parsed file
+                                        .thenReturn(celldatas2(2));
 
             experiments = {'20170504A', '20170505A'};
             expectedCellIdList =  [strcat({'20170504A'}, {'c1' , 'c2', 'c3'}), strcat({'20170505A'}, {'c1', 'c2'})];
@@ -165,7 +171,20 @@ classdef OfflineAnalysisManagerTest < matlab.unittest.TestCase
             end
         end
 
+        function testInitilaizeProject(obj)
+            % TODO implement
+        end 
+
         function testBuildAnalysis(obj)
+            % TODO implement
+        end
+
+        function testApplyAnalysis(obj)
+            
+
+        end
+
+        function testGetFeatureFinder(obj)
         end
         
     end

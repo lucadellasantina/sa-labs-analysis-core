@@ -36,17 +36,15 @@ classdef FeatureTreeFinder < handle
             has = ip.Results.has;
             
             featureGroups = [];
-            if isempty(has)
+            parentGroups = obj.findFeatureGroup(has);
+
+            if all(isempty(parentGroups))
                 featureGroups = obj.findFeatureGroup(name);
                 return;
             end
             
-            for i = obj.tree.findpath(has.id, 1)
-                if regexp(obj.tree.get(i).name, ['\w*' name '\w*' ])
-                    featureGroups = obj.tree.get(i);
-                    break;
-                end
-            end
+            indices = obj.findFeatureGroupId(name, parentGroups(1).id);
+            featureGroups = obj.getFeatureGroups(indices);
         end
         
         function featureGroups = findFeatureGroup(obj, name)

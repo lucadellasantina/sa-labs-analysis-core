@@ -1,21 +1,29 @@
-function [project, offlineAnalysisManager] = createAnalysisProject(experiment, name)
+function [project, offlineAnalysisManager] = createAnalysisProject(projectName, experiments)
+
+import sa_labs.analysis.*;
+
+offlineAnalysisManager = getInstance('offlineAnalaysisManager');
+
+try
+    project = offlineAnalysisManager.initializeProject(projectName);
     
-    if nargin < 2
-        name = matlab.lang.makeValidName(char(datetime));
+    if ~ all(ismember(experiments, project.experimentList))
+        project.addExperiments(experiments);
+        offlineAnalysisManager.createProject(project);
     end
-    experimentDate = datenum(experiment, 'yyyymmdd');
     
-    import sa_labs.analysis.*;
+catch exception
+    if ~ strcmp(exception.identifier, app.Exceptions.NO_PROJECT.msgId)
+      rethrow(exception);
+    end
+    disp(exception.message);
     
-    offlineAnalysisManager = getInstance('offlineAnalaysisManager');
+    fileRepo = getInstance('fileRepository');
     project = entity.AnalysisProject();
-    project.identifier = name;
-    project.analysisDate = datestr(now, 'dd.mm.yyyy');
-    project.experimentDate = datestr(experimentDate, 'yyyymmdd');
+    project.identifier = projectName;
+    project.analysisDate = fileRepo.dateFormat(date);
+    project.addExperiments(experiments);
     project.performedBy = getenv('username');
-    project.addCellData(experiment);
-
-    project = offlineAnalysisManager.createProject(project);
-
+    offlineAnalysisManager.createProject(project);
 end
-
+end
