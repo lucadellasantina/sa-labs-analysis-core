@@ -60,6 +60,8 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
 
         function arrays = getCellDataArray(obj)
             list = obj.cellDataMap.values;
+            [~, idx] = ismember(obj.cellDataIdList, obj.cellDataMap.keys);
+            list = list(idx);
             arrays = [list{:}];
         end
 
@@ -78,6 +80,8 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
 
         function arrays = getAnalysisResultArray(obj)
             list = obj.resultMap.values;
+            [~, idx] = ismember(obj.analysisResultIdList, obj.resultMap.keys);
+            list = list(idx);
             arrays = [list{:}];
         end
         
