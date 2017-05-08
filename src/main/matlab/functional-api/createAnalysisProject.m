@@ -7,6 +7,10 @@ offlineAnalysisManager = getInstance('offlineAnalaysisManager');
 try
     project = offlineAnalysisManager.initializeProject(projectName);
     
+    if nargin < 2
+        experiments = project.experimentList;
+    end
+    
     if ~ all(ismember(experiments, project.experimentList))
         project.addExperiments(experiments);
         offlineAnalysisManager.createProject(project);

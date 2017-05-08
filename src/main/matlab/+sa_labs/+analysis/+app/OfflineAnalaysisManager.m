@@ -67,7 +67,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             unParsedExperiments = experiments(index);
             parsedExperiments = experiments(~ index);
             
-            obj.log.info(['list of parsed files [ ' strjoin(parsedExperiments) ' ] unParsed files [ ' strjoin(unParsedExperiments) ' ]']);
+            obj.log.info(['list of parsed files [ ' [parsedExperiments{:}] ' ] unParsed files [ ' [unParsedExperiments{:}] ' ]']);
         end
         
         function obj = createProject(obj, project)
@@ -222,7 +222,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             indices = regexpi(project.analysisResultIdList, condn);
             
             results = project.getAnalysisResultArray();
-            results = results([indices{:}]);
+            results = results(logical([indices{:}]));
             
             if isempty(results)
                 obj.log.error(['Analysis result not found for cond [ ' msg ' ]']);
