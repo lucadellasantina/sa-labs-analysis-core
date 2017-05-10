@@ -1,7 +1,6 @@
-classdef EpochData < handle & matlab.mixin.CustomDisplay
+classdef EpochData < sa_labs.analysis.entity.KeyValueEntity
     
     properties
-        attributes            % Map holding protocol and epoch attributes from h5 data
         parentCell            % parent cell
     end
     
@@ -17,48 +16,9 @@ classdef EpochData < handle & matlab.mixin.CustomDisplay
             obj.dataLinks = containers.Map();
         end
         
-        function value = get(obj, name)
-            % Returns the matching value for given name from attributes map
-            
-            value = [];
-            if obj.attributes.isKey(name)
-                value = obj.attributes(name);
-            end
-        end
-        
-        function [keys, values] = getParameters(obj, pattern)
-            % keys - Returns the matched parameter for given
-            % search string
-            %
-            % values - Returns the available parameter values for given
-            % search string
-            %
-            % Pattern matches all the attributes from epoch and  celldata.
-            % If found returns the equivalent value
-            %
-            % usage :
-            %       getParameters('chan1')
-            %       getParameters('chan1Mode')
-            
-            parameters = regexpi(obj.attributes.keys, ['\w*' pattern '\w*'], 'match');
-            parameters = [parameters{:}];
-            values = cell(0, numel(parameters));
-            keys = cell(0, numel(parameters));
-            
-            for i = 1 : numel(parameters)
-                keys{i} = parameters{i};
-                values{i} = obj.attributes(parameters{i});
-            end
-            
-            parameters = regexpi(obj.parentCell.attributes.keys, ['\w*' pattern '\w*'], 'match');
-            parameters = [parameters{:}];
-            for i = 1 : numel(parameters)
-                keys{end + i} = parameters{i};
-                values{end + i} = obj.parentCell.attributes(parameters{i});
-            end
-        end
         
         function r = getResponse(obj, device)
+            
             % getResponse - finds the device response by executing call back
             % 'responseHandle(path)'
             % path - is obtained from dataLinks by matching it with given
@@ -75,16 +35,25 @@ classdef EpochData < handle & matlab.mixin.CustomDisplay
             r = obj.responseHandle(path);
         end
         
-        function attributeKeys = unionAttributeKeys(obj, attributeKeys)
-            % unionAttributeKeys - returns the union of { current instance 
-            % attribute keys } and passed argument {attributeKeys}
+        function [keys, values] = getParameters(obj, pattern)
+            % keys - Returns the matched parameter for given
+            % search string
+            %
+            % values - Returns the available parameter values for given
+            % search string
+            %
+            % Pattern matches all the attributes from epoch and  celldata.
+            % If found returns the equivalent value
+            %
+            % usage :
+            %       getParameters('chan1')
+            %       getParameters('chan1Mode')
             
-            if isempty(attributeKeys)
-                attributeKeys = obj.attributes.keys;
-                return
-            end
+            [keys, values] = getParameters@sa_labs.analysis.entity.KeyValueEntity(obj, pattern);
             
-            attributeKeys = union(attributeKeys, obj.attributes.keys);
+            [parentKeys, parentValues] = obj.parentCell.getParameters(pattern);
+            keys = [keys, parentKeys];
+            values = [values, parentValues];
         end
     end
     
@@ -100,23 +69,6 @@ classdef EpochData < handle & matlab.mixin.CustomDisplay
             catch
                 header = getHeader@matlab.mixin.CustomDisplay(obj);
             end
-        end
-        
-        function groups = getPropertyGroups(obj)
-            try
-                attrKeys = obj.attributes.keys;
-                deviceKeys = obj.dataLinks.keys;
-                groups = matlab.mixin.util.PropertyGroup.empty(0, 2);
-                
-                display = struct();
-                for i = 1 : numel(attrKeys)
-                    display.(attrKeys{i}) = obj.attributes(attrKeys{i});
-                end
-                groups(1) = display;
-                groups(2) = deviceKeys;
-            catch
-                groups = getPropertyGroups@matlab.mixin.CustomDisplay(obj);
-            end
-        end
+        end      
     end
 end

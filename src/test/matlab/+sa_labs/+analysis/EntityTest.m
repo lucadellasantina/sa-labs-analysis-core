@@ -99,6 +99,12 @@ classdef EntityTest < matlab.unittest.TestCase
             [values, ~] = cellData.getEpochValues('unknown', 1 : 5 : 100);
             obj.verifyEmpty(values);
             
+            % cell array of strings as value test
+            handle = @(e) {'Amp1', 'Amp2', 'Amp3'};
+            [values, description] = cellData.getEpochValues(handle, 1 : 5 : 100);
+            obj.verifyEmpty(setdiff(values, {'Amp1', 'Amp2', 'Amp3'}));
+            obj.verifyEqual(description, func2str(handle));
+            
             function r_star = intensity2Rstar(epoch)
                 value = epoch.get('intensity');
                 r_star = value * 1e-3;
@@ -124,6 +130,13 @@ classdef EntityTest < matlab.unittest.TestCase
             
             [map, ~] = cellData.getEpochValuesMap('unknown', 1 : 5 : 100);
             obj.verifyEmpty(map);
+            
+            % cell array of strings as value test
+            handle = @(e) {'Amp1', 'Amp2', 'Amp3'};
+            [values, description] = cellData.getEpochValuesMap(handle, 1 : 5 : 100);
+            obj.verifyEmpty(setdiff(values.keys, {'Amp1', 'Amp2', 'Amp3'}));
+            obj.verifyEqual(description, func2str(handle));
+            
         end
         
         function testGetEpochKeysetUnion(obj)
