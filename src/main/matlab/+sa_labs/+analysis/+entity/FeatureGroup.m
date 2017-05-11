@@ -32,7 +32,7 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             obj.name = name;
             obj.splitParameter = splitParameter;
             obj.splitValue = splitValue;
-            obj.uuid = char(java.util.UUID.randomUUID); 
+            obj.uuid = char(java.util.UUID.randomUUID);
         end
         
         function value = getParameter(obj, property)
@@ -52,18 +52,25 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             
             key = varargin(1 : 2 : end);
             value = varargin(2 : 2 : end);
+            propertyMap = containers.Map('KeyType', 'char', 'ValueType', 'any');
             
             if ~ isempty(key)
-                propertyMap = containers.Map(key, value);
-            else
-                propertyMap = containers.Map();
+                for i = 1 : numel(key)
+                    propertyMap(key{i}) = value{i};
+                end
             end
+            
             propertyMap('id') = id;
             description = entity.FeatureDescription(propertyMap);
             description.id = id;
             
             oldFeature = obj.getFeatures(id);
             feature = entity.Feature(description, data);
+            
+            if ~ isempty(oldFeature) && isKey(propertyMap, 'append') && propertyMap('append')
+                obj.appendFeature(feature);
+                return
+            end
             
             if ~ isempty(oldFeature)
                 feature.uuid = oldFeature.uuid;
