@@ -7,6 +7,7 @@ classdef EpochData < sa_labs.analysis.entity.KeyValueEntity
     properties (Hidden)
         dataLinks             % Map with keys as Amplifier device and values as responses
         responseHandle        % amplifere response call back argumet as stream name
+        derivedAttributes     % like spikes and other epoch specific pre-processed data  
     end
     
     methods
@@ -14,6 +15,7 @@ classdef EpochData < sa_labs.analysis.entity.KeyValueEntity
         function obj = EpochData()
             obj.attributes = containers.Map();
             obj.dataLinks = containers.Map();
+            obj.derivedAttributes = containers.Map();
         end
         
         function v = get(obj, key)
@@ -21,9 +23,15 @@ classdef EpochData < sa_labs.analysis.entity.KeyValueEntity
             
             if isempty(v) && strcmpi(key, 'devices')
                 v = obj.dataLinks.keys;
+            elseif isempty(v) && obj.derivedAttributes.isKey(key)
+                v = obj.derivedAttributes(key);
             elseif isempty(v)
                 [~, v] = obj.getParameters(key);
             end
+        end
+
+        function add(obj, id, data)
+            obj.derivedAttributes(id) = data;
         end
         
         function r = getResponse(obj, device)
