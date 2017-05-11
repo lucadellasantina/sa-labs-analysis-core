@@ -23,14 +23,13 @@ classdef EpochData < sa_labs.analysis.entity.KeyValueEntity
             
             if isempty(v) && strcmpi(key, 'devices')
                 v = obj.dataLinks.keys;
-            elseif isempty(v) && obj.derivedAttributes.isKey(key)
-                v = obj.derivedAttributes(key);
             elseif isempty(v)
                 [~, v] = obj.getParameters(key);
             end
         end
 
-        function add(obj, id, data)
+        function addDerivedResponse(obj, device, key, data)
+            id = strcat(device, '-', key);
             obj.derivedAttributes(id) = data;
         end
         
@@ -42,14 +41,29 @@ classdef EpochData < sa_labs.analysis.entity.KeyValueEntity
             % device @ see symphony2parser.parse() method for responseHandle
             % definition
             
-            if ~ isKey(obj.dataLinks, device)
-                devices = cellstr(obj.dataLinks.keys);
-                message = ['device name [ ' device ' ] not found in the h5 response. Available device [' [devices{:}] ']'];
-                error('device:notfound', message);
-            end
-            
+            obj.validateDevice(device);
+
             path = obj.dataLinks(device);
             r = obj.responseHandle(path);
+        end
+
+        function validateDevice(obj, device)
+            
+            if ~ isKey(obj.dataLinks, device)
+                devices = strjoin(cellstr(obj.dataLinks.keys));
+                message = ['device name [ ' device ' ] not found in the h5 response. Available device [' char(devices) ']'];
+                error('device:notfound', message);
+            end
+        end 
+
+        function r = getDerivedResponse(obj, device, key)
+            obj.validateDevice(device);
+            
+            r = [];
+            id = strcat(device, '-', key);
+            if isKey(obj.derivedAttributes, id)
+               r = obj.derivedAttributes(id);
+            end 
         end
         
         function [keys, values] = getParameters(obj, pattern)
