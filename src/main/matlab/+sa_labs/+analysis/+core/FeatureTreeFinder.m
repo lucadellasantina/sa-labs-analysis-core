@@ -35,9 +35,7 @@ classdef FeatureTreeFinder < handle
             ip.parse(varargin{:});
             hasParent = ip.Results.hasParent;
             
-            featureGroups = [];
             parentGroups = obj.findFeatureGroup(hasParent);
-
             if all(isempty(parentGroups))
                 query = linq(obj.findFeatureGroup(name));
                 return;
@@ -50,6 +48,15 @@ classdef FeatureTreeFinder < handle
             query = linq(featureGroups);
         end
         
+        function groups = findInBranch(obj, group, name)
+            groups = [];
+            for group = each(obj.getFeatureGroups(obj.tree.findpath(group.id, 1)))
+                if strcmpi(name, group.splitParameter)
+                    groups = [groups, group]; %#ok
+                end
+            end
+        end
+
         function featureGroups = findFeatureGroup(obj, name)
             featureGroups = [];
             

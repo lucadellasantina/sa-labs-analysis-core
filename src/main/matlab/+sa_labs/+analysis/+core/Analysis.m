@@ -53,6 +53,15 @@ classdef Analysis < handle
         function setEpochSource(obj, source) %#ok
             % will be overriden in the subclass
         end
+
+        function device = getDeviceForGroup(obj, group)
+            device = [];
+
+            groups = obj.featureBuilder.findInBranch(group, 'devices');
+            if ~ isempty(groups)
+                device = groups(1).splitValue;
+            end
+        end
         
         function addFeaturesToGroup(obj, groups, functions)
             [map, order] = obj.getFeaureGroupsByProtocol();
