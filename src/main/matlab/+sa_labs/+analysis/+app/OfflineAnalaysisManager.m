@@ -218,10 +218,10 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             condn = ['(.*' strtrim(analysisType) '.*' strtrim(cellData) '.*)'];
             
             obj.log.debug(['Applying filter [ ' condn ' ]' ]);
-            indices = regexpi(project.analysisResultIdList, condn);
+            indices = ~ cellfun(@isempty, regexpi(project.analysisResultIdList, condn));
             
             results = project.getAnalysisResultArray();
-            results = results(logical([indices{:}]));
+            results = results(indices);
             
             if isempty(results)
                 obj.log.error(['Analysis result not found for cond [ ' condn ' ]']);
