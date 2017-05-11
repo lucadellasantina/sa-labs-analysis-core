@@ -16,6 +16,15 @@ classdef EpochData < sa_labs.analysis.entity.KeyValueEntity
             obj.dataLinks = containers.Map();
         end
         
+        function v = get(obj, key)
+            v = get@sa_labs.analysis.entity.KeyValueEntity(obj, key);
+            
+            if isempty(v) && strcmpi(key, 'devices')
+                v = obj.dataLinks.keys;
+            elseif isempty(v)
+                [~, v] = obj.getParameters(key);
+            end
+        end
         
         function r = getResponse(obj, device)
             
@@ -51,9 +60,11 @@ classdef EpochData < sa_labs.analysis.entity.KeyValueEntity
             
             [keys, values] = getParameters@sa_labs.analysis.entity.KeyValueEntity(obj, pattern);
             
-            [parentKeys, parentValues] = obj.parentCell.getParameters(pattern);
-            keys = [keys, parentKeys];
-            values = [values, parentValues];
+            if ~ isempty(obj.parentCell)
+                [parentKeys, parentValues] = obj.parentCell.getParameters(pattern);
+                keys = [keys, parentKeys];
+                values = [values, parentValues];
+            end
         end
     end
     
