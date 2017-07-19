@@ -122,7 +122,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             obj.verifyEqual(tree.get(leafs(3)).epochIndices, 51:100);
             obj.verifyEqual(tree.get(leafs(4)).epochIndices, 51:100);
             
-            expected = struct('stimTime', 20, 'rstars', [0.01, 0.1, 1, 0.01, 0.1, 1]);
+            expected = struct('stimTime', [20, 20], 'rstars', [0.01, 0.1, 1, 0.01, 0.1, 1]);
             expected.deviceStream = {'Amplifier_Ch1', 'Amplifier_Ch2'};
             % tree will have all the epoch parameters in the same epoch
             % order
@@ -135,7 +135,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             actualParameters = tree.get(tree.getparent(leafs(2))).parameters;
             obj.verifyEqual(actualParameters, expected);
             
-            expected.stimTime = 500;
+            expected.stimTime = [500, 500];
             expected.rstars = [10, 5, 100, 10, 5, 100];
             % tree will have all the epoch parameters in the same epoch
             % order

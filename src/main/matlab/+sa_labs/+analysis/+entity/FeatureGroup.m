@@ -192,10 +192,9 @@ classdef FeatureGroup < handle & matlab.mixin.CustomDisplay
             end
             
             try
-                newValues = unique(new, 'stable');
-                if numel(newValues) == 1
-                    new = newValues;
-                end
+                % helps to check if the parameter has any mixed type
+                % TODO : find alternative way
+                unique(new, 'stable'); 
             catch e
                 warning('mixedType:parameters', e.message);
             end
