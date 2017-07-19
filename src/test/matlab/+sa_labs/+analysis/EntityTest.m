@@ -150,13 +150,13 @@ classdef EntityTest < matlab.unittest.TestCase
             keySet = cellData.getEpochKeysetUnion();
             obj.verifyEqual(keySet, {'intensity', 'stimTime'});
         end
-        
-        function testGetUniqueNonMatchingParamValues(obj)
+
+        function testGetNonMatchingParamValues(obj)
             import sa_labs.analysis.entity.*;
             cellData = CellData();
             cellData.epochs = obj.epochs;
             
-            [params, values] = cellData.getUniqueNonMatchingParamValues({'intensity'} ,1 : 5 : 100);
+            [params, values] = cellData.getNonMatchingParamValues({'intensity'} ,1 : 5 : 100);
             obj.verifyEqual(params, {'stimTime'});
             
             obj.verifyLength(values{1}, 20);
@@ -167,15 +167,18 @@ classdef EntityTest < matlab.unittest.TestCase
             expected = arrayfun(@(i)cellstr([num2str(20 * i) 'ms' ]), id(:)');
             obj.verifyEqual(actual, expected);
             
-            [params, values] = cellData.getUniqueNonMatchingParamValues({'intensity', 'stimTime'});
+            [params, values] = cellData.getNonMatchingParamValues({'intensity', 'stimTime'});
             obj.verifyEmpty(params);
             obj.verifyEmpty(values);
             
-            [params, values] = cellData.getUniqueNonMatchingParamValues([] ,1 : 5 : 100);
+            % Test for getParamValues
+            [params, values] = cellData.getNonMatchingParamValues([] ,1 : 5 : 100);
             verify();
-            [params, values] = cellData.getUniqueNonMatchingParamValues({} ,1 : 5 : 100);
+            [params, values] = cellData.getNonMatchingParamValues({} ,1 : 5 : 100);
             verify();
-            [params, values] = cellData.getUniqueNonMatchingParamValues('unknown' ,1 : 5 : 100);
+
+            % Weired case
+            [params, values] = cellData.getNonMatchingParamValues('unknown' ,1 : 5 : 100);
             verify();
             
             function verify()
@@ -188,10 +191,55 @@ classdef EntityTest < matlab.unittest.TestCase
                 obj.verifyEqual(values{2}, expected);
             end
             
+            % Test for getParamValues
+            [params, values] = cellData.getParamValues(1 : 5 : 100);
+            verify();
+        end
+
+        function testGetUniqueNonMatchingParamValues(obj)
+            import sa_labs.analysis.entity.*;
+            cellData = CellData();
+            cellData.epochs = obj.epochs;
+            
+            [params, values] = cellData.getUniqueNonMatchingParamValues({'intensity'} ,1 : 5 : 100);
+            obj.verifyEqual(params, {'stimTime'});
+            
+            obj.verifyLength(values{1}, 10);
+            % get the first element (value corresponds to 'stimTime') from cell array
+            actual = values{1};
+            id = 1 : 10;
+            
+            expected = arrayfun(@(i)cellstr([num2str(20 * i) 'ms' ]), id(:)');
+            obj.verifyEqual(actual, expected);
+            
+            [params, values] = cellData.getUniqueNonMatchingParamValues({'intensity', 'stimTime'});
+            obj.verifyEmpty(params);
+            obj.verifyEmpty(values);
+            
+            % Test for getUniqueParamValues
+            [params, values] = cellData.getUniqueNonMatchingParamValues([] ,1 : 5 : 100);
+            verify();
+            [params, values] = cellData.getUniqueNonMatchingParamValues({} ,1 : 5 : 100);
+            verify();
+
+            % Weired case
+            [params, values] = cellData.getUniqueNonMatchingParamValues('unknown' ,1 : 5 : 100);
+            verify();
+            
+            function verify()
+                obj.verifyEqual(params, {'intensity', 'stimTime'});
+                obj.verifyLength(values{1}, 10);
+                obj.verifyLength(values{2}, 10);
+                % test intensity values
+                obj.verifyEqual(values{1}, (10 * id(:)'))
+                % test again stimTime values
+                obj.verifyEqual(values{2}, expected);
+            end
+            
             [params, values] = cellData.getUniqueParamValues(1 : 5 : 100);
             verify();
         end
-        
+
         function testGet(obj)
             import sa_labs.analysis.entity.*;
             cellData = CellData();

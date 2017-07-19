@@ -121,9 +121,9 @@ classdef CellData < sa_labs.analysis.entity.KeyValueEntity
             end
         end
         
-        function [params, vals] = getUniqueNonMatchingParamValues(obj, excluded, epochIndices)
+        function [params, vals] = getNonMatchingParamValues(obj, excluded, epochIndices)
             
-            % getNonMatchingParamValues - returns unqiue attributes & values
+            % getNonMatchingParamValues - returns attributes & values
             % apart from excluded attributes
             %
             % Return parameters
@@ -143,21 +143,49 @@ classdef CellData < sa_labs.analysis.entity.KeyValueEntity
                 if iscell(values) && ~ iscellstr(values)
                     values = [values{:}];
                 end
-                newValues =  unique(values, 'stable');
-                if numel(newValues) == 1
-                   values = newValues;
-                end
                 map(key) = values;
             end
             params = map.keys;
             vals = map.values;
+        end
+
+        function [params, vals] = getUniqueNonMatchingParamValues(obj, excluded, epochIndices)
+            
+            % getUniqueNonMatchingParamValues - returns unqiue attributes & values
+            % apart from excluded attributes
+            %
+            % Return parameters
+            %    params - cell array of strings
+            %    values - cell array of value data type
+            
+            if nargin < 3
+                epochIndices = 1 : numel(obj.epochs);
+            end
+            [params, vals] = obj.getNonMatchingParamValues(excluded, epochIndices);
+            vals = cellfun(@(val) unique(val, 'stable'), vals, 'UniformOutput', false);
+        end
+
+        function [params, vals] = getParamValues(obj, epochIndices)
+            
+            % getParamValues - returns attributes & values for given epochs
+            %
+            % see also @getNonMatchingParamValues
+            %
+            % Return parameters
+            %    params - cell array of strings
+            %    values - cell array of value data type
+            
+            if nargin < 2
+                epochIndices = 1 : numel(obj.epochs);
+            end
+            [params, vals] = obj.getNonMatchingParamValues([], epochIndices);
         end
         
         function [params, vals] = getUniqueParamValues(obj, epochIndices)
             
             % getUniqueParamValues - returns unqiue attributes & values
             %
-            % see also getUniqueNonMatchingParamValues
+            % see also @getUniqueNonMatchingParamValues
             %
             % Return parameters
             %    params - cell array of strings
