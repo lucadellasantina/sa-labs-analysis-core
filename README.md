@@ -5,7 +5,7 @@
 1. Download and install [ToolboxToolbox](https://github.com/ToolboxHub/ToolboxToolbox)
 2. Restart Matlab
 3. `git clone https://github.com/Schwartz-AlaLaurila-Labs/sa-labs-analysis-core.git` into `<userpath>\projects\sa-labs-analysis-core` folder 
-4. open the matlab command window and run `bUseProject('sa-labs-analysis-core')`
+4. open the matlab command window and run `tbUseProject('sa-labs-analysis-core')`
 
 ### Folder organization
 
