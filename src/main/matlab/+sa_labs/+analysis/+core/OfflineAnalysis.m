@@ -134,7 +134,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             data = obj.cellData;
             
             for i = 1 : numel(featureGroups)
-                [p, v] = data.getUniqueParamValues(featureGroups(i).epochIndices);
+                [p, v] = data.getParamValues(featureGroups(i).epochIndices);
                 
                 if isempty(p)
                     obj.log.warn(['no epoch parameter found for given node ' num2str(featureGroups(i).id)]);

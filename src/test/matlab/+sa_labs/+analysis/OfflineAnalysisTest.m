@@ -29,7 +29,9 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             mockedCellData.when.getEpochValuesMap(AnyArgs()).thenReturn(levelOne, 'EpochGroup')...
                 .thenReturn(levelTwo, 'deviceStream');
             
-            mockedCellData.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}, {'Amplifier_Ch1', 20});
+            mockedAmpParameters = cell(1, 50);
+            mockedAmpParameters(:) = {'Amplifier_Ch1'};
+            mockedCellData.when.getParamValues(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}, {mockedAmpParameters, 20 * ones(1, 50)});
             mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'});
             
             % Tree with two level - analysis
@@ -40,8 +42,9 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             obj.verifyEqual(actual.Node, expected);
             leaf = tree.findleaves();
             obj.verifyEqual(tree.get(leaf).epochIndices, 1:50);
-            
-            expectedParameters = struct('deviceStream', 'Amplifier_Ch1', 'stimTime', 20);
+
+            expectedParameters.deviceStream = mockedAmpParameters;
+            expectedParameters.stimTime = 20 * ones(1, 50);
             obj.verifyEqual(tree.get(leaf).parameters, expectedParameters);
             obj.verifyEqual(tree.get(tree.getparent(leaf)).parameters, expectedParameters);
         end
@@ -62,9 +65,12 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 .thenReturn(levelTwo, 'deviceStream')...
                 .thenReturn(levelTwoOtherBranch, 'deviceStream');
             
-            mockedCellData.when.getUniqueParamValues(AnyArgs())...
-                .thenReturn({'deviceStream', 'stimTime'}, {'Amplifier_Ch1', 20})...
-                .thenReturn({'deviceStream', 'stimTime', 'tailTime'}, {'Amplifier_Ch1', 500, []});
+            mockedAmpParameters = cell(1, 50);
+            mockedAmpParameters(:) = {'Amplifier_Ch1'};
+            
+            mockedCellData.when.getParamValues(AnyArgs())...
+                .thenReturn({'deviceStream', 'stimTime'}, {mockedAmpParameters, 20 * ones(1, 50)})...
+                .thenReturn({'deviceStream', 'stimTime', 'tailTime'}, {mockedAmpParameters, 500 * ones(1, 50), []});
             
             mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'});
             
@@ -77,11 +83,16 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             
             node1 = tree.get(leafs(1));
             obj.verifyEqual(node1.epochIndices, 1:50);
-            obj.verifyEqual(node1.parameters, struct('deviceStream', 'Amplifier_Ch1', 'stimTime', 20));
+            expectedParameters.deviceStream = mockedAmpParameters;
+            expectedParameters.stimTime = 20 * ones(1, 50);
+            obj.verifyEqual(node1.parameters, expectedParameters);
             
             node2 = tree.get(leafs(2));
             obj.verifyEqual(node2.epochIndices, 51:100);
-            obj.verifyEqual(node2.parameters, struct('deviceStream', 'Amplifier_Ch1', 'stimTime', 500, 'tailTime', []));
+            expectedParameters.deviceStream = mockedAmpParameters;
+            expectedParameters.stimTime = 500 * ones(1, 50);
+            expectedParameters.tailTime = [];
+            obj.verifyEqual(node2.parameters, expectedParameters);
         end
         
         function  testBuildTreeMutlipleLevelMultipleBranches(obj)
@@ -99,7 +110,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 .thenReturn(levelTwoOtherBranch, 'deviceStream');
             
             paramterNames = {'deviceStream', 'stimTime', 'rstars', 'ndfs'};
-            mockedCellData.when.getUniqueParamValues(AnyArgs())...
+            mockedCellData.when.getParamValues(AnyArgs())...
                 .thenReturn(paramterNames, {'Amplifier_Ch1', 20, [0.01, 0.1, 1], {'A1A', 'A2A', 'A3A'}})...
                 .thenReturn(paramterNames, {'Amplifier_Ch2', 20, [0.01, 0.1, 1], {'B1A', 'A2A', 'A3A'}})...
                 .thenReturn(paramterNames, {'Amplifier_Ch1', 500, [10, 5, 100], {'Empty', 'A2A', 'A3A'}})...
@@ -175,7 +186,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 .thenReturn(leafGroupFour, 'rstar')...
                 .thenReturn(leafGroupFive, 'rstar');
             
-            mockedCellData.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
+            mockedCellData.when.getParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
             mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
             
             s = struct();
@@ -260,7 +271,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 .thenReturn(containers.Map(), 'curSpotSize')... % Drifting Grating
                 .thenReturn(containers.Map(), 'curSpotSize');   % MovingBar
             
-            mockedCellData.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
+            mockedCellData.when.getParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
             mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
             
             analysisProtocol = core.AnalysisProtocol(s);
@@ -334,7 +345,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                 .thenReturn(rstarMeanDriftingTexture, 'RstarMean')... % start of drifting texture
                 .thenReturn(driftingTextureAngle, 'textureAngle');
             
-            mockedCellData.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
+            mockedCellData.when.getParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
             mockedCellData.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
             
             result = obj.testAnalyze(s, mockedCellData);
@@ -366,7 +377,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             s.buildTreeBy = {'protocol', 'RstarMean', 'textureAngle'};
             s.protocol.splitValue = {'01MovingBar', '04WhiteNoiseFlicker'};
             s.textureAngle.splitValue = {'10'};
-          
+            
             protocols = containers.Map({'01MovingBar', '02DriftingGrating', '03DrifitngTexture'}, {1 : 50, 51 : 100, 101: 150});
             
             % level two
@@ -397,7 +408,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             s.protocol.splitValue = {'04WhiteNoiseFlicker'};
             s.textureAngle.splitValue = {'10'};
             
-            mockedCellData = createMockedData();           
+            mockedCellData = createMockedData();
             result = obj.testAnalyze(s, mockedCellData);
             
             obj.verifyLength(result.findleaves(), 1);
@@ -414,7 +425,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
                     .thenReturn(driftingGratingAngle, 'textureAngle')...
                     .thenReturn(rstarMeanDriftingTexture, 'RstarMean')... % start of drifting texture
                     .thenReturn(driftingTextureAngle, 'textureAngle');
-                mock.when.getUniqueParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
+                mock.when.getParamValues(AnyArgs()).thenReturn({'deviceStream'}, {'Amplifier_Ch1'}).times(100);
                 mock.when.getEpochKeysetUnion(AnyArgs()).thenReturn({'deviceStream', 'stimTime'}).times(100);
             end
             
