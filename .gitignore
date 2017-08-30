@@ -18,3 +18,4 @@ logs/
 **/analysis/**
 **/parser/**
 **/rawDataFolder/**
+*.tap
