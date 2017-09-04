@@ -1,4 +1,4 @@
-[![Build Status](http://build.nbe.aalto.fi:8080/buildStatus/icon?job=mjsSALabsAnalysisCoreTesting)](http://build.nbe.aalto.fi:8080/job/mjsSALabsAnalysisCoreTesting/)
+[![Build Status](https://build.nbe.aalto.fi/buildStatus/icon?job=validateSALabsAnalysisCore)](https://build.nbe.aalto.fi/job/validateSALabsAnalysisCore/)
 
 # Electrophysiology Data Analysis (In development)
 
