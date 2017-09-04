@@ -12,7 +12,7 @@ classdef PreferenceDao < handle & mdepin.Bean
     
     properties(Constant)
         FILE_CELL_TAGS = 'CellTags.txt'
-        FILE_CELL_TYPE_NAMES = 'cellTypeNames.txt'
+        FILE_CELL_TYPE_NAMES = 'CellTypeNames.txt'
         FILE_EPOCH_TAGS = 'EpochTags.txt'
     end
     
