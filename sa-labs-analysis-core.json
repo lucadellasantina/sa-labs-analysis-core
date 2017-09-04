@@ -28,7 +28,8 @@
 		"type": "include",
 		"update": "",
 	    "url": ""
-	},    {
+	},
+    {
 		"extra": "",
 		"flavor": "",
 		"hook": "",
@@ -42,6 +43,21 @@
 		"type": "git",
 		"update": "",
 	    "url": "https:\/\/github.com\/ragavsathish\/mmockito.git"
-	}
+	},
+    {
+		"extra": "",
+		"flavor": "",
+		"hook": "",
+		"importance": "",
+		"localHookTemplate": "",
+		"name": "logging",
+		"pathPlacement": "prepend",
+		"requirementHook": "",
+		"subfolder": "",
+		"toolboxRoot": "",
+		"type": "git",
+		"update": "",
+	    "url": "https://github.com/ragavsathish/logging4matlab.git"
+	}	
 
 ]
