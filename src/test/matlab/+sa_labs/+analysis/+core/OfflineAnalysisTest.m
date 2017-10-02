@@ -257,8 +257,7 @@ classdef OfflineAnalysisTest < matlab.unittest.TestCase
             s = struct();
             s.type = 'complex-analysis';
             s.featureManager = 'sa_labs.analysis.core.FeatureTreeManager';
-            s.buildTreeBy = {'protocol', 'textureAngle, barAngle, curSpotSize', 'RstarMean'};
-            
+            s.buildTreeBy = {'protocol', 'textureAngle; barAngle; curSpotSize', 'RstarMean'};            
             % mocked cell data
             protocols = containers.Map({'MovingBar', 'DriftingGrating', 'DrifitngTexture'}, {1 : 50, 51 : 100, 101: 150});
             

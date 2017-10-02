@@ -89,7 +89,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 return
             end
 
-            % validate parameters. It should percolate up only time when 'split
+            % validate parameters. It should percolate up only when 'split
             % parameter' is 'devices' although it has multiple split values
             % Issue https://github.com/Schwartz-AlaLaurila-Labs/sa-labs-analysis-core/issues/5
 
@@ -116,7 +116,7 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
             splitBy = params{1};
             data = obj.cellData;
             
-            [epochValueMap, filter] = data.getEpochValuesMap(splitBy, epochGroup.epochIndices);
+            [epochValueMap, filter] = data.getEpochValuesMap(obj.analysisProtocol.getValidSplitParameter(splitBy), epochGroup.epochIndices);
             
             if isempty(epochValueMap)
                 obj.log.warn([' splitBy paramter [ ' splitBy ' ] is not found !']);

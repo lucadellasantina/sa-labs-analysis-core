@@ -19,19 +19,32 @@ classdef AnalysisProtocolTest < matlab.unittest.TestCase
     
     methods(Test)
         
+        function testGetSplitParameters(obj)
+            protocol = struct();
+            protocol.type = 'test-analysis';
+            protocol.buildTreeBy = {'@(e) fun (e)', '@(e) p1.fun (e)',  '@(e) p1.p2.fun (epoch)', '@(e, d) p3.fun (epoch, d)', 'abc'};
+            p = sa_labs.analysis.core.AnalysisProtocol(protocol);
+            parameters = p.getSplitParameters();
+            obj.verifyEqual(parameters, {'fun',  'p1_fun', 'p1_p2_fun',  'p3_fun', 'abc'});
+            obj.verifyEqual(p.getValidSplitParameter('fun'), '@(e) fun (e)');
+            obj.verifyEqual(p.getValidSplitParameter('p1_fun'), '@(e) p1.fun (e)');
+            obj.verifyEqual(p.getValidSplitParameter('p1_p2_fun'), '@(e) p1.p2.fun (epoch)');  
+            obj.verifyEqual(p.getValidSplitParameter('abc'), 'abc');               
+        end
+
         function testGetSplitParametersByPath(obj)
             protocol = struct();
             protocol.type = 'test-analysis';
-            protocol.buildTreeBy = {'a', 'b, c, d', 'e, f', 'g, h, i'};
+            protocol.buildTreeBy = {'a', 'b; c; d', 'e; f', '@(e, d) fun(e, d); h; i'};
             
             p = sa_labs.analysis.core.AnalysisProtocol(protocol);
-            obj.log.info('Template tree for visual validation : [ 1 -> a, 2 -> bcd, 3 -> ef, 4 -> ghi]');
+            obj.log.info('Template tree for visual validation : [ 1 -> a, 2 -> bcd, 3 -> ef, 4 -> fun,hi]');
             obj.log.info(p.toTree().tostring());
             
             obj.verifyEqual(p.numberOfPaths(), 18);
             
             v = p.getSplitParametersByPath(1);
-            obj.verifyEqual(v, {'a', 'b', 'e', 'g'});
+            obj.verifyEqual(v, {'a', 'b', 'e', 'fun'});
             v = p.getSplitParametersByPath(18);
             obj.verifyEqual(v, {'a', 'd', 'f', 'i'});
         end
@@ -77,11 +90,12 @@ classdef AnalysisProtocolTest < matlab.unittest.TestCase
             import sa_labs.analysis.*;
             protocol = struct();
             protocol.type = 'test-analysis';
-            protocol.buildTreeBy = {'a', 'b, c, d', 'e, f', 'g, h, i'};
+            protocol.buildTreeBy = {'a', 'b; c; d', 'e; f', '@(e) fun (e, d); h; i'};
             
             protocol.a.featureExtractor = {@(a) disp(a), @(a) mean(a)};
             protocol.b.featureExtractor = {'@(a) disp(a)', '@(a) mean(a)'};
             protocol.c.featureExtractor = {@(a) disp(a), '@(a)mean(a)'};
+            protocol.fun.featureExtractor = {@(a) disp(a), '@(a)mean(a)'};
             p = sa_labs.analysis.core.AnalysisProtocol(protocol);
             
             expected = {'@(a)disp(a)', '@(a)mean(a)'};
@@ -89,6 +103,7 @@ classdef AnalysisProtocolTest < matlab.unittest.TestCase
             obj.verifyEqual(p.getExtractorFunctions('a'), expected);
             obj.verifyEqual(p.getExtractorFunctions('b'), expected);
             obj.verifyEqual(p.getExtractorFunctions('c'), expected);
+            obj.verifyEqual(p.getExtractorFunctions('fun'), expected);
         end
         
         function testAddExtractorFunctions(obj)

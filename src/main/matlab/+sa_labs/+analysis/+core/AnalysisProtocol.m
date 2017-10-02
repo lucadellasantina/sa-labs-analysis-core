@@ -6,6 +6,9 @@ classdef AnalysisProtocol < handle
     properties (Access = private)
         functionContext         % Map containing key as split parameter and value as extractor functions
         protocolTree
+        splitParameterMap
+        splitParameters
+        splitParametersLevels
     end
     
     properties (Dependent)
@@ -23,6 +26,8 @@ classdef AnalysisProtocol < handle
         
         function obj = AnalysisProtocol(structure)
             obj.structure = structure;
+            obj.splitParameterMap = containers.Map();
+            obj.createValidSplitParameters();
             obj.populateFunctionContext();
             obj.buildTree();
         end
@@ -35,15 +40,9 @@ classdef AnalysisProtocol < handle
         end
         
         function [parameters, levels] = getSplitParameters(obj)
-            buildBy = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_BUILD_TREE_BY);
-            parameters = {};
-            levels = [];
-            
-            for i = 1 : numel(buildBy)
-                branches = strtrim(strsplit(buildBy{i}, ','));
-                parameters = {parameters{:}, branches{:}}; %#ok
-                levels = [levels, i * ones(1, numel(branches))]; %#ok
-            end
+           % @ see createValidSplitParameters for how it is set
+           parameters = obj.splitParameters;
+           levels = obj.splitParametersLevels;
         end
         
         function values = validateSplitValues(obj, parameter, values)
@@ -179,12 +178,16 @@ classdef AnalysisProtocol < handle
             obj.structure.(parameter).(desc) = values;
             obj.functionContext(parameter) = values;
         end
+
+        function p = getValidSplitParameter(obj, splitBy)
+            p = obj.splitParameterMap(splitBy);
+        end
     end
     
     methods (Access = private)
         
         function populateFunctionContext(obj)
-            parameters = obj.getSplitParameters();
+            parameters = obj.splitParameters;
             desc = sa_labs.analysis.app.Constants.TEMPLATE_FEATURE_EXTRACTOR;
             obj.functionContext = containers.Map();
             
@@ -205,7 +208,8 @@ classdef AnalysisProtocol < handle
         function buildTree(obj)
             t = tree();
             t = t.addnode(0, obj.type);
-            [parameters, levels] = obj.getSplitParameters();
+            parameters = obj.splitParameters;
+            levels = obj.splitParametersLevels;
             uniqueLevels = sort(unique(levels));
             
             for i = 1 : numel(uniqueLevels)
@@ -224,6 +228,29 @@ classdef AnalysisProtocol < handle
         
         function value = stripSpace(~, value)
             value = strrep(char(value), ' ', '');
+        end
+
+        function createValidSplitParameters(obj)
+            buildBy = obj.structure.(sa_labs.analysis.app.Constants.TEMPLATE_BUILD_TREE_BY);
+            parameters = {};
+            levels = [];
+            
+            for i = 1 : numel(buildBy)
+                branches = strtrim(strsplit(buildBy{i}, ';'));
+                for branch = each(branches)
+                    validName = branch;
+                    if strfind(branch, '@')
+                        parsedElements = regexp(func2str(str2func(branch)), '(\w*\.*)+\w*(', 'match');
+                        element = parsedElements{end};
+                        validName = matlab.lang.makeValidName(element(1 : end -1));
+                    end
+                    parameters{end + 1} = validName; %#ok
+                    obj.splitParameterMap(validName) = branch;
+                end
+                levels = [levels, i * ones(1, numel(branches))]; %#ok
+            end
+            obj.splitParametersLevels = levels;
+            obj.splitParameters = parameters;
         end
     end
 end
