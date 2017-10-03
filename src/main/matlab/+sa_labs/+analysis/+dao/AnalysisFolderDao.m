@@ -86,7 +86,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         end
         
         function cellData = findCell(obj, cellName)
-            path = [obj.repository.analysisFolder filesep 'cellData' filesep cellName];
+            path = [obj.repository.analysisFolder filesep 'cellData' filesep cellName '.mat'];
             result = load(path);
             cellData = result.cellData;
         end

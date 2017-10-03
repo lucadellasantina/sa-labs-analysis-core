@@ -2,9 +2,12 @@ classdef SymphonyParser < handle
     
     properties (Access = protected)
         fname
-        log
         info
         cellDataArray
+    end
+    
+    properties (Transient)
+        log
     end
     
     methods
