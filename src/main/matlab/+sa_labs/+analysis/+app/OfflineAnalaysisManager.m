@@ -146,9 +146,16 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             end
             
             project = projects(1);
+            tic;
             cellfun(@(id) obj.addCellDataToProject(project, id), project.cellDataIdList);
-            cellfun(@(id) project.addResult(id, dao.findAnalysisResult(id)), project.analysisResultIdList);
+            elapsedTime = toc;
+            obj.log.debug(['Time taken to add cell data to project: ', num2str(elapsedTime)]);
             
+            tic;
+            cellfun(@(id) project.addResult(id, dao.findAnalysisResult(id)), project.analysisResultIdList);
+            elapsedTime = toc;
+            obj.log.debug(['Time taken to add analysis results to project: ', num2str(elapsedTime)]);
+
             obj.log.info(['project [ ' project.identifier ' ] initialized ']);
         end
         
