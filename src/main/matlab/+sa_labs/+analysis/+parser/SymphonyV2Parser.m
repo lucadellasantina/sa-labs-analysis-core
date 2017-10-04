@@ -99,7 +99,8 @@ classdef SymphonyV2Parser < sa_labs.analysis.parser.SymphonyParser
                 e.parentCell = cell;
                 e.attributes = containers.Map(parameterMap.keys, parameterMap.values);
                 e.dataLinks = obj.getResponses(h5Epochs(index).Groups(3).Groups);
-                e.responseHandle = @(path) h5read(obj.fname, path);
+                fname = obj.fname;
+                e.responseHandle = @(path) h5read(fname, path);
                 epochData(i) = e;
             end
             
