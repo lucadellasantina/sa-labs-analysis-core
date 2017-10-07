@@ -126,7 +126,7 @@ classdef EpochData < sa_labs.analysis.entity.KeyValueEntity
         function deviceType = getDefaultDeviceType(obj)
             deviceType = [];
             if ~ isempty(obj.parentCell) && ~ isempty(obj.parentCell.deviceType)
-                deviceType = cellstr(obj.parentCell.deviceType);
+                deviceType = obj.parentCell.deviceType;
             end
         end      
     end 

@@ -27,8 +27,13 @@ classdef EpochGroup < sa_labs.analysis.entity.AbstractGroup
 
         function populateEpochResponseAsFeature(obj, epoch)
             import sa_labs.analysis.*;
-
-            for device = each(epoch.get('devices'))
+            
+            devices = epoch.get('devices');
+            if ischar(devices)
+                devices = {devices};
+            end
+            
+            for device = each(devices)
                 path = epoch.dataLinks(device);
                 obj.createFeature([upper(device) '_EPOCH'], @() getfield(epoch.responseHandle(path), 'quantity'), 'append', true);
             end
