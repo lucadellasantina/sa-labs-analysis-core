@@ -46,15 +46,20 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             cellDataArray = [];
             
             for i = 1 : n
-                obj.log.info(['parsing ' num2str(i) '/' num2str(n) ' h5 file [ ' strrep(files{i}, '\', '/') ' ]' ]);
-                parser =  obj.parserFactory.getInstance(files{i});
-                results = parser.parse().getResult();
-                
-                for result = each(results)
-                    dao.saveCell(result);
-                    obj.log.info(['saving data set [ ' result.recordingLabel ' ]']);
+            	try
+	                obj.log.info(['parsing ' num2str(i) '/' num2str(n) ' h5 file [ ' strrep(files{i}, '\', '/') ' ]' ]);
+	                parser =  obj.parserFactory.getInstance(files{i});
+	                results = parser.parse().getResult();
+	                
+	                for result = each(results)
+	                    dao.saveCell(result);
+	                    obj.log.info(['saving data set [ ' result.recordingLabel ' ]']);
+	                end
+	                cellDataArray = [results, cellDataArray]; %#ok
+                catch exception
+                    disp(getReport(exception, 'extended', 'hyperlinks', 'on'));
+                    obj.log.error(exception.message);
                 end
-                cellDataArray = [results, cellDataArray]; %#ok
             end
         end
         
