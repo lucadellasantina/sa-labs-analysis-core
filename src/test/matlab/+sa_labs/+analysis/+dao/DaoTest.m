@@ -79,6 +79,9 @@ classdef DaoTest < matlab.unittest.TestCase
             cellDataByAmp = entity.CellDataByAmp(cellData.recordingLabel, 'Amp1');
             dao.saveCell(cellData);
             dao.saveCell(cellDataByAmp);
+            % Should ignore the deviceType while saving the cell data
+            cellData.deviceType = 'Amp1';
+            dao.saveCell(cellData);
             obj.verifyEqual(exist([path 'cluster-c1.mat'], 'file'), 2);
             obj.verifyEqual(exist([path 'cluster-c1_Amp1.mat'], 'file'), 2);
         end

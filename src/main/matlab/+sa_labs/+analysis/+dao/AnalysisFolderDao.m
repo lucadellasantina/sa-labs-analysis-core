@@ -69,6 +69,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 CellDataByAmp = cellData;
                 path = [dir CellDataByAmp.recordingLabel];
             else
+                cellData.deviceType = '';
                 path = [dir cellData.recordingLabel];
             end
             save(path, 'cellData');
