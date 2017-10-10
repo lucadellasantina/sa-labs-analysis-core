@@ -1,4 +1,4 @@
-classdef AbstractGroup < sa_labs.analysis.entity.KeyValueEntity
+classdef Group < sa_labs.analysis.entity.KeyValueEntity
 
 	properties (Access = protected)
         featureMap 	 % Feature map with key as FeatureDescription.type and value as @see Feature instance	
@@ -11,7 +11,7 @@ classdef AbstractGroup < sa_labs.analysis.entity.KeyValueEntity
     
     methods 
 
-	    function obj = AbstractGroup(name)
+	    function obj = Group(name)
 	        obj.name = name;
 	        obj.featureMap = containers.Map('KeyType', 'char', 'ValueType', 'any');
 	        obj.uuid = char(java.util.UUID.randomUUID);
@@ -31,6 +31,7 @@ classdef AbstractGroup < sa_labs.analysis.entity.KeyValueEntity
 	            end
 	        end
 	        
+	        id = obj.makeValidKey(id);
 	        propertyMap('id') = id;
 	        description = entity.FeatureDescription(propertyMap);
 	        description.id = id;
@@ -50,19 +51,6 @@ classdef AbstractGroup < sa_labs.analysis.entity.KeyValueEntity
 	        obj.featureMap(id) = feature;
 	    end
 	    
-	    function appendFeature(obj, newFeatures)
-	        
-	        for i = 1 : numel(newFeatures)
-	            key = newFeatures(i).description.id;
-	            
-	            f = obj.getFeatures(key);
-	            if ~ isempty(f) && ismember({newFeatures(i).uuid}, {f.uuid})
-	                continue;
-	            end
-	            obj.featureMap = sa_labs.analysis.util.collections.addToMap(obj.featureMap, key, newFeatures(i));
-	        end
-	    end
-
 	    function features = getFeatures(obj, keys)
 	        
 	        % getFeatures - returns the feature based on FeatureDescription
@@ -91,6 +79,49 @@ classdef AbstractGroup < sa_labs.analysis.entity.KeyValueEntity
 	        keySet = obj.featureMap.keys;
 	    end
 
+        function data = getFeatureData(obj, key)
+            import sa_labs.analysis.app.*;
+            
+            data = [];
+            features = [];
+            
+            if iscellstr(key) && numel(key) > 1
+                throw(Exceptions.MULTIPLE_FEATURE_KEY_PRESENT.create())
+            end
+            
+            if isKey(obj.featureMap, obj.makeValidKey(key))
+                features = obj.featureMap(obj.makeValidKey(key));
+            end
+            
+            if ~ isempty(features)
+                data = obj.getData(features);
+            end
+        end
+
+	    function tf = isFeatureEntity(~, refs)
+	        tf = all(cellfun(@(ref) isa(ref, 'sa_labs.analysis.entity.Feature'), refs));
+	    end
+
+	    function k = makeValidKey(~, key)
+	    	k = upper(key);
+	    end
+	end
+
+	methods (Hidden)
+
+	    function appendFeature(obj, newFeatures)
+	        
+	        for i = 1 : numel(newFeatures)
+	            key = newFeatures(i).description.id;
+	            
+	            f = obj.getFeatures(key);
+	            if ~ isempty(f) && ismember({newFeatures(i).uuid}, {f.uuid})
+	                continue;
+	            end
+	            obj.featureMap = sa_labs.analysis.util.collections.addToMap(obj.featureMap, key, newFeatures(i));
+	        end
+	    end
+	    
 	    function setParameters(obj, parameters)
 	        
 	        % setParameters - Copies from parameters to obj.parameters
@@ -149,19 +180,19 @@ classdef AbstractGroup < sa_labs.analysis.entity.KeyValueEntity
 	        obj.addParameter(key, new);
 	    end
 	    
-	    function update(obj, featureGroup, in, out)
+	    function update(obj, epochGroup, in, out)
 	        
-	        % Generic code to handle merge from source featureGroup to destination
-	        % obj(featureGroup). It merges following,
+	        % Generic code to handle merge from source epochGroup to destination
+	        % obj(epochGroup). It merges following,
 	        %
 	        %   1. properties
 	        %   2. Feature
 	        %   3. parameters 'matlab structure'
 	        %
 	        % arguments
-	        % featureGroup - source featureGroup
-	        % in  - It may be one of source featureGroup property, parameter and feature
-	        % out - It may be one of destination obj(featureGroup) property, parameter and feature
+	        % epochGroup - source epochGroup
+	        % in  - It may be one of source epochGroup property, parameter and feature
+	        % out - It may be one of destination obj(epochGroup) property, parameter and feature
 	        
 	        import sa_labs.analysis.util.collections.*;
 	        % safe casting
@@ -177,67 +208,41 @@ classdef AbstractGroup < sa_labs.analysis.entity.KeyValueEntity
 	            error('id:update:prohibited', 'cannot updated instance id');
 	        end
 	        
-	        % case 1 - featureGroup.in and obj.out is present has properties
-	        if isprop(obj, out) && isprop(featureGroup, in)
+	        % case 1 - epochGroup.in and obj.out is present has properties
+	        if isprop(obj, out) && isprop(epochGroup, in)
 	            old = obj.(out);
-	            obj.(out) = addToCell(old, featureGroup.(in));
+	            obj.(out) = addToCell(old, epochGroup.(in));
 	            return
 	            
 	        end
-	        % case 2 - featureGroup.in is struct parameters & obj.out is class property
+	        % case 2 - epochGroup.in is struct parameters & obj.out is class property
 	        if isprop(obj, out)
 	            old = obj.(out);
-	            obj.(out) = addToCell(old, featureGroup.get(in));
+	            obj.(out) = addToCell(old, epochGroup.get(in));
 	            return
 	        end
 	        
-	        % case 3 featureGroup.in is class property but obj.out is struct
+	        % case 3 epochGroup.in is class property but obj.out is struct
 	        % parameters
-	        if isprop(featureGroup, in)
-	            obj.appendParameter(out, featureGroup.(in));
+	        if isprop(epochGroup, in)
+	            obj.appendParameter(out, epochGroup.(in));
 	            return
 	        end
 	        
 	        % case 4 in == out and its a key of featureMap
-	        keys = featureGroup.featureMap.keys;
+	        keys = epochGroup.featureMap.keys;
 	        if ismember(in, keys)
 	            
 	            if ~ strcmp(in, out)
 	                error('in:out:mismatch', 'In and out should be same for appending feature map')
 	            end
-	            obj.appendFeature(featureGroup.featureMap(in))
+	            obj.appendFeature(epochGroup.featureMap(in))
 	            return
 	        end
 	        
 	        % case 5 just append the in to out struct parameters
 	        % for unknown in parameters, it creates empty out paramters
-	        obj.appendParameter(out, featureGroup.get(in));
-	    end
-
-	    function data = getFeatureData(obj, key)
-	    	import sa_labs.analysis.app.*;
-	    	
-	    	data = [];
-	    	if iscellstr(key) && numel(key) > 1
-	    	    throw(Exceptions.MULTIPLE_FEATURE_KEY_PRESENT.create())
-	    	end
-	    	
-	    	if isKey(obj.featureMap, key)
-	    	    features = obj.featureMap(key);
-	    	else
-	    		features = obj.getDerivedFeatures(key);
-	    	end
-
-	    	if isempty(features)
-	    		Exceptions.FEATURE_KEY_NOT_FOUND.create('warning', true)
-	    		return
-	    	end
-
-	    	try
-	    	    data = [features.data];
-	    	catch exception
-	    	    data = {features.data};
-	    	end
+	        obj.appendParameter(out, epochGroup.get(in));
 	    end
 	end
 
@@ -247,13 +252,13 @@ classdef AbstractGroup < sa_labs.analysis.entity.KeyValueEntity
 	        % setParameters - set property, value pair to parameters
 	        obj.attributes(property) = value;
 	    end
-	    
-	    function tf = isFeatureEntity(~, refs)
-	        tf = all(cellfun(@(ref) isa(ref, 'sa_labs.analysis.entity.Feature'), refs));
-	    end
 
-	    function f = getDerivedFeatures(obj, key)
-	    	f = [];
+	    function data = getData(obj, features)
+	    	try
+	    	    data = [features.data];
+	    	catch exception
+	    	    data = {features.data};
+	    	end
 	    end
 	end
 end
