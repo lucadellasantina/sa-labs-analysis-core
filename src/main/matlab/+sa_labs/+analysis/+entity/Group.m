@@ -260,5 +260,13 @@ classdef Group < sa_labs.analysis.entity.KeyValueEntity
 	    	    data = {features.data};
 	    	end
 	    end
+
+	    function header = getHeader(obj)
+	        try
+	            header = ['Displaying Epoch group information for [ ' obj.name ' ] for unique values'];
+	        catch
+	            header = getHeader@matlab.mixin.CustomDisplay(obj);
+	        end
+	    end    
 	end
 end

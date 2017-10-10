@@ -102,7 +102,14 @@ classdef KeyValueEntity < handle & matlab.mixin.CustomDisplay
                 
                 display = struct();
                 for i = 1 : numel(attrKeys)
-                    display.(attrKeys{i}) = obj.attributes(attrKeys{i});
+                    values = unique(obj.attributes(attrKeys{i}));
+                    if ~ isempty(values)
+                        if numel(values) == 1
+                            display.(attrKeys{i}) = values;
+                        else
+                            display.(attrKeys{i}) = obj.attributes(attrKeys{i});
+                        end
+                    end
                 end
                 groups(1) = display;
             catch
