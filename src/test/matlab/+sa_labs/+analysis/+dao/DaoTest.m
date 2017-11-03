@@ -38,8 +38,8 @@ classdef DaoTest < matlab.unittest.TestCase
                 h5create(path ,'/ds' , [10 20]);
                 h5writeatt(path, '/','version', 1);
                 cellData = sa_labs.analysis.entity.CellData();
-                cellData.h5File = path;
-                cellData.recordingLabel = '';
+                cellData.attributes('h5File') = path;
+                cellData.attributes('recordingLabel') = '';
                 obj.testCellDatas(i) = cellData;
                 obj.cellNames{i} = cellData.recordingLabel;
             end
@@ -75,7 +75,7 @@ classdef DaoTest < matlab.unittest.TestCase
             % Test for cellDataByAmp
             import sa_labs.analysis.*;
             cellData = entity.CellData();
-            cellData.recordingLabel = 'cluster-c1';
+            cellData.attributes('recordingLabel') = 'cluster-c1';
             cellDataByAmp = entity.CellDataByAmp(cellData.recordingLabel, 'Amp1');
             dao.saveCell(cellData);
             dao.saveCell(cellDataByAmp);
@@ -164,7 +164,7 @@ classdef DaoTest < matlab.unittest.TestCase
             obj.verifyEmpty(setdiff(expected, actual));
             
             % Test for Amp extension cell data names
-            names = dao.findCellNames(cellstr('cluster-c1'), true);
+            names = dao.findCellNames(cellstr('cluster-c1*Amp1'));
             obj.verifyEqual(names, cellstr('cluster-c1_Amp1'));
             
             names = dao.findCellNames(cellstr('cluster-c1'));
