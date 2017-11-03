@@ -149,7 +149,12 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 if length(params) > 1
                     obj.add(id, epochIndices, params(2 : end));
                 end
+                % Make sure the device is set to active amplifier channel.
+                % Before copying the epoch parameters
+                device = obj.getDeviceForGroup(epochGroup);
+                epochGroup.device = device;
                 obj.copyEpochParameters(epochGroup);
+                obj.log.trace(['setting epoch parameter for ' epochGroup.name ' having device [ ' device ' ]']);
             end
         end
         
@@ -167,13 +172,8 @@ classdef OfflineAnalysis < sa_labs.analysis.core.Analysis
                 % Set all the epoch parameters
                 group.setParameters(containers.Map(p, v));
                 group.setParameters(data.getPropertyMap());
-                % Set the active amplifier channel
-                device = obj.getDeviceForGroup(group);
-                group.device = device;
                 % Add all the epoch specific feature in the group
                 group.populateEpochResponseAsFeature(data.epochs(group.epochIndices));
-                obj.log.trace(['setting epoch parameter for ' group.name ' having device [ ' device ' ]']);
-
             end
         end
         

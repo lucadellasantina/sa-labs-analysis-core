@@ -4,9 +4,8 @@ function test(package)
     end
     
     rootPath = fileparts(mfilename('fullpath'));
-    addpath(genpath(fullfile(rootPath, 'lib')));
-    addpath(genpath(fullfile(rootPath, 'src')));
-    addpath(genpath(fullfile(rootPath, 'apps')));
+    addpath(genpath(fullfile(rootPath, 'src', 'test')));
+
     
     initializeTestLogger();
 

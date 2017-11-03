@@ -47,7 +47,7 @@ classdef EpochGroup < sa_labs.analysis.entity.Group
             for epoch = each(epochs)
                 path = epoch.dataLinks(obj.device);
                 key = obj.makeValidKey(Constants.EPOCH_KEY_SUFFIX);
-                obj.createFeature(key, @() getfield(epoch.responseHandle(path), 'quantity'), 'append', true);
+                obj.createFeature(key, @() transpose(getfield(epoch.responseHandle(path), 'quantity')), 'append', true);
 
                 for derivedResponseKey = each(epoch.derivedAttributes.keys)
                     if obj.hasDevice(derivedResponseKey)
