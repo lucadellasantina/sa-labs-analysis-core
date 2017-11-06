@@ -339,6 +339,9 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 try
                     fun(data);
                 catch exception
+                    if isempty(exception.identifier)
+                        throw(exception);
+                    end
                     disp(getReport(exception, 'extended', 'hyperlinks', 'on'));
                     obj.log.error(exception.message);
                 end

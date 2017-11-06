@@ -122,6 +122,11 @@ classdef EpochData < sa_labs.analysis.entity.KeyValueEntity
                r = obj.inMemoryAttributes(id);
             end 
         end
+
+        function tf = hasDerivedResponse(obj, key, device)
+            id = strcat(device, '_', key);
+            tf = isKey(obj.derivedAttributes, id);
+        end
     end
     
     methods(Access = protected)
