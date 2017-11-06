@@ -41,7 +41,8 @@ classdef EpochGroup < sa_labs.analysis.entity.Group
             import sa_labs.analysis.app.*;
 
             if isempty(obj.device)
-                throw(Exceptions.DEVICE_NOT_PRESENT.create('message', obj.name))
+                Exceptions.DEVICE_NOT_PRESENT.create('message', obj.name, 'warning', true);
+                return;
             end
         
             for epoch = each(epochs)
@@ -85,6 +86,7 @@ classdef EpochGroup < sa_labs.analysis.entity.Group
             import sa_labs.analysis.*;
 
             data = getFeatureData@sa_labs.analysis.entity.Group(obj, key);
+            data = columnMajor(data);
 
             if isempty(data)
                 [~, features] = util.collections.getMatchingKeyValue(obj.featureMap, key);
@@ -114,6 +116,14 @@ classdef EpochGroup < sa_labs.analysis.entity.Group
                     catch
                         % do nothing
                     end
+                end
+            end
+            
+            function data = columnMajor(data)
+                [rows, columns] = size(data);
+                
+                if rows == 1 && columns > 1
+                    data = data';
                 end
             end
         end
