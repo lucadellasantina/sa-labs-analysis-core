@@ -15,6 +15,11 @@ classdef Constants < handle
         ANALYSIS_LOGGER = 'sa-labs-analysis-core-logger'
 
         EPOCH_KEY_SUFFIX = 'EPOCH'
+        
+        ANALYSIS_PROJECT_FOLDER = 'projects'
+        ANALYSIS_CELL_DATA_FOLDER = 'cellData'
+        ANALYSIS_FILTER_FOLDER = 'filters'
+        ANALYSIS_TREE_FOLDER = 'analysisTrees'
     end
 end
 

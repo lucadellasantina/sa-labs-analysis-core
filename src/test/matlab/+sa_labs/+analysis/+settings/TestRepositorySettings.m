@@ -1,4 +1,4 @@
-classdef FileRepository < appbox.Settings & mdepin.Bean
+classdef TestRepositorySettings < appbox.Settings 
     
     properties
         startupFile
@@ -12,8 +12,7 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
     
     methods
         
-        function obj = FileRepository(config)
-            obj = obj@mdepin.Bean(config);
+        function obj = FileRepositorySettings()
             
             if ~ exist(obj.analysisFolder, 'dir')
                 mkdir(obj.analysisFolder)

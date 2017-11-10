@@ -20,6 +20,7 @@ classdef PreferenceDao < handle & mdepin.Bean
         
         function obj = PreferenceDao(config)
             obj = obj@mdepin.Bean(config);
+            obj.repository = config.fileRepositorySettings;
             obj.cellTags = containers.Map();
             obj.epochTags = containers.Map();
         end

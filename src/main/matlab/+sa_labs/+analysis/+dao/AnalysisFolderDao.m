@@ -8,14 +8,16 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         
         function obj = AnalysisFolderDao(config)
             obj = obj@mdepin.Bean(config);
+            obj.repository = config.fileRepositorySettings;
         end
         
         function project = saveProject(obj, project)
+            import sa_labs.analysis.*
             
-            projectFile = [obj.repository.analysisFolder filesep 'Projects'...
+            projectFile = [obj.repository.analysisFolder filesep  app.Constants.ANALYSIS_PROJECT_FOLDER ...
                 filesep project.identifier filesep];
             
-            sa_labs.analysis.util.file.overWrite(projectFile);
+            util.file.overWrite(projectFile);
             projectStruct = struct();
             attributes = properties(project);
             
@@ -33,7 +35,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         function projects = findProjects(obj, identifier)
             import sa_labs.analysis.*
             
-            path = [obj.repository.analysisFolder filesep 'Projects' filesep];
+            path = [obj.repository.analysisFolder filesep app.Constants.ANALYSIS_PROJECT_FOLDER filesep];
             info = dir(path);
             index = find(ismember({info.name}, identifier));
             
@@ -49,6 +51,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         end
         
         function fnames = findRawDataFiles(obj, date)
+            import sa_labs.analysis.*
             
             if ~ ischar(date)
                 date = obj.repository.dateFormat(date);
@@ -60,7 +63,9 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         end
         
         function saveCell(obj, cellData)
-            dir = [obj.repository.analysisFolder filesep 'cellData' filesep];
+            import sa_labs.analysis.*
+            
+            dir = [obj.repository.analysisFolder filesep app.Constants.ANALYSIS_CELL_DATA_FOLDER filesep];
             if ~ exist(dir, 'dir')
                 mkdir(dir);
             end
@@ -73,9 +78,11 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 path = [dir cellData.recordingLabel];
             end
             save(path, 'cellData');
+            obj.repository.synchronizer.uploadCellData(path);
         end
         
         function names = findCellNames(obj, pattern)
+            import sa_labs.analysis.*
             
             names = [];
             if isempty(pattern)
@@ -86,13 +93,17 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 pattern = obj.repository.dateFormat(pattern);
                 pattern = {[pattern '*c']};
             end
-            isCellDataByAmp = all(cellfun(@(p) any(strfind(p, 'Amp')), pattern)); 
+            isCellDataByAmp = all(cellfun(@(p) any(strfind(p, 'Amp')), pattern));
             
             for i = 1 : numel(pattern)
                 p = pattern{i};
-                info = dir([obj.repository.analysisFolder filesep 'cellData' filesep char(p) '*.mat']);
+                info = dir([obj.repository.analysisFolder filesep app.Constants.ANALYSIS_CELL_DATA_FOLDER filesep char(p) '*.mat']);
                 fnames = arrayfun(@(d) {d.name(1 : end-4)}, info);
                 names = [fnames; names]; %#ok
+            end
+            
+            if isempty(names)
+                names = obj.repository.synchronizer.findCellNames(pattern);
             end
             
             % Filter for cell data without amp extension
@@ -101,12 +112,16 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 names = names(~indices);
             end
         end
-
+        
         function cellData = findCell(obj, cellName)
-            pathFun = @(cellName) [obj.repository.analysisFolder filesep 'cellData' filesep cellName '.mat'];
+            import sa_labs.analysis.*
+            
+            obj.repository.synchronizer.downloadCellData(cellName);
+            
+            pathFun = @(cellName) [obj.repository.analysisFolder filesep app.Constants.ANALYSIS_CELL_DATA_FOLDER filesep cellName '.mat'];
             result = load(pathFun(cellName));
             cellData = result.cellData;
-
+            
             if isa(cellData, 'sa_labs.analysis.entity.CellDataByAmp')
                 cellDataByAmp = cellData;
                 result = load(pathFun(cellDataByAmp.cellDataRecordingLabel));
@@ -116,7 +131,9 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         end
         
         function saveAnalysisResults(obj, resultId, result, protocol) %#ok
-            dir = [obj.repository.analysisFolder filesep 'analysisTrees' filesep];
+            import sa_labs.analysis.*
+            
+            dir = [obj.repository.analysisFolder filesep app.Constants.ANALYSIS_TREES_FOLDER filesep];
             if ~ exist(dir, 'dir')
                 mkdir(dir);
             end
@@ -125,6 +142,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         end
         
         function names = findAnalysisResultNames(obj, pattern)
+            import sa_labs.analysis.*
             names = [];
             if isempty(pattern)
                 return;
@@ -135,20 +153,22 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             
             for i = 1 : numel(pattern)
                 p = pattern{i};
-                info = dir([obj.repository.analysisFolder filesep 'analysisTrees' filesep '*' char(p) '*.mat']);
+                info = dir([obj.repository.analysisFolder filesep app.Constants.ANALYSIS_TREES_FOLDER filesep '*' char(p) '*.mat']);
                 fnames = arrayfun(@(d) {d.name(1 : end-4)}, info);
                 names = [fnames; names]; %#ok
             end
         end
         
         function result = findAnalysisResult(obj, resultId)
-            path = [obj.repository.analysisFolder filesep 'analysisTrees' filesep resultId];
+            import sa_labs.analysis.*
+            path = [obj.repository.analysisFolder filesep app.Constants.ANALYSIS_TREE_FOLDER filesep resultId];
             r = load(path);
             result = r.result;
         end
         
         function saveCellDataFilter(obj, filterName, filterTable) %#ok
-            dir = [obj.repository.analysisFolder filesep 'filters' filesep 'cellData' filesep];
+            import sa_labs.analysis.*
+            dir = [obj.repository.analysisFolder filesep app.Constants.ANALYSIS_FILTER_FOLDER filesep app.Constants.ANALYSIS_CELL_DATA_FOLDER filesep];
             if ~ exist(dir, 'dir')
                 mkdir(dir);
             end
@@ -156,8 +176,10 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
         end
         
         function filterMap = getCellDataFilters(obj)
+            import sa_labs.analysis.*
+            
             filterMap = [];
-            directory = [obj.repository.analysisFolder filesep 'filters' filesep 'cellData' filesep];
+            directory = [obj.repository.analysisFolder filesep app.Constants.ANALYSIS_FILTER_FOLDER filesep app.Constants.ANALYSIS_CELL_DATA_FOLDER filesep];
             if ~ exist(directory, 'dir')
                 return;
             end
@@ -170,6 +192,6 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             end
         end
     end
-
+    
 end
 
