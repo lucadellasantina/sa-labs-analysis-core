@@ -103,6 +103,16 @@ classdef FeatureTreeFinder < handle
                 epochGroups = [epochGroups, childEpochGroups]; %#ok
             end
         end
+
+        function childEpochGroups = getChildEpochGroups(obj, epochGroup)
+            childEpochGroups = [];
+            
+            if obj.isBasicEpochGroup(epochGroup)
+                return;    
+            end
+            childrens = obj.tree.getchildren(epochGroup.id);
+            childEpochGroups = obj.getEpochGroups(childrens);
+        end
     end
     
 end
