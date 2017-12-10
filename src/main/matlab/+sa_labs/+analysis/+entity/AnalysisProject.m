@@ -99,6 +99,32 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
             obj.clearCellData();
             obj.clearAnalaysisResult();
         end
+
+        function types = getUniqueAnalysisTypes(obj)
+            types = {};
+            
+            for resultId = each(obj.analysisResultIdList)
+                parsedId = strsplit(resultId, '-');
+                types{end + 1} = parsedId{1};
+            end
+            types = unique(types);
+        end
+
+        function names = getCellNames(obj, analysisType)
+            names = {};
+            
+            for resultId = each(obj.analysisResultIdList)
+                if any(strfind(resultId, analysisType))
+                    parsedId = strsplit(resultId, '-');
+                    names{end + 1} = parsedId{2};
+                end
+            end
+        end
+
+        function name = getAnalysisResultName(obj, analysisType, cellName)
+            name = strcat(analysisType, '-', cellName);
+        end
+
     end
 
     methods (Access = private)
