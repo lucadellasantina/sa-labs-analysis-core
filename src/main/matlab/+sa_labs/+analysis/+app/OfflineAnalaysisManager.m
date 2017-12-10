@@ -289,7 +289,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 'data', results);
         end
         
-        function finder = getFeatureFinder(obj, name, varargin)
+        function [finder, project] = getFeatureFinder(obj, name, varargin)
             import sa_labs.analysis.*;
             
             ip = inputParser();
