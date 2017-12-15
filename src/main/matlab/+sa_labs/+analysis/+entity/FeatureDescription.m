@@ -30,7 +30,7 @@ classdef FeatureDescription < dynamicprops
         
         function setProperties(obj, props)
             import  sa_labs.analysis.app.*;
-
+            
             props = strsplit(props, ',');
             
             for i = 1 : numel(props)
@@ -44,9 +44,19 @@ classdef FeatureDescription < dynamicprops
                 end
             end
         end
-    end
-    
-    methods (Access = private)
+        
+        function setFromMap(obj, map)
+            cellfun(@(k) obj.set(k, map(k)), map.keys);
+        end
+        
+        function map = toMap(obj)
+            keys = properties(obj);
+            map = containers.Map();
+            
+            for key = each(keys)
+                map(key) = obj.(key);
+            end
+        end
         
         function set(obj, k, v)
             try
@@ -66,7 +76,7 @@ classdef FeatureDescription < dynamicprops
                 warning(exception.identifier, exception.message)
             end
         end
+        
     end
     
 end
-
