@@ -32,10 +32,17 @@ classdef FeatureTreeFinder < handle
         function query = find(obj, name, varargin)
             ip = inputParser;
             ip.addParameter('hasParent', []);
+            ip.addParameter('hasParentId', []);
             ip.parse(varargin{:});
             hasParent = ip.Results.hasParent;
-            
-            parentGroups = obj.findEpochGroup(hasParent);
+            hasParentId = ip.Results.hasParentId;
+
+            if any(hasParentId)
+                parentGroups = obj.getEpochGroups(hasParentId);
+            else
+                parentGroups = obj.findEpochGroup(hasParent);
+            end
+
             if all(isempty(parentGroups))
                 query = linq(obj.findEpochGroup(name));
                 return;
