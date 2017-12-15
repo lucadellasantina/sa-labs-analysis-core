@@ -125,8 +125,10 @@ classdef Analysis < handle
             for i = 1 : numel(functions)
                 func = str2func(functions{i});
                 try
+                    functionName = obj.analysisProtocol.getFunctionName(func);
                     for group = epochGroups
-                        func(obj, group);
+                        p = group.getInputParametersForFunction(functionName);
+                        func(obj, group, p);
                     end
                     
                     obj.log.debug(['collecting features for function [ ' char(functions{i}) ' ]']);

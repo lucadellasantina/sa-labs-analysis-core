@@ -182,6 +182,12 @@ classdef AnalysisProtocol < handle
         function p = getValidSplitParameter(obj, splitBy)
             p = obj.splitParameterMap(splitBy);
         end
+
+        function name = getFunctionName(obj, functionHandle)
+            parsedElements = regexp(func2str(functionHandle), '(\w*\.*)+\w*(', 'match');
+            element = parsedElements{end};
+            name = element(1 : end -1);
+        end
     end
     
     methods (Access = private)

@@ -11,9 +11,10 @@ classdef EpochGroup < sa_labs.analysis.entity.Group
     end
     
     properties (Hidden)
-        epochIndices        % List of epoch indices to be processed in Offline analysis. @see CellData and FeatureExtractor.extract
-        parametersCopied     % Avoid redundant collection of epoch parameters
-        cellParametersCopied % Avoid redundant collection of cell parameters
+        epochIndices            % List of epoch indices to be processed in Offline analysis. @see CellData and FeatureExtractor.extract
+        parametersCopied        % Avoid redundant collection of epoch parameters
+        cellParametersCopied    % Avoid redundant collection of cell parameters
+        functionParameterMap    % Input parameter container for differnt functions which belongs to epochGroup
     end
     
     methods
@@ -27,6 +28,7 @@ classdef EpochGroup < sa_labs.analysis.entity.Group
             obj.splitValue = splitValue;
             obj.parametersCopied = false;
             obj.cellParametersCopied = false;
+            obj.functionParameterMap = containers.Map();
         end
 
         function p = getParameter(obj, key)
@@ -138,6 +140,26 @@ classdef EpochGroup < sa_labs.analysis.entity.Group
             if ~ obj.hasDevice(key)
                 key = upper(strcat(obj.device, '_', key));
             end
+        end
+
+        function p = getInputParametersForFunction(obj, functionName)
+            if ~ isKey(obj.functionParameterMap, functionName)
+                obj.setInputParametersForFunction(functionName);
+            end
+            p = obj.functionParameterMap(functionName);
+        end
+
+        function setInputParametersForFunction(obj, functionName, parameter)
+            % TODO move helDocToStructure to sa-labs-analysis-core and update the dependency
+            if nargin < 3
+                try
+                    [~, parameter] = sa_labs.analysis.ui.util.helpDocToStructure(functionName);
+                catch exception
+                    warning(exception.message);
+                    parameter = [];
+                end
+            end
+            obj.functionParameterMap(functionName) = parameter;
         end
     end
 end
