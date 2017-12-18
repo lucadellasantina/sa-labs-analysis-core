@@ -1,6 +1,6 @@
 [![Build Status](https://build.nbe.aalto.fi/buildStatus/icon?job=validateSALabsAnalysisCore)](https://build.nbe.aalto.fi/job/validateSALabsAnalysisCore/)
 
-# Electrophysiology Data Analysis (In development)
+# Electrophysiology Data Analysis
 
 ### Installation
 
@@ -14,7 +14,6 @@
 1. It follows maven style source code organization
 2. All the dependency will be present in toolbox folder
 
-### Usage TODO
 
 ## Requirements
 
