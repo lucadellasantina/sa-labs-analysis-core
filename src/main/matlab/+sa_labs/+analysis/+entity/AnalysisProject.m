@@ -115,8 +115,8 @@ classdef AnalysisProject < handle & matlab.mixin.CustomDisplay
             
             for resultId = each(obj.analysisResultIdList)
                 if any(strfind(resultId, analysisType))
-                    parsedId = strsplit(resultId, '-');
-                    names{end + 1} = parsedId{2};
+                    parsedId = strfind(resultId, '-');
+                    names{end + 1} = resultId(parsedId(1)+1:end);
                 end
             end
         end
