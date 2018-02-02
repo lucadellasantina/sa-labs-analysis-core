@@ -1,12 +1,12 @@
 classdef OfflineAnalaysisManager < handle & mdepin.Bean
-    
+
     properties
         analysisDao
         parserFactory
         analysisFactory
         log
     end
-    
+
     methods
 
         % CellData and EpochData related functions
@@ -15,9 +15,9 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             obj = obj@mdepin.Bean(config);
             obj.log = logging.getLogger(sa_labs.analysis.app.Constants.ANALYSIS_LOGGER);
         end
-        
+
         function cellDataArray = parseSymphonyFiles(obj, pattern)
-            
+
             % parseSymphonyFiles - parses h5 files from raw data folder based on
             % input pattern and returns the cell data as array
             %
@@ -35,24 +35,24 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             % usage : obj.parseSymphonyFiles('20170505A')
             %         obj.parseSymphonyFiles('201705')
             %         obj.parseSymphonyFiles(date)
-            
-            
+
+
             import sa_labs.analysis.*;
             dao = obj.analysisDao;
             files = dao.findRawDataFiles(pattern);
-            
+
             if isempty(files)
                 throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(pattern)));
             end
             n = numel(files);
             cellDataArray = [];
-            
+
             for i = 1 : n
             	try
 	                obj.log.info(['parsing ' num2str(i) '/' num2str(n) ' h5 file [ ' strrep(files{i}, '\', '/') ' ]' ]);
 	                parser =  obj.parserFactory.getInstance(files{i});
 	                results = parser.parse().getResult();
-	                
+
 	                for result = each(results)
 	                    dao.saveCell(result);
 	                    obj.log.info(['saving data set [ ' result.recordingLabel ' ]']);
@@ -64,24 +64,24 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 end
             end
         end
-        
+
         function d = getParsedCellData(obj, pattern)
 
             dao = obj.analysisDao;
             [parsedExperiments, unParsedExperiments] = obj.getParsedAndUnParsedFiles(cellstr(pattern));
-            
+
             for unParsedExp = each(unParsedExperiments)
                 obj.parseSymphonyFiles(unParsedExp);
                 parsedExperiments{end + 1} = unParsedExp; %#ok <AGROW>
             end
-            
+
             d = linq(dao.findCellNames(parsedExperiments))...
                 .select(@(name) dao.findCell(name))...
                 .where(@(d) ~ isempty(d.get('recordingLabel'))).toArray();
         end
 
         function preProcessCellData(obj, cellDatas, functions, varargin)
-            
+
             % preProcessCellData - apply list of functions to list of cellDatas
             % and serializes the results to disk for later lookup
             %
@@ -91,22 +91,22 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             % usage : obj.preProcessCellData(cellData,{@(d) fun1(d), @(d) fun2(d) })
             %         obj.preProcessCellData(cellData,{@(d) fun1(d), @(d) fun2(d) }, 'enabled', [true, true])
             %
-            
+
             n = numel(functions);
             ip = inputParser;
             ip.addParameter('enabled', ones(1, n), @islogical);
             ip.parse(varargin{:});
             enabled = ip.Results.enabled;
-            
+
             for data = each(cellDatas)
-                obj.log.info(['pre processing data [ ' data.recordingLabel ' ] ']);                
+                obj.log.info(['pre processing data [ ' data.recordingLabel ' ] ']);
                 obj.preProcess(functions(enabled), data);
                 obj.analysisDao.saveCell(data);
             end
         end
-        
+
         function preProcessEpochData(obj, epochDatas, functions, varargin)
-            
+
             % preProcessEpochData - apply list of functions to list of epochData
             % and serializes the results to disk for later lookup
             %
@@ -116,20 +116,20 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             % usage : obj.preProcessEpochData(epochDatas,{@(d) fun1(d), @(d) fun2(d) })
             %         obj.preProcessEpochData(epochDatas,{@(d) fun1(d), @(d) fun2(d) }, 'enabled', [true, true])
             %
-            
+
             n = numel(functions);
             ip = inputParser;
             ip.addParameter('enabled', ones(1, n), @islogical);
             ip.parse(varargin{:});
             enabled = ip.Results.enabled;
-            
+
             for data = each(epochDatas)
                 obj.preProcess(functions(enabled), data);
-                obj.log.info(['pre processing done for epoch number [' num2str(data.get('epochNum')) ']' ]);                
+                obj.log.info(['pre processing done for epoch number [' num2str(data.get('epochNum')) ']' ]);
                 obj.analysisDao.saveCell(data.parentCell);
             end
         end
-        
+
         function updatedCells = deleteEpochFromCells(obj, cellDatas)
 
             % deleteEpochFromCells - removes all the excluded epochs from the cellData
@@ -138,12 +138,12 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             % returns - updated cell data array
             %
             % One can control the epochs to be deleted by setting epoch.excluded = true
-            % @ see sa_labs.analysis.entity.EpochData 
+            % @ see sa_labs.analysis.entity.EpochData
             % @ see sa_labs.analysis.entity.CellData, method: get.epochs(obj), getlAllEpochs(obj)
             %
             % usage : obj.deleteEpochFromCells(cellData)
             %         obj.deleteEpochFromCells([cellData1, cellData2])
-            
+
             updatedCells = [];
 
             for cellData = each(cellDatas)
@@ -167,24 +167,24 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
         end
 
         function [parsedExperiments, unParsedExperiments] = getParsedAndUnParsedFiles(obj, experiments)
-            
+
             % A simple utility function to get parsed and un-parsed files
             % by experiment name (i.e date)
-            
+
             index = cellfun(@(e) isempty(obj.analysisDao.findCellNames(cellstr(e))), experiments);
             unParsedExperiments = experiments(index);
             parsedExperiments = experiments(~ index);
-            
+
             obj.log.info(['list of parsed files [ ' [parsedExperiments{:}] ' ] unParsed files [ ' [unParsedExperiments{:}] ' ]']);
         end
     end
 
-    methods 
+    methods
 
-        % AnalysisProject, FeatureFinder, Analysis related functions 
-        
+        % AnalysisProject, FeatureFinder, Analysis related functions
+
         function obj = createProject(obj, project)
-            
+
             % createProject - creates a new analysis project from project.experimentList.
             % If its already present, then it simply loads the project.
             %
@@ -197,40 +197,40 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             % to the project file
             %
             % usage : obj.createProject(analysisProject)
-            
+
             import sa_labs.analysis.*;
-            
+
             obj.log.info(['creating project [ ' project.identifier ' ]' ]);
             dao = obj.analysisDao;
             [parsedExperiments, unParsedExperiments] = obj.getParsedAndUnParsedFiles(project.experimentList);
-            
+
             for unParsedExp = each(unParsedExperiments)
                 obj.parseSymphonyFiles(unParsedExp);
                 parsedExperiments{end + 1} = unParsedExp; %#ok <AGROW>
             end
-            
+
             project.clearCellData();
             cellfun(@(id) obj.addCellDataToProject(project, id), dao.findCellNames(parsedExperiments));
-            
+
             dao.saveProject(project);
             obj.log.info(['Project created under location [ ' strrep(project.file, '\', '/') ' ]' ]);
         end
 
         function project = initializeProject(obj, name)
-            
+
             dao = obj.analysisDao;
             projects = dao.findProjects(name);
-            
+
             if numel(projects) > 1
                 obj.log.info('More than one project found using the first project');
             end
-            
+
             project = projects(1);
             tic;
             cellfun(@(id) obj.addCellDataToProject(project, id), project.cellDataIdList);
             elapsedTime = toc;
             obj.log.debug(['Time taken to add cell data to project: ', num2str(elapsedTime)]);
-            
+
             tic;
             cellfun(@(id) project.addResult(id, dao.findAnalysisResult(id)), project.analysisResultIdList);
             elapsedTime = toc;
@@ -238,14 +238,14 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
 
             obj.log.info(['project [ ' project.identifier ' ] initialized ']);
         end
-        
+
         function project = buildAnalysis(obj, projectName, presets)
             import sa_labs.analysis.*;
-            
+
             project = obj.initializeProject(projectName);
-            
+
             for cellData = each(project.getCellDataArray())
-                
+
                 for preset = each(presets)
                     protocol = core.AnalysisProtocol(preset);
                     analysis = obj.analysisFactory.createOfflineAnalysis(protocol, cellData);
@@ -257,50 +257,50 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
             end
             obj.analysisDao.saveProject(project);
         end
-        
+
         function finder = applyAnalysis(obj, finder, epochGroup, functions)
             import sa_labs.analysis.*;
-            
+
             project = finder.findEpochGroup('project').splitValue;
             groups = finder.findEpochGroup('analysis');
-            
+
             dao = obj.analysisDao;
             factory = obj.analysisFactory;
             results = tree.empty(0, numel(groups));
             index = 1;
-            
+
             for group = each(groups)
                 resultIdArray = strsplit(group.splitValue, '-');
                 cellData = dao.findCell(resultIdArray{end});
                 protocol = group.parameters.analysisProtocol;
-                
+
                 analysis = factory.createOfflineAnalysis(protocol, cellData);
                 analysis.featureBuilder.dataStore = dao.findAnalysisResult(group.splitValue);
                 analysis.addFeaturesToGroup(epochGroup, functions);
                 result = analysis.getResult();
-                
+
                 dao.saveAnalysisResults(analysis.identifier, result, protocol);
-                
+
                 results(index) = result;
                 index = index + 1;
             end
-            
+
             finder = factory.createFeatureFinder('project', project,...
                 'data', results);
         end
-        
+
         function [finder, project] = getFeatureFinder(obj, name, varargin)
             import sa_labs.analysis.*;
-            
+
             ip = inputParser();
             ip.addParameter('analysisType', '', @ischar);
             ip.addParameter('cellData', '', @ischar);
             ip.addParameter('pattern', true, @islogical);
             ip.parse(varargin{:});
-            
+
             analysisType = ip.Results.analysisType;
             cellData = ip.Results.cellData;
-            
+
             project = obj.initializeProject(name);
             if ip.Results.pattern
                 condn = ['(.*' strtrim(analysisType) '.*' strtrim(cellData) '.*)'];
@@ -313,51 +313,55 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                     condn = strcat('^', analysisType, '-',  cellData, '$');
                 end
             end
-            
+
             obj.log.debug(['Applying filter [ ' condn ' ]' ]);
             indices = ~ cellfun(@isempty, regexpi(project.analysisResultIdList, condn));
-            
+
             results = project.getAnalysisResultArray();
             results = results(indices);
-            
+
             if isempty(results)
                 obj.log.error(['Analysis result not found for cond [ ' condn ' ]']);
                 throw(app.Exceptions.NO_ANALYSIS_RESULTS_FOUND.create('message', condn));
             end
-            
+
             finder = obj.analysisFactory.createFeatureFinder('project', name,...
                 'data', results);
         end
-    end 
+    end
 
-    methods        
+    methods
 
         % Facade for the utlities used in user interface
 
         function saveCellDataFilter(obj, name, filterTable)
             obj.analysisDao.saveCellDataFilter(name, filterTable);
         end
-        
+
         function filterMap = getCellDataFilters(obj)
             filterMap = obj.analysisDao.getCellDataFilters();
         end
 
     end
-    
+
     methods (Access = private)
-        
+
         function addCellDataToProject(obj, project, cellName)
             import sa_labs.analysis.*;
             dao = obj.analysisDao;
-            
+
             cellData = dao.findCell(cellName);
             project.addCellData(cellData.recordingLabel, cellData);
             file = dao.findRawDataFiles(cellData.h5File);
-            
+
             if isempty(file)
                 obj.log.error(['raw data file [ ' char(cellData.h5File) ' ] not found']);
                 throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(file)));
             end
+            % TODO add interface definition for h5Path
+            h5Path = [dao.repository.rawDataFolder filesep cellData.h5File]
+            obj.log.info(['raw data is present in [ ' h5path ' ]']);
+            cellData.attributes('h5File') = h5Path;
         end
 
         function preProcess(obj, functions, data)
@@ -373,7 +377,7 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 end
             end
         end
-        
+
     end
 end
 
