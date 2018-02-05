@@ -1,5 +1,5 @@
 classdef SymphonyV1Parser < sa_labs.analysis.parser.SymphonyParser
-
+    
     % cell-name.h5
     %   |_ <recorded_by>-<id> (1)
     %     |_epochgroups (1)
@@ -14,35 +14,35 @@ classdef SymphonyV1Parser < sa_labs.analysis.parser.SymphonyParser
     %     |_properties (3) # cell data attributes
 
     methods
-
+        
         function obj = SymphonyV1Parser(fname)
             obj = obj@sa_labs.analysis.parser.SymphonyParser(fname);
         end
-
+        
         function info = invokeH5Info(obj)
             info = hdf5info(obj.fname, 'ReadAttributes', false);
             info = info.GroupHierarchy(1);
         end
-
+        
         function obj = parse(obj)
             import sa_labs.analysis.*;
-
+            
             data = entity.CellData();
-
+            
             info = hdf5info(obj.fname);
             info = info.GroupHierarchy(1);
             data.attributes = obj.mapAttributes(info.Groups(1).Groups(3));
             n = length(info.Groups);
-
+            
             EpochDataGroups = [];
             for i = 1 : n
                 EpochDataGroups = [EpochDataGroups info.Groups(i).Groups(2).Groups]; %#ok
             end
-
+            
             index = 1;
             epochTimes = [];
             for i = 1 : length(EpochDataGroups)
-
+                
                 if length(EpochDataGroups(i).Groups) >= 3 %Complete epoch
                     attributeMap = obj.mapAttributes(EpochDataGroups(i));
                     epochTimes(index) = attributeMap('startTimeDotNetDateTimeOffsetUTCTicks'); %#ok
@@ -50,16 +50,16 @@ classdef SymphonyV1Parser < sa_labs.analysis.parser.SymphonyParser
                     index = index + 1;
                 end
             end
-
+            
             nEpochs = length(epochTimes);
             if nEpochs < 0
                 return
             end
-
+            
             [epochTimes_sorted, indices] = sort(epochTimes);
             epochTimes_sorted = epochTimes_sorted - epochTimes_sorted(1);
             epochTimes_sorted = double(epochTimes_sorted) / 1E7; % Ticks to second
-
+            
             data.epochs = entity.EpochData.empty(nEpochs, 0);
             for i = 1 : nEpochs
                 groupInd = okEpochInd(indices(i));
@@ -71,18 +71,18 @@ classdef SymphonyV1Parser < sa_labs.analysis.parser.SymphonyParser
                 epoch.attributes = obj.mapAttributes(EpochDataGroups(groupInd).Groups(1), epoch.attributes);
                 epoch.dataLinks = obj.addDataLinks(EpochDataGroups(groupInd).Groups(2).Groups);
                 fname = obj.fname;
-                %epoch.responseHandle = @(path) h5read(fname, path);
+                epoch.responseHandle = @(path) h5read(fname, path);
                 data.epochs(i) = epoch;
             end
             data.attributes('Nepochs') = nEpochs;
             data.attributes('h5File') = obj.fname;
             obj.addCellDataByAmps(data);
         end
-
+        
         function map = addDataLinks(~, responseGroups)
             n = length(responseGroups);
             map = containers.Map();
-
+            
             for i = 1 : n
                 h5Name = responseGroups(i).Name;
                 delimInd = strfind(h5Name, '/');
@@ -91,7 +91,7 @@ classdef SymphonyV1Parser < sa_labs.analysis.parser.SymphonyParser
                 map(streamName) = streamLink;
             end
         end
-
+                
         function map = mapAttributes(obj, h5group, map)
             if nargin < 3
                 map = containers.Map();
@@ -110,6 +110,6 @@ classdef SymphonyV1Parser < sa_labs.analysis.parser.SymphonyParser
             end
         end
     end
-
+    
 end
 
