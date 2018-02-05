@@ -1,17 +1,17 @@
 classdef EpochDataTest < matlab.unittest.TestCase
 
     % Test methods for EpochData
-    
+
     methods(Test)
-        
+
         function testGet(obj)
             import sa_labs.analysis.entity.*;
             keys = {'double', 'string', 'cell', 'array'};
             values = {20, 'abc', {'abc', 'def', 'ghi'}, [1, 2, 3, 4, 5]};
-            
+
             epochData = EpochData();
             epochData.attributes = containers.Map(keys, values);
-            
+
             % arbitary test for attribute map
             obj.verifyEqual(epochData.get('double'), 20);
             obj.verifyEqual(epochData.get('string'), 'abc');
@@ -19,7 +19,7 @@ classdef EpochDataTest < matlab.unittest.TestCase
             obj.verifyEqual(epochData.get('array'), [1, 2, 3, 4, 5]);
             obj.verifyEmpty(epochData.get('unknown'));
         end
-        
+
         function testGetMatchingKeyValue(obj)
         	import sa_labs.analysis.entity.*;
 
@@ -37,29 +37,37 @@ classdef EpochDataTest < matlab.unittest.TestCase
         	import sa_labs.analysis.entity.*;
         	keys = {'double', 'string', 'cell', 'array'};
         	values = {20, 'abc', {'abc', 'def', 'ghi'}, [1, 2, 3, 4, 5]};
-        	
+
         	epochData = EpochData();
         	epochData.attributes = containers.Map(keys, values);
         	keys{end + 1} = 'additional';
 
         	obj.verifyEqual(epochData.unionAttributeKeys(keys), sort(keys));
-        	obj.verifyEqual(sort(epochData.unionAttributeKeys([])), sort(keys(1 : end-1)));        	
+        	obj.verifyEqual(sort(epochData.unionAttributeKeys([])), sort(keys(1 : end-1)));
         end
 
         function testGetResponse(obj)
         	import sa_labs.analysis.entity.*;
+
+            % Test symphony_V1 response format
+            responseStruct = struct('quantity', ones(1, 100), 'unit', 'pA');
         	epochData = EpochData();
         	epochData.dataLinks = containers.Map({'Amp1', 'Amp2' }, {'response1', 'response2'});
-        	epochData.responseHandle = @(arg)strcat(arg, '-data');
+        	epochData.responseHandle = @(e, arg) responseStruct;
             epochData.parentCell = CellData();
 
         	% test for epoch data specific behaviour
         	obj.verifyEqual(epochData.get('devices'), epochData.dataLinks.keys);
-        	obj.verifyEqual(epochData.getResponse('Amp1'), 'response1-data');
+        	obj.verifyEqual(epochData.getResponse('Amp1'), struct('quantity', ones(1, 100), 'units', 'pA'));
         	obj.verifyError(@() epochData.getResponse('unknown'), 'device:notfound');
-            
+
             epochData.parentCell.deviceType = 'Amp1';
             obj.verifyEqual(epochData.get('devices'), 'Amp1');
+
+            % Test symphony_V2 response format
+            responseStruct = struct('quantity', ones(1, 100), 'units', 'pA');
+            epochData.responseHandle = @(e, arg) responseStruct;
+            obj.verifyEqual(epochData.getResponse('Amp1'), struct('quantity', ones(1, 100), 'units', 'pA'));
         end
 
         function testDerivedResponse(obj)
@@ -82,7 +90,7 @@ classdef EpochDataTest < matlab.unittest.TestCase
 
         	% Add the default deviceType and check for the spikes
         	epochData.parentCell.deviceType = 'Amp1';
-        	epochData.addDerivedResponse('spikes', 11 : 15);            
+        	epochData.addDerivedResponse('spikes', 11 : 15);
         	obj.verifyEqual(epochData.getDerivedResponse('spikes'), 11 : 15);
         	obj.verifyEqual(epochData.getDerivedResponse('spikes', 'Amp2'), 6 : 10);
         end
