@@ -209,6 +209,18 @@ classdef DaoTest < matlab.unittest.TestCase
             obj.verifyGreaterThan(regexp(rep.analysisFolder, '\w*analysis'), 1);
             obj.verifyGreaterThan(regexp(rep.rawDataFolder, '\w*rawDataFolder'), 1);
             obj.verifyGreaterThan(regexp(rep.preferenceFolder, '\w*PreferenceFiles'), 1);
+
+            % Check set last migration date
+            obj.verifyEqual(rep.lastMigrationDate, datetime('20180207', 'InputFormat', 'yyyyMMdd'));
+        end
+
+        function testGetMigrationFunctionAfterDate(obj)
+            dateTimeCallBlack = @(str) datetime(str, 'InputFormat', 'yyyyMMdd');
+            rep = obj.beanFactory.getBean('fileRepository');
+            handle = rep.getMigrationFunctionAfterDate(dateTimeCallBlack('20180206'), 'test');
+            obj.verifyLength(handle, 1);
+            handle = rep.getMigrationFunctionAfterDate([], 'test');
+            obj.verifyLength(handle, 2);
         end
 
         function testLoadPreference(obj)

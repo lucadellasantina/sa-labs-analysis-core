@@ -11,6 +11,10 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
         entityMigrationsFolder
     end
 
+    properties
+        lastMigrationDate
+    end
+
     methods
 
         function obj = FileRepository(config)
@@ -29,6 +33,7 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
             if ~ exist(obj.preferenceFolder, 'dir')
                 mkdir(obj.preferenceFolder)
             end
+            obj.setLastMigrationDate();
         end
 
         function f = get.startupFile(obj)
@@ -92,6 +97,43 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
         function set.logFile(obj, f)
             validateattributes(p, {'char', 'function_handle'}, {'2d'});
             obj.put('logFile', f);
+        end
+
+        function setLastMigrationDate(obj)
+            info = {meta.package.fromName(obj.entityMigrationsFolder).FunctionList.Name};
+            n = numel(info);
+            migrationDate = datetime.empty(0, n);
+
+            for i = 1 : n
+                parsedMFfileName = strsplit(info{i}, '_');
+                try
+                    migrationDate(i) = datetime(parsedMFfileName{end}, 'InputFormat', 'yyyyMMdd');
+                catch e
+                    % in case of malformed migration function throw warning
+                    warning(e.message);
+                end
+            end
+            migrationDate = sort(migrationDate, 'desc');
+            obj.lastMigrationDate = migrationDate(1);
+        end
+
+        function functionHandles = getMigrationFunctionAfterDate(obj, parsedDate, entityName)
+            info = {meta.package.fromName(obj.entityMigrationsFolder).FunctionList.Name};
+            n = numel(info);
+            functionHandles = {};
+
+            for i = 1 : n
+                parsedMFfileName = strsplit(info{i}, '_');
+                try
+                    migrationDate = datetime(parsedMFfileName{end}, 'InputFormat', 'yyyyMMdd');
+                    if strcmpi(entityName, parsedMFfileName{1}) && (isempty(parsedDate) || migrationDate > parsedDate)
+                        functionHandles{end + 1} = str2func(['@(entity)' obj.entityMigrationsFolder, '.' info{i} '(entity)']);
+                    end
+                catch e
+                    % in case of malformed migration function throw warning
+                    warning(e.message);
+                end
+            end
         end
     end
 end

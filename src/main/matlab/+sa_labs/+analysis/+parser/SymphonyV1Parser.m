@@ -75,7 +75,8 @@ classdef SymphonyV1Parser < sa_labs.analysis.parser.SymphonyParser
             end
             data.attributes('Nepochs') = nEpochs;
             data.attributes('h5File') = obj.fname;
-            data.attributes('parsedDate') = datestr(datetime('today'));
+            data.attributes('parsedDate') = datetime;
+            data.attributes('recordingLabel') = '_v1';
             obj.addCellDataByAmps(data);
         end
 

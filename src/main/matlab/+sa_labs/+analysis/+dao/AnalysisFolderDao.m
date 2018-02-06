@@ -113,7 +113,6 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 cellData = result.cellData;
                 cellDataByAmp.updateCellDataForTransientProperties(cellData);
             end
-            obj.applyMigration(cellData);
         end
 
         function saveAnalysisResults(obj, resultId, result, protocol) %#ok
@@ -171,11 +170,17 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             end
         end
 
-        function applyMigration(obj, entity)
-            parsedDate = entity.get('parsedDate');
-            warning('TODO write migration logic')
+        function applyCellDataMigration(obj, cellData)
+            parsedDate = cellData.get('parsedDate');
+            if ~ isempty(parsedDate) && parsedDate > obj.repository.lastMigrationDate
+                return
+            end
+            migrations = obj.repository.getMigrationFunctionAfterDate(parsedDate, 'cellData');
+            for migration = each(migrations)
+                migration(entity);
+            end
+            obj.saveCell(entity);
         end
     end
-
 end
 
