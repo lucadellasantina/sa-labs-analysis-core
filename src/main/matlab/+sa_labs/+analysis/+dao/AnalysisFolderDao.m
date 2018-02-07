@@ -113,6 +113,12 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 cellData = result.cellData;
                 cellDataByAmp.updateCellDataForTransientProperties(cellData);
             end
+            % For shared cell data fix the relative path
+            hFile = [obj.repository.rawDataFolder filesep cellData.h5file]
+            cellData.attributes('h5File') = hFile;
+
+            obj.log.info('checking for migrations...');
+            dao.applyCellDataMigration(cellData);
         end
 
         function saveAnalysisResults(obj, resultId, result, protocol) %#ok

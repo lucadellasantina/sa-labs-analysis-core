@@ -358,14 +358,6 @@ classdef OfflineAnalaysisManager < handle & mdepin.Bean
                 obj.log.error(['raw data file [ ' char(cellData.h5File) ' ] not found']);
                 throw(app.Exceptions.NO_RAW_DATA_FOUND.create('message', char(file)));
             end
-            % For shared cell data fix the relative path
-            hFile = [dao.repository.rawDataFolder filesep cellData.h5file]
-            cellData.attributes('h5File') = hFile;
-            obj.log.info(['h5file location ' strrep(h5File, '\', '/') ])
-
-            obj.log.info('checking for migrations...');
-            dao.applyCellDataMigration(cellData);
-            obj.log.info('migrations done ...');
         end
 
         function preProcess(obj, functions, data)
