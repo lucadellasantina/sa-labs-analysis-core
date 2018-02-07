@@ -128,6 +128,19 @@ classdef EpochData < sa_labs.analysis.entity.KeyValueEntity
             id = strcat(device, '_', key);
             tf = isKey(obj.derivedAttributes, id);
         end
+
+        function r = getEpochResponse(obj, path)
+            response = obj.responseHandle(obj, path);
+            % For symphony v1 data
+            if isfield(response, 'unit')
+                units = getfield(response, 'unit');
+            end
+            % For symphony v2 data
+            if isfield(response, 'units')
+                units = getfield(response, 'units');
+            end
+            r = struct('quantity', response.quantity, 'units', units);
+        end
     end
 
     methods(Access = protected)
@@ -142,19 +155,6 @@ classdef EpochData < sa_labs.analysis.entity.KeyValueEntity
             catch
                 header = getHeader@matlab.mixin.CustomDisplay(obj);
             end
-        end
-
-        function r = getEpochResponse(obj, path)
-            response = obj.responseHandle(obj, path);
-            % For symphony v1 data
-            if isfield(response, 'unit')
-                units = getfield(response, 'unit');
-            end
-            % For symphony v2 data
-            if isfield(response, 'units')
-                units = getfield(response, 'units');
-            end
-            r = struct('quantity', response.quantity, 'units', units);
         end
     end
 

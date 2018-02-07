@@ -49,13 +49,14 @@ classdef EpochGroup < sa_labs.analysis.entity.Group
 
             for epoch = each(epochs)
                 path = epoch.dataLinks(obj.device);
-                response = epoch.getResponse(obj.device);
+                responseHandle = @() epoch.getEpochResponse(path);
                 key = obj.makeValidKey(Constants.EPOCH_KEY_SUFFIX);
 
-                f = obj.createFeature(key, @() transpose(getfield(response, 'quantity')), 'append', true);
+                f = obj.createFeature(key, @() transpose(getfield(responseHandle(), 'quantity')), 'append', true);
                 f.description.setFromMap(epoch.attributes);
                 f.description.set('device', obj.device);
 
+                response = responseHandle();
                 if isfield(response, 'units');
                     units = getfield(response, 'units');
                     f.description.set('units', deblank(units(:,1)'));
