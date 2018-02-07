@@ -113,8 +113,8 @@ classdef FileRepository < appbox.Settings & mdepin.Bean
                     warning(e.message);
                 end
             end
-            migrationDate = sort(migrationDate, 'desc');
-            obj.lastMigrationDate = migrationDate(1);
+            [~, idx] = sort(datenum(migrationDate));
+            obj.lastMigrationDate = migrationDate(idx(end));
         end
 
         function functionHandles = getMigrationFunctionAfterDate(obj, parsedDate, entityName)
