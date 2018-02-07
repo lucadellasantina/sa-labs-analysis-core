@@ -118,7 +118,7 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 obj.applyCellDataMigration(cellData);
             end
             % For shared cell data fix the relative path
-            hFile = [obj.repository.rawDataFolder filesep cellData.h5File];
+            hFile = [obj.repository.rawDataFolder filesep cellData.h5File '.h5'];
             cellData.attributes('h5File') = hFile;
         end
 
