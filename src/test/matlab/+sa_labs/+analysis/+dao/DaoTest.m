@@ -76,14 +76,15 @@ classdef DaoTest < matlab.unittest.TestCase
             import sa_labs.analysis.*;
             cellData = entity.CellData();
             cellData.attributes('recordingLabel') = 'cluster-c1';
+            cellData.attributes('h5File') = 'test.h5';
             cellDataByAmp = entity.CellDataByAmp(cellData.recordingLabel, 'Amp1');
             dao.saveCell(cellData);
             dao.saveCell(cellDataByAmp);
             % Should ignore the deviceType while saving the cell data
             cellData.deviceType = 'Amp1';
             dao.saveCell(cellData);
-            obj.verifyEqual(exist([path 'cluster-c1.mat'], 'file'), 2);
-            obj.verifyEqual(exist([path 'cluster-c1_Amp1.mat'], 'file'), 2);
+            obj.verifyEqual(exist([path 'testcluster-c1.mat'], 'file'), 2);
+            obj.verifyEqual(exist([path 'testcluster-c1_Amp1.mat'], 'file'), 2);
         end
 
         function testSaveProject(obj)
@@ -164,11 +165,11 @@ classdef DaoTest < matlab.unittest.TestCase
             obj.verifyEmpty(setdiff(expected, actual));
 
             % Test for Amp extension cell data names
-            names = dao.findCellNames(cellstr('cluster-c1*Amp1'));
-            obj.verifyEqual(names, cellstr('cluster-c1_Amp1'));
+            names = dao.findCellNames(cellstr('testcluster-c1*Amp1'));
+            obj.verifyEqual(names, cellstr('testcluster-c1_Amp1'));
 
-            names = dao.findCellNames(cellstr('cluster-c1'));
-            obj.verifyEqual(names, cellstr('cluster-c1'));
+            names = dao.findCellNames(cellstr('testcluster-c1'));
+            obj.verifyEqual(names, cellstr('testcluster-c1'));
         end
 
         function testFindCell(obj)
@@ -181,8 +182,8 @@ classdef DaoTest < matlab.unittest.TestCase
             obj.verifyError(dataHandle, 'MATLAB:load:couldNotReadFile');
 
             % Test for CellDataByAmp @see testSaveCell for more details
-            cellData1 = dao.findCell('cluster-c1_Amp1');
-            cellData2 = dao.findCell('cluster-c1');
+            cellData1 = dao.findCell('testcluster-c1_Amp1');
+            cellData2 = dao.findCell('testcluster-c1');
             obj.verifyEqual(cellData1.deviceType, 'Amp1');
             obj.verifyEmpty(cellData2.deviceType);
             obj.verifyTrue(isa(cellData1, 'sa_labs.analysis.entity.CellData'));

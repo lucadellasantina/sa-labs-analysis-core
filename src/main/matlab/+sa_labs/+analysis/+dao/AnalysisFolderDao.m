@@ -111,14 +111,15 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
                 cellDataByAmp = cellData;
                 result = load(pathFun(cellDataByAmp.cellDataRecordingLabel));
                 cellData = result.cellData;
+                obj.applyCellDataMigration(cellData);
+                % if we do migration after transient property update then recording label will be updated.
                 cellDataByAmp.updateCellDataForTransientProperties(cellData);
+            else
+                obj.applyCellDataMigration(cellData);
             end
             % For shared cell data fix the relative path
-            hFile = [obj.repository.rawDataFolder filesep cellData.h5file]
+            hFile = [obj.repository.rawDataFolder filesep cellData.h5File];
             cellData.attributes('h5File') = hFile;
-
-            obj.log.info('checking for migrations...');
-            dao.applyCellDataMigration(cellData);
         end
 
         function saveAnalysisResults(obj, resultId, result, protocol) %#ok
@@ -183,9 +184,9 @@ classdef AnalysisFolderDao < sa_labs.analysis.dao.AnalysisDao & mdepin.Bean
             end
             migrations = obj.repository.getMigrationFunctionAfterDate(parsedDate, 'cellData');
             for migration = each(migrations)
-                migration(entity);
+                migration(cellData);
             end
-            obj.saveCell(entity);
+            obj.saveCell(cellData);
         end
     end
 end
